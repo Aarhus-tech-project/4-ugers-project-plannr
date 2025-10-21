@@ -1,9 +1,9 @@
 "use client"
-import type { ThemeProviderProps } from "next-themes"
-import { ThemeProvider, useTheme } from "next-themes"
-import { LuMoon, LuSun } from "react-icons/lu"
+import type { ThemeProviderProps } from "next-themes";
+import { ThemeProvider, useTheme } from "next-themes";
+import { LuMoon, LuSun } from "react-icons/lu";
 
-export interface ColorModeProviderProps extends ThemeProviderProps {}
+export type ColorModeProviderProps = ThemeProviderProps;
 
 export function ColorModeProvider(props: ColorModeProviderProps) {
   return <ThemeProvider attribute="class" disableTransitionOnChange {...props} />

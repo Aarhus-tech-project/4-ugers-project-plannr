@@ -16,7 +16,7 @@ export default function WelcomePage() {
   return (
     <Box maxW="md" mx="auto" mt={20} p={8} borderWidth={1} borderRadius="lg">
       <Heading mb={4}>Welcome!</Heading>
-      <Text mb={6}>You're logged in as {session.user?.name || "User"}.</Text>
+      <Text mb={6}>You&apos;re logged in as {session.user?.name || "User"}.</Text>
       <Button colorScheme="red" onClick={() => signOut({ callbackUrl: "/login" })}>
         Log out
       </Button>

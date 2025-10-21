@@ -1,26 +1,22 @@
-# Use official Bun image for Node.js + Bun
-FROM oven/bun:1.1.13
+# Use official Bun image
+FROM oven/bun:1.3.0
 
-# Set working directory
 WORKDIR /app
 
-# Copy package and lock files
+# Copy dependency files
 COPY package.json bun.lockb ./
 
 # Install dependencies
-RUN bun install
+RUN bun install --frozen-lockfile
 
-# Copy the rest of the application code
+# Copy the rest of your source code
 COPY . .
-
-# Expose the port Next.js will run on
-EXPOSE 3000
-
-# Set environment variables (optional, can be overridden)
-ENV NODE_ENV=production
 
 # Build the Next.js app
 RUN bun run build
 
-# Start the Next.js app
+EXPOSE 3000
+
+ENV NODE_ENV=production
+
 CMD ["bun", "run", "start"]
