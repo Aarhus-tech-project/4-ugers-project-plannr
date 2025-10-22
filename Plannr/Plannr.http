@@ -1,6 +1,33 @@
 @Plannr_HostAddress = http://localhost:5021
+@Plannr_ProdAddress = https://plannr.azurewebsites.net
 
-GET {{Plannr_HostAddress}}/weatherforecast/
+### Swagger (lokalt)
+GET {{Plannr_HostAddress}}/swagger
+Accept: text/html
+
+### Hent alle events (lokalt)
+GET {{Plannr_HostAddress}}/api/events
 Accept: application/json
 
-###
+### Hent alle events (prod)
+GET {{Plannr_ProdAddress}}/api/events
+Accept: application/json
+
+### Opret event (lokalt)
+POST {{Plannr_HostAddress}}/api/events
+Content-Type: application/json
+
+{
+  "title": "Testevent fra http-fil",
+  "description": "Dummy data",
+  "ownerId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "startAt": "2025-11-14T18:00:00Z",
+  "endAt": "2025-11-14T22:00:00Z",
+  "latitude": 55.6761,
+  "longitude": 12.5683,
+  "radiusMeters": 100
+}
+
+### Hent specifikt event (lokalt – brug seeded id)
+GET {{Plannr_HostAddress}}/api/events/bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+Accept: application/json
