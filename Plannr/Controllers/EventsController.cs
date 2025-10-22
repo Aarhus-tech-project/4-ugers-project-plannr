@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Plannr.Api.Models;
+using static Plannr.Helpers.EventHelper;
 
 namespace Plannr.Api.Controllers;
 
