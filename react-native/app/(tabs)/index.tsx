@@ -47,7 +47,7 @@ export default function Home() {
           borderRadius: 24,
           minWidth: 200,
         }}
-        labelStyle={{ fontFamily: "Nunito-Bold", fontWeight: "bold", fontSize: 18, color: "#fff" }}
+        labelStyle={{ fontWeight: "bold", fontSize: 18, color: "#fff" }}
       >
         Get Started
       </Button>

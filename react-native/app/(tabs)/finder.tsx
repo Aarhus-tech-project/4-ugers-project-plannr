@@ -1,4 +1,4 @@
-import { mockEvents } from "@/app/mockEvents.data"
+import { mockEvents } from "@/data/mockEvents.data"
 import type { Event } from "@/interfaces/event"
 import EventDetailsCard from "@components/EventDetailsCard"
 import { FontAwesome6 } from "@expo/vector-icons"
@@ -109,7 +109,7 @@ export default function Finder() {
             contentContainerStyle={{ alignItems: "center" }}
             showsVerticalScrollIndicator={false}
           >
-            {cards.map((card, idx) =>
+            {cards?.map((card, idx) =>
               card.type === "image" ? (
                 <View
                   key={idx}
@@ -160,7 +160,7 @@ export default function Finder() {
                   </TouchableOpacity>
                 </View>
               ) : card.type === "details" ? (
-                <EventDetailsCard event={event} />
+                <EventDetailsCard key={idx} event={event} />
               ) : (
                 <View
                   key={idx}
