@@ -1,4 +1,4 @@
-import { SessionType } from "@/types/session"
+import { SessionType } from "@/interfaces/session"
 import * as SecureStore from "expo-secure-store"
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react"
 

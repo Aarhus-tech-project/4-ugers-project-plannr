@@ -23,7 +23,7 @@ export default function Login() {
     setLoginProvider("github")
     if (loading) return
     setLoading(true)
-    const clientId = "Ov23lik1scBwxG2j9iDQ"
+    const clientId = GITHUB_CLIENT_ID || ""
     const redirectUri = AuthSession.makeRedirectUri()
     const discovery = {
       authorizationEndpoint: "https://github.com/login/oauth/authorize",

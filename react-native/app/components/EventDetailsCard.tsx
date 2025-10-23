@@ -1,8 +1,8 @@
+import type { Event } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import dayjs from "dayjs"
 import { View } from "react-native"
 import { Divider, Text, useTheme } from "react-native-paper"
-import type { Event } from "../../types/event"
 
 interface Props {
   event: Event

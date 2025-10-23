@@ -1,11 +1,11 @@
+import { mockEvents } from "@/app/mockEvents.data"
+import type { Event } from "@/interfaces/event"
+import EventDetailsCard from "@components/EventDetailsCard"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import { useState } from "react"
 import { Image, ScrollView, TouchableOpacity, View } from "react-native"
 import { Surface, Text, useTheme } from "react-native-paper"
-import type { Event } from "../../types/event"
-import EventDetailsCard from "../components/EventDetailsCard"
-import { mockEvents } from "../mockEvents.data"
 
 export default function Finder() {
   const theme = useTheme()

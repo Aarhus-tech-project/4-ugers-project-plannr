@@ -1,4 +1,4 @@
-import { Event } from "@/types/event"
+import { Event } from "@/interfaces/event"
 
 // Example mock events for testing
 export const mockEvents: Event[] = [

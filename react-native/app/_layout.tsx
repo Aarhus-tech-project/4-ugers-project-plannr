@@ -1,10 +1,10 @@
+import LoginScreen from "@/app/login"
 import { SessionProvider, useSession } from "@/hooks/useSession"
+import { darkTheme, lightTheme } from "@/theme"
 import { useFonts } from "expo-font"
 import { Stack } from "expo-router"
 import { ActivityIndicator, useColorScheme, View } from "react-native"
 import { PaperProvider } from "react-native-paper"
-import { darkTheme, lightTheme } from "../theme"
-import LoginScreen from "./login" // Adjust path if needed
 
 function AppContent() {
   const { session, loading } = useSession()
