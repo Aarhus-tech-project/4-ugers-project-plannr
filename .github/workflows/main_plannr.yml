@@ -2,7 +2,8 @@ name: Build and deploy ASP.NET Core app to Azure Web App - Plannr
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -12,29 +13,29 @@ jobs:
       contents: read
 
     steps:
-      # 1) Checkout
+      # 1) Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2) .NET 8
+      # 2) Setup .NET 8
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      # 3) Restore
+      # 3) Restore dependencies
       - name: Restore dependencies
         run: dotnet restore
         working-directory: Plannr
 
-      # 4) Build + Publish (output til ./publish i repo-roden)
+      # 4) Build and publish output
       - name: Build and publish
         run: |
           dotnet build --configuration Release --no-restore
           dotnet publish -c Release -o ../publish
         working-directory: Plannr
 
-      # 5) Upload artifact til deploy-job
+      # 5) Upload artifact for deploy step
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -46,29 +47,21 @@ jobs:
     needs: build
     environment: Production
     permissions:
-      id-token: write
       contents: read
 
     steps:
-      # 1) Hent artifact
+      # 1) Download artifact
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: plannr-app
           path: ./publish
 
-      # 2) Login til Azure (OIDC)
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_3E7F1F231D05431EBEF41AE948DACA0C }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_76B9511BA50846F2959E2E07DE07618A }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C89D5F4703B04C1DB0575D4954AA806B }}
-
-      # 3) Deploy til App Service
+      # 2) Deploy directly using Publish Profile
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'Plannr'      # præcis navn på din App Service
-          slot-name: 'Production' # standard slot
+          app-name: 'Plannr'  # brug præcis det navn din App Service har
+          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./publish
