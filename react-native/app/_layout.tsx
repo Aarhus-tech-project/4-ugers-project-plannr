@@ -16,6 +16,7 @@ function AppContent() {
     )
   }
   if (!session) return <LoginScreen />
+
   return <Stack screenOptions={{ headerShown: false }} />
 }
 
@@ -24,7 +25,7 @@ export default function RootLayout() {
 
   return (
     <SessionProvider>
-      <PaperProvider theme={colorScheme === "dark" ? darkTheme : lightTheme}>
+      <PaperProvider theme={colorScheme !== "dark" ? darkTheme : lightTheme}>
         <AppContent />
       </PaperProvider>
     </SessionProvider>

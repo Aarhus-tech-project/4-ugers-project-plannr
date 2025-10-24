@@ -1,17 +1,13 @@
-import { Button, Surface, Text, useTheme } from "react-native-paper"
-
 import React from "react"
+import { Button, Surface, Text } from "react-native-paper"
 
 export default function Home() {
-  const theme = useTheme()
-  const bg = theme.colors.background
   return (
     <Surface
       style={{
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: bg,
         elevation: 0,
       }}
     >
@@ -25,19 +21,6 @@ export default function Home() {
         }}
       >
         Welcome to Plannr
-      </Text>
-      <Text
-        style={{
-          fontStyle: "italic",
-          textAlign: "center",
-          marginTop: 8,
-          marginBottom: 32,
-          fontSize: 18,
-          color: "#A0A0A0",
-          letterSpacing: 0.2,
-        }}
-      >
-        "The best way to get things done is to begin."
       </Text>
       <Button
         mode="contained"

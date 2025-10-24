@@ -12,7 +12,6 @@ export default function Login() {
   const { setSession } = useSession()
   const [loading, setLoading] = React.useState(false)
   const theme = useTheme()
-  const bg = theme.colors.background
 
   const handleGoogleLogin = async () => {
     setLoginProvider("google")
@@ -118,7 +117,6 @@ export default function Login() {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: bg,
         padding: 24,
         elevation: 0,
       }}

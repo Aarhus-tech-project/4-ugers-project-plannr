@@ -28,7 +28,7 @@ export const lightTheme = {
     error: palette.red,
     onError: palette.white,
     outline: palette.blue,
-    shadow: palette.neutralGray,
+    shadow: "#e0e0e0ff",
   },
 }
 
@@ -47,6 +47,6 @@ export const darkTheme = {
     error: palette.red,
     onError: palette.white,
     outline: palette.teal,
-    shadow: palette.neutralGray,
+    shadow: "#363636ff",
   },
 }

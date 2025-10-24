@@ -2,6 +2,7 @@ import type { Event } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import dayjs from "dayjs"
 import { View } from "react-native"
+import Flag from "react-native-ico-flags"
 import { Divider, Text, useTheme } from "react-native-paper"
 
 interface Props {
@@ -37,7 +38,8 @@ export default function EventDetailsCard({ event }: Props) {
           alignContent: "center",
           justifyContent: "flex-start",
           borderRadius: 16,
-          paddingVertical: 16,
+          paddingTop: 16,
+          paddingBottom: 8,
           gap: 16,
         }}
       >
@@ -46,14 +48,22 @@ export default function EventDetailsCard({ event }: Props) {
           <FontAwesome6 name="users" size={20} color={iconColor} style={{ marginRight: 12 }} />
           <Text style={{ color: iconColor, fontSize: 16 }}>{event.interestedCount}</Text>
         </View>
-        <View style={{ width: 0.1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+        <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
         {/* Theme */}
         {event.theme && (
           <View style={rowStyle}>
-            <FontAwesome6 name="palette" size={20} color={iconColor} style={{ marginRight: 12 }} />
+            <FontAwesome6 name={event.theme.icon} size={20} color={iconColor} style={{ marginRight: 12 }} />
             <Text style={{ color: iconColor, fontSize: 16 }}>
-              {event.theme.split("")[0].toUpperCase() + event.theme.slice(1)}
+              {event.theme.name.split("")[0].toUpperCase() + event.theme.name.slice(1)}
             </Text>
+          </View>
+        )}
+        <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+        {/* Country */}
+        {event.location && (
+          <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Flag name={event.location.country} />
+            <Text style={{ color: iconColor, fontSize: 16 }}>{event.location.country}</Text>
           </View>
         )}
       </View>
@@ -63,34 +73,34 @@ export default function EventDetailsCard({ event }: Props) {
           width: "100%",
         }}
       >
-        <Divider style={{ marginBottom: 4, backgroundColor: theme.colors.shadow }} />
+        <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
         {/* Location */}
         {event.location && (
           <>
             <View style={rowStyle}>
               <FontAwesome6 name="location-dot" size={20} color={iconColor} style={{ marginRight: 12 }} />
               <Text style={{ color: iconColor, fontSize: 16 }}>
-                {event.location.city}, {event.location.country}
+                {event.location.city}, {event.location.address}
               </Text>
             </View>
-            <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow }} />
+            <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
           </>
         )}
         {/* Start Time */}
         <>
           <View style={rowStyle}>
             <FontAwesome6 name="calendar" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text style={{ color: iconColor, fontSize: 16 }}>{dayjs(event.startTime).format("DD MMMM YYYY")}</Text>
+            <Text style={{ color: iconColor, fontSize: 16 }}>{dayjs(event.startAt).format("DD MMMM YYYY")}</Text>
           </View>
-          <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow }} />
+          <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
         </>
         {/* Start hour */}
         <>
           <View style={rowStyle}>
             <FontAwesome6 name="clock" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text style={{ color: iconColor, fontSize: 16 }}>{dayjs(event.startTime).format("HH:mm")}</Text>
+            <Text style={{ color: iconColor, fontSize: 16 }}>{dayjs(event.startAt).format("HH:mm")}</Text>
           </View>
-          <Divider style={{ marginVertical: 4, height: 0 }} />
+          <Divider style={{ marginVertical: 4, backgroundColor: "transparent", height: 1 }} />
         </>
       </View>
     </View>
