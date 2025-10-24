@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.Text.Json.Serialization;
 
 namespace Plannr.Api.Models;
 
@@ -8,7 +9,8 @@ public class EventPrompt
     public Guid EventId { get; set; }
 
     [JsonIgnore]            // <- vigtig
-    public Event Event { get; set; } = default!;
+    [ValidateNever]
+    public Event? Event { get; set; } = default!;
 
     public string Prompt { get; set; } = default!;
     public string Answer { get; set; } = default!;

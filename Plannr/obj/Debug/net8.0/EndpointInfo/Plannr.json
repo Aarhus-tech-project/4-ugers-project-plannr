@@ -5,6 +5,18 @@
     "version": "1.0"
   },
   "paths": {
+    "/diag/config": {
+      "get": {
+        "tags": [
+          "Diag"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Events": {
       "get": {
         "tags": [
@@ -153,6 +165,30 @@
           }
         }
       }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "Plannr"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ping": {
+      "get": {
+        "tags": [
+          "Plannr"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -227,12 +263,11 @@
       },
       "EventFormat": {
         "enum": [
-          0,
-          1,
-          2
+          "inPerson",
+          "online",
+          "hybrid"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "EventImage": {
         "type": "object",
@@ -244,9 +279,6 @@
           "eventId": {
             "type": "string",
             "format": "uuid"
-          },
-          "event": {
-            "$ref": "#/components/schemas/Event"
           },
           "src": {
             "type": "string",
@@ -298,9 +330,6 @@
             "type": "string",
             "format": "uuid"
           },
-          "event": {
-            "$ref": "#/components/schemas/Event"
-          },
           "prompt": {
             "type": "string",
             "nullable": true
@@ -318,17 +347,16 @@
       },
       "EventThemeName": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7
+          "music",
+          "art",
+          "sports",
+          "tech",
+          "food",
+          "networking",
+          "health",
+          "education"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "Profile": {
         "type": "object",
@@ -360,13 +388,6 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
-          },
-          "eventsCreated": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Event"
-            },
-            "nullable": true
           }
         },
         "additionalProperties": false
