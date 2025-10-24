@@ -35,11 +35,11 @@ Accept: application/json
 ### PRODUCTION TESTS
 
 ### App health
-GET {{Prod}}/health
+GET {{Plannr_ProdAddress}}/health
 Accept: application/json
 
 ### DB health
-GET {{Prod}}/health/db
+GET {{Plannr_ProdAddress}}/health/db
 Accept: application/json
 
 ### Hent alle events (prod)
