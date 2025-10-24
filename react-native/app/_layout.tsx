@@ -17,7 +17,14 @@ function AppContent() {
   }
   if (!session) return <LoginScreen />
 
-  return <Stack screenOptions={{ headerShown: false }} />
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right", // enables slide transition
+      }}
+    />
+  )
 }
 
 export default function RootLayout() {

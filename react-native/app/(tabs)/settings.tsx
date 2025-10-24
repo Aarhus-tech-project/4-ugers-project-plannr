@@ -1,13 +1,53 @@
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
 import { FontAwesome6 } from "@expo/vector-icons"
-import Slider from "@react-native-community/slider"
-import React, { useRef } from "react"
-import { Image, ScrollView, TextInput, View } from "react-native"
+import { useRouter } from "expo-router"
+import React, { useRef, useState } from "react"
+import { Image, TouchableOpacity, View } from "react-native"
 import { Text, useTheme } from "react-native-paper"
 import { useLiveLocation } from "../../hooks/useLiveLocation"
 import { useSession } from "../../hooks/useSession"
 
+function Accordion({
+  title,
+  children,
+  dividerColor,
+  iconName,
+  expanded,
+  onPress,
+}: {
+  title: string
+  children: React.ReactNode
+  dividerColor: string
+  iconName?: string
+  expanded: boolean
+  onPress: () => void
+}) {
+  const theme = useTheme()
+  return (
+    <View style={{ width: "90%", marginBottom: 0 }}>
+      <View style={{ width: "100%", height: 1, backgroundColor: dividerColor, marginHorizontal: 0 }} />
+      <TouchableOpacity
+        style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12 }}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        <Text
+          style={{
+            borderRadius: 8,
+            color: theme.colors.onBackground,
+          }}
+        >
+          {title}
+        </Text>
+        {iconName && <FontAwesome6 name={iconName} size={16} />}
+      </TouchableOpacity>
+      {expanded && <View style={{ marginTop: 8 }}>{children}</View>}
+    </View>
+  )
+}
+
 export default function Settings() {
+  const router = useRouter()
   const theme = useTheme()
   const [rangeKm, setRangeKm] = React.useState(10)
   const { location, address, error: locationError } = useLiveLocation()
@@ -19,6 +59,9 @@ export default function Settings() {
   const [showSaveModal, setShowSaveModal] = React.useState(false)
   const { setVisible } = useTabBarVisibility()
   const lastScrollY = useRef(0)
+
+  // Accordion state: only one open at a time
+  const [openAccordion, setOpenAccordion] = useState<"preferences" | "account" | null>(null)
 
   return (
     <>
@@ -139,7 +182,6 @@ export default function Settings() {
                     position: "absolute",
                     bottom: 16,
                     textAlign: "center",
-                    fontSize: 14,
                   }}
                 >
                   {"Plannr member"}
@@ -157,195 +199,52 @@ export default function Settings() {
               }}
             />
           </View>
-          <ScrollView
-            style={{ flex: 1, width: "100%" }}
-            contentContainerStyle={{ alignItems: "center", paddingBottom: 32 }}
-            showsVerticalScrollIndicator={false}
-            scrollEventThrottle={8}
-            onScroll={(e) => {
-              const currentY = e.nativeEvent.contentOffset.y
-              if (currentY > lastScrollY.current + 10) {
-                setVisible(false) // scrolling down
-              } else if (currentY < lastScrollY.current - 10) {
-                setVisible(true) // scrolling up
-              }
-              lastScrollY.current = currentY
+          <View
+            style={{
+              flex: 1,
+              paddingTop: 40,
+              alignItems: "center",
+              width: "100%",
+              backgroundColor: theme.colors.secondary,
             }}
           >
-            {/* Profile Card */}
-            <View
-              style={{
-                width: "90%",
-                borderRadius: 16,
-                backgroundColor: theme.colors.secondary,
-                marginBottom: 24,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-                paddingVertical: 32,
-                position: "relative",
-                elevation: 2,
-              }}
-            >
-              <View style={{ width: "100%", paddingHorizontal: 16 }}>
-                {/* Name Field */}
-                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-                  <FontAwesome6 name="id-card" size={18} color={theme.colors.onBackground} style={{ marginRight: 8 }} />
-                  <TextInput
-                    style={{
-                      flex: 1,
-                      borderRadius: 5,
-                      padding: 10,
-                      marginTop: 5,
-                      backgroundColor: editMode ? theme.colors.surface : theme.colors.background,
-                      color: theme.colors.onSurface,
-                    }}
-                    value={session?.user?.name || ""}
-                    editable={false}
-                  />
-                </View>
-                {/* Email Field */}
-                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-                  <FontAwesome6
-                    name="envelope"
-                    size={18}
-                    color={theme.colors.onBackground}
-                    style={{ marginRight: 8 }}
-                  />
-                  <TextInput
-                    style={{
-                      flex: 1,
-                      borderRadius: 5,
-                      padding: 10,
-                      marginTop: 5,
-                      backgroundColor: editMode ? theme.colors.surface : theme.colors.background,
-                      color: theme.colors.onSurface,
-                    }}
-                    value={session?.user?.email || ""}
-                    editable={false}
-                  />
-                </View>
-                {/* Bio Field */}
-                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-                  <FontAwesome6 name="comment" size={18} color={theme.colors.onBackground} style={{ marginRight: 8 }} />
-                  <TextInput
-                    style={{
-                      flex: 1,
-                      borderRadius: 5,
-                      padding: 10,
-                      marginTop: 5,
-                      backgroundColor: editMode ? theme.colors.surface : theme.colors.background,
-                      color: theme.colors.onSurface,
-                    }}
-                    value={bio}
-                    onChangeText={setBio}
-                    placeholder="Add your bio"
-                    placeholderTextColor={editMode ? theme.colors.onBackground : theme.colors.onSurface}
-                    editable={editMode}
-                  />
-                </View>
-                {/* Phone Field */}
-                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-                  <FontAwesome6 name="phone" size={18} color={theme.colors.onBackground} style={{ marginRight: 8 }} />
-                  <TextInput
-                    style={{
-                      flex: 1,
-                      borderRadius: 5,
-                      padding: 10,
-                      marginTop: 5,
-                      backgroundColor: editMode ? theme.colors.surface : theme.colors.background,
-                      color: theme.colors.onSurface,
-                    }}
-                    value={phone}
-                    onChangeText={setPhone}
-                    placeholder="Phone number"
-                    placeholderTextColor={editMode ? theme.colors.onBackground : theme.colors.onSurface}
-                    keyboardType="phone-pad"
-                    editable={editMode}
-                  />
-                </View>
-              </View>
-            </View>
-            {/* Location Card - placeholder */}
-            <View
-              style={{
-                width: "90%",
-                borderRadius: 16,
-                backgroundColor: theme.colors.secondary,
-                marginBottom: 24,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-                paddingVertical: 32,
-                position: "relative",
-                elevation: 2,
-              }}
-            >
-              <View style={{ width: "100%", paddingHorizontal: 16 }}>
-                {locationError ? (
-                  <Text style={{ color: theme.colors.error }}>{locationError}</Text>
-                ) : location ? (
-                  <>
-                    <Text style={{ color: theme.colors.onBackground, fontSize: 16, marginBottom: 8 }}>
-                      <FontAwesome6 name="location-crosshairs" size={16} color={theme.colors.onBackground} /> Address:{" "}
-                      {address || "Loading address..."}
-                    </Text>
-                    <Text style={{ color: theme.colors.onBackground, fontSize: 16, marginBottom: 8 }}>
-                      <FontAwesome6 name="arrow-up" size={16} color={theme.colors.onBackground} /> Latitude:{" "}
-                      {location.coords.latitude.toFixed(5)}
-                    </Text>
-                    <Text style={{ color: theme.colors.onBackground, fontSize: 16, marginBottom: 8 }}>
-                      <FontAwesome6 name="arrow-right" size={16} color={theme.colors.onBackground} /> Longitude:{" "}
-                      {location.coords.longitude.toFixed(5)}
-                    </Text>
-                  </>
-                ) : (
-                  <Text style={{ color: theme.colors.onBackground }}>Fetching location...</Text>
-                )}
-              </View>
-            </View>
-            {/* Range Card - placeholder */}
-            <View
-              style={{
-                width: "90%",
-                borderRadius: 16,
-                backgroundColor: theme.colors.secondary,
-                marginBottom: 24,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-                paddingVertical: 32,
-                position: "relative",
-                elevation: 2,
-              }}
-            >
-              <View style={{ width: "100%", paddingHorizontal: 16 }}>
-                <Text style={{ color: theme.colors.onBackground, fontSize: 16, marginBottom: 8 }}>
-                  <FontAwesome6 name="location-arrow" size={16} color={theme.colors.onBackground} /> Search Radius:{" "}
-                  {rangeKm} km
+            <View style={{ width: "90%", marginBottom: 0 }}>
+              <View style={{ width: "100%", height: 1, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+              <TouchableOpacity
+                style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12 }}
+                activeOpacity={0.7}
+                onPress={() => router.push("/preferences")}
+              >
+                <Text
+                  style={{
+                    borderRadius: 8,
+                    color: theme.colors.onBackground,
+                  }}
+                >
+                  Preferences
                 </Text>
-                <View style={{ width: "100%", alignItems: "center", marginVertical: 8 }}>
-                  <Text style={{ color: theme.colors.onBackground, marginBottom: 4 }}>
-                    <FontAwesome6 name="sliders" size={16} color={theme.colors.onBackground} /> Adjust range:
-                  </Text>
-                  <Slider
-                    minimumValue={1}
-                    maximumValue={100}
-                    value={rangeKm}
-                    step={1}
-                    onValueChange={setRangeKm}
-                    style={{ width: "80%" }}
-                    minimumTrackTintColor={theme.colors.onBackground}
-                    maximumTrackTintColor={theme.colors.outline}
-                    thumbTintColor={theme.colors.onBackground}
-                  />
-                </View>
-              </View>
+                <FontAwesome6 name={"sliders"} size={16} />
+              </TouchableOpacity>
             </View>
-          </ScrollView>
+            <View style={{ width: "90%", marginBottom: 0 }}>
+              <View style={{ width: "100%", height: 1, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+              <TouchableOpacity
+                style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12 }}
+                activeOpacity={0.7}
+                onPress={() => router.push("/account")}
+              >
+                <Text
+                  style={{
+                    borderRadius: 8,
+                    color: theme.colors.onBackground,
+                  }}
+                >
+                  Account
+                </Text>
+                <FontAwesome6 name={"gear"} size={16} />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
     </>
