@@ -1,9 +1,10 @@
 import React from "react"
-import { Button, Surface, Text } from "react-native-paper"
+import { View } from "react-native"
+import { Button, Text } from "react-native-paper"
 
 export default function Home() {
   return (
-    <Surface
+    <View
       style={{
         flex: 1,
         justifyContent: "center",
@@ -34,6 +35,6 @@ export default function Home() {
       >
         Get Started
       </Button>
-    </Surface>
+    </View>
   )
 }

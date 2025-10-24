@@ -11,11 +11,15 @@ export default function TabLayout() {
     <TabBarVisibilityProvider>
       <Tabs
         screenOptions={() => ({
-          tabBarActiveTintColor: theme.colors.primary,
-          tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
+          tabBarActiveTintColor: theme.colors.background,
+          tabBarInactiveTintColor: theme.colors.scrim,
           tabBarStyle: {
-            backgroundColor: theme.colors.secondary,
+            backgroundColor: theme.colors.tertiary,
             borderTopWidth: 0,
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
           },
           headerShown: false,
         })}
@@ -33,6 +37,13 @@ export default function TabLayout() {
           options={{
             tabBarLabel: "",
             tabBarIcon: ({ color, size }) => <FontAwesome name="heart" color={color} size={size || 24} />,
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            tabBarLabel: "",
+            tabBarIcon: ({ color, size }) => <FontAwesome name="user" color={color} size={size || 24} />,
           }}
         />
       </Tabs>

@@ -90,7 +90,7 @@ export default function Login() {
             setSession({
               user: {
                 name: userData.name,
-                avatar_url: userData.avatar_url,
+                avatarUrl: userData.avatar_url,
                 email,
                 location: userData.location,
               },

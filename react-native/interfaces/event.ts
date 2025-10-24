@@ -1,3 +1,5 @@
+import { Profile } from "./profile"
+
 export interface EventLocation {
   city: string
   country: string
@@ -15,13 +17,6 @@ type EventThemeIcon = "music" | "paintbrush" | "futbol" | "laptop-code" | "utens
 export interface EventTheme {
   name: EventThemeName
   icon: EventThemeIcon
-}
-
-export interface EventCreator {
-  id: string
-  name: string
-  email: string
-  avatarUrl?: string
 }
 
 export interface EventImage {
@@ -46,5 +41,5 @@ export interface Event {
   allDay?: boolean
   location?: EventLocation
   theme?: EventTheme
-  creator: EventCreator
+  creator: Profile
 }

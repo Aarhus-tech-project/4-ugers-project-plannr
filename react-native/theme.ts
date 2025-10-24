@@ -23,12 +23,14 @@ export const lightTheme = {
     onSecondary: palette.darkGray,
     background: palette.offWhite,
     onBackground: palette.darkGray,
-    surface: palette.teal,
-    onSurface: palette.darkGray,
+    surface: "#e0e0e0ff",
+    onSurface: palette.neutralGray,
     error: palette.red,
     onError: palette.white,
     outline: palette.blue,
     shadow: "#e0e0e0ff",
+    tertiary: palette.darkGray,
+    scrim: palette.lightGray,
   },
 }
 
@@ -48,5 +50,7 @@ export const darkTheme = {
     onError: palette.white,
     outline: palette.teal,
     shadow: "#363636ff",
+    tertiary: palette.darkGray,
+    scrim: palette.lightGray,
   },
 }

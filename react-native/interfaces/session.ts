@@ -2,7 +2,7 @@ export type ProviderType = "github" | "google"
 
 export interface GithubUser {
   name: string | null
-  avatar_url: string
+  avatarUrl: string
   email: string | null
   location: string | null
 }

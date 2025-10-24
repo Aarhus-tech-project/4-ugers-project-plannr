@@ -6,7 +6,7 @@ import { useRouter } from "expo-router"
 import { MotiView } from "moti"
 import { useRef, useState } from "react"
 import { Image, ScrollView, TouchableOpacity, View } from "react-native"
-import { Surface, Text, useTheme } from "react-native-paper"
+import { Text, useTheme } from "react-native-paper"
 import EventDetailsCard from "../components/EventDetailsCard"
 
 export default function Finder() {
@@ -58,7 +58,7 @@ export default function Finder() {
           {event?.title}
         </Text>
       </View>
-      <Surface
+      <View
         style={{
           flex: 1,
           justifyContent: "center",
@@ -241,7 +241,7 @@ export default function Finder() {
             </View>
           </TouchableOpacity>
         </MotiView>
-      </Surface>
+      </View>
     </>
   )
 }
