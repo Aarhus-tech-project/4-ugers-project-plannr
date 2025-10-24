@@ -10,19 +10,18 @@ export interface EventLocation {
 
 type EventThemeName = "Music" | "Art" | "Sports" | "Tech" | "Food" | "Networking" | "Health" | "Education"
 // FA6 Icon nanes for reference: https://fontawesome.com/icons?d=gallery&s=solid&m=free
-type EventThemeIcon =
-  | "music"
-  | "paint-brush"
-  | "football"
-  | "laptop-code"
-  | "utensils"
-  | "users"
-  | "heart-pulse"
-  | "book"
+type EventThemeIcon = "music" | "paintbrush" | "futbol" | "laptop-code" | "utensils" | "users" | "heart-pulse" | "book"
 
 export interface EventTheme {
   name: EventThemeName
   icon: EventThemeIcon
+}
+
+export interface EventCreator {
+  id: string
+  name: string
+  email: string
+  avatarUrl?: string
 }
 
 export interface EventImage {
@@ -47,4 +46,5 @@ export interface Event {
   allDay?: boolean
   location?: EventLocation
   theme?: EventTheme
+  creator: EventCreator
 }

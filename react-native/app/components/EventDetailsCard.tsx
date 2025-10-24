@@ -1,7 +1,7 @@
 import type { Event } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import dayjs from "dayjs"
-import { View } from "react-native"
+import { Image, View } from "react-native"
 import Flag from "react-native-ico-flags"
 import { Divider, Text, useTheme } from "react-native-paper"
 
@@ -73,6 +73,32 @@ export default function EventDetailsCard({ event }: Props) {
           width: "100%",
         }}
       >
+        <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
+        {/* Creator */}
+        {event.creator && (
+          <View style={rowStyle}>
+            {event.creator.avatarUrl ? (
+              <View
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  overflow: "hidden",
+                  marginRight: 12,
+                }}
+              >
+                <Image
+                  source={{ uri: event.creator.avatarUrl }}
+                  style={{ width: "100%", height: "100%" }}
+                  resizeMode="cover"
+                />
+              </View>
+            ) : (
+              <FontAwesome6 name="user" size={20} color={iconColor} style={{ marginRight: 12 }} />
+            )}
+            <Text style={{ color: iconColor, fontSize: 16 }}>By: {event.creator.name}</Text>
+          </View>
+        )}
         <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
         {/* Location */}
         {event.location && (
