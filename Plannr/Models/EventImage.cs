@@ -1,9 +1,13 @@
-﻿namespace Plannr.Api.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace Plannr.Api.Models;
 
 public class EventImage
 {
     public Guid Id { get; set; }
     public Guid EventId { get; set; }
+
+    [JsonIgnore]            // <- vigtig
     public Event Event { get; set; } = default!;
 
     public string Src { get; set; } = default!;
