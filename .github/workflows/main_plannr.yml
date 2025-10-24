@@ -1,9 +1,8 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - Plannr
+name: Build and deploy ASP.NET Core app to Azure Web App - Plannr
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -13,45 +12,52 @@ jobs:
       contents: read
 
     steps:
-      # 1. Checkout repo
-      - uses: actions/checkout@v4
+      # 1) Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # 2. Setup .NET
-      - name: Set up .NET Core
+      # 2) .NET 8
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: '8.0.x'
 
-      # 3. Build and publish
+      # 3) Restore
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: Plannr
+
+      # 4) Build + Publish (output til ./publish i repo-roden)
       - name: Build and publish
         run: |
-          dotnet build --configuration Release
+          dotnet build --configuration Release --no-restore
           dotnet publish -c Release -o ../publish
         working-directory: Plannr
 
-      # 4. Upload artifact for deployment
+      # 5) Upload artifact til deploy-job
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
+          name: plannr-app
           path: ./publish
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    environment: Production
     permissions:
       id-token: write
       contents: read
 
     steps:
-      # 1. Download build artifact
+      # 1) Hent artifact
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
+          name: plannr-app
           path: ./publish
 
-      # 2. Login to Azure
+      # 2) Login til Azure (OIDC)
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -59,10 +65,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_76B9511BA50846F2959E2E07DE07618A }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C89D5F4703B04C1DB0575D4954AA806B }}
 
-      # 3. Deploy to Azure
+      # 3) Deploy til App Service
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'Plannr'
-          slot-name: 'Production'
+          app-name: 'Plannr'      # præcis navn på din App Service
+          slot-name: 'Production' # standard slot
           package: ./publish

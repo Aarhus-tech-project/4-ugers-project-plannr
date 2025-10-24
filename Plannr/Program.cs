@@ -1,13 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Plannr.Api.Models;
-using System.Collections.Concurrent;
-using Plannr.Helpers;
-using static Plannr.Helpers.EventHelper;
+using Microsoft.EntityFrameworkCore;
+using Plannr.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// CORS (til React/Next frontend – justér origins efter behov)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Default", p => p
@@ -21,8 +16,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// In-memory store (thread-safe)
-builder.Services.AddSingleton<IEventStore, InMemoryEventStore>();
+// ---------- Database (PostgreSQL via Npgsql) ----------
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// -------------------------------------------------------
 
 var app = builder.Build();
 
@@ -33,7 +30,11 @@ app.UseHttpsRedirection();
 app.UseCors("Default");
 app.MapControllers();
 
-// Seed lidt dummy data ved opstart
-EventHelper.Seed(app.Services.GetRequiredService<IEventStore>());
+// Kør migrations ved opstart (ok til demo)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();

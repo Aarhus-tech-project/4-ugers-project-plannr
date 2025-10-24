@@ -1,1 +1,4 @@
 .vs/
+# Local config
+appsettings.Development.json
+appsettings.Local.json
