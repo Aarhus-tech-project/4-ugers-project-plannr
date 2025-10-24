@@ -9,9 +9,7 @@ Accept: text/html
 GET {{Plannr_HostAddress}}/api/events
 Accept: application/json
 
-### Hent alle events (prod)
-GET {{Plannr_ProdAddress}}/api/events
-Accept: application/json
+
 
 ### Opret event (lokalt)
 POST {{Plannr_HostAddress}}/api/events
@@ -30,4 +28,20 @@ Content-Type: application/json
 
 ### Hent specifikt event (lokalt – brug seeded id)
 GET {{Plannr_HostAddress}}/api/events/bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+Accept: application/json
+
+
+
+### PRODUCTION TESTS
+
+### App health
+GET {{Prod}}/health
+Accept: application/json
+
+### DB health
+GET {{Prod}}/health/db
+Accept: application/json
+
+### Hent alle events (prod)
+GET {{Plannr_ProdAddress}}/api/events
 Accept: application/json
