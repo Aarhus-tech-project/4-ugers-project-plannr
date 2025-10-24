@@ -25,9 +25,14 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
-app.UseHttpsRedirection();
-app.UseCors("Default");
+//app.UseForwardedHeaders(new ForwardedHeadersOptions
+//{
+//    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
+//                       Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
+//    RequireHeaderSymmetry = false
+//});
+//app.UseHttpsRedirection();
+//app.UseCors("Default");
 app.MapControllers();
 
 // Kør migrations ved opstart (ok til demo)
