@@ -1,17 +1,21 @@
+import Flag from "@/components/Flag"
 import type { Event } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import dayjs from "dayjs"
-import { Image, View } from "react-native"
-import Flag from "react-native-ico-flags"
+import { Linking, Platform, TouchableOpacity, View } from "react-native"
 import { Divider, Text, useTheme } from "react-native-paper"
 
 interface Props {
   event: Event
+  onUnsubscribe?: (event: Event) => void
+  onSeeMore?: (event: Event) => void
+  actionButtons?: boolean
 }
 
-export default function EventDetailsCard({ event }: Props) {
+export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, actionButtons }: Props) {
   const theme = useTheme()
-  const iconColor = theme.colors.onBackground
+  const iconColor = theme.colors.primary
+  const textColor = theme.colors.onBackground
   const rowStyle = {
     flexDirection: "row" as const,
     alignItems: "center" as const,
@@ -26,7 +30,6 @@ export default function EventDetailsCard({ event }: Props) {
         width: "90%",
         borderRadius: 16,
         backgroundColor: theme.colors.secondary,
-        paddingHorizontal: 16,
         marginBottom: 24,
       }}
     >
@@ -40,30 +43,31 @@ export default function EventDetailsCard({ event }: Props) {
           borderRadius: 16,
           paddingTop: 16,
           paddingBottom: 8,
+          paddingHorizontal: 16,
           gap: 16,
         }}
       >
         {/* Interested Count */}
         <View style={rowStyle}>
           <FontAwesome6 name="users" size={20} color={iconColor} style={{ marginRight: 12 }} />
-          <Text style={{ color: iconColor, fontSize: 16 }}>{event.interestedCount}</Text>
+          <Text style={{ color: textColor, fontSize: 16 }}>{event.interestedCount}</Text>
         </View>
         <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
         {/* Theme */}
         {event.theme && (
           <View style={rowStyle}>
             <FontAwesome6 name={event.theme.icon} size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text style={{ color: iconColor, fontSize: 16 }}>
+            <Text style={{ color: textColor, fontSize: 16 }}>
               {event.theme.name.split("")[0].toUpperCase() + event.theme.name.slice(1)}
             </Text>
           </View>
         )}
         <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
         {/* Country */}
-        {event.location && (
+        {event.country && (
           <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <Flag name={event.location.country} />
-            <Text style={{ color: iconColor, fontSize: 16 }}>{event.location.country}</Text>
+            <Flag cca2={event?.country} />
+            <Text style={{ color: textColor, fontSize: 16 }}>{event.country}</Text>
           </View>
         )}
       </View>
@@ -71,43 +75,54 @@ export default function EventDetailsCard({ event }: Props) {
       <View
         style={{
           width: "100%",
+          paddingHorizontal: 16,
         }}
       >
         <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
-        {/* Creator */}
-        {event.creator && (
-          <View style={rowStyle}>
-            {event.creator.avatarUrl ? (
-              <View
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
-                  overflow: "hidden",
-                  marginRight: 12,
+        {/* Location */}
+        {event.city && event.address && (
+          <>
+            <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <FontAwesome6 name="location-dot" size={20} color={iconColor} style={{ marginRight: 12 }} />
+              <Text
+                style={{ color: textColor, fontSize: 16, textDecorationLine: "underline" }}
+                selectable
+                selectionColor={theme.colors.primary}
+                onPress={() => {
+                  if (!event.address && !event.city) return
+                  const query = encodeURIComponent(`${event.address}, ${event.city}`)
+                  const url = Platform.select({
+                    ios: `http://maps.apple.com/?q=${query}`,
+                    android: `geo:0,0?q=${query}`,
+                    default: `https://www.google.com/maps/search/?api=1&query=${query}`,
+                  })
+                  Linking.openURL(url as string)
                 }}
               >
-                <Image
-                  source={{ uri: event.creator.avatarUrl }}
-                  style={{ width: "100%", height: "100%" }}
-                  resizeMode="cover"
-                />
-              </View>
-            ) : (
-              <FontAwesome6 name="user" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            )}
-            <Text style={{ color: iconColor, fontSize: 16 }}>By: {event.creator.name}</Text>
-          </View>
+                {event.city}, {event.address}
+              </Text>
+            </View>
+            <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
+          </>
         )}
-        <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
-        {/* Location */}
-        {event.location && (
+        {/* Venue */}
+        {event.venue && (
+          <>
+            <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <FontAwesome6 name="building" size={20} color={iconColor} style={{ marginRight: 12 }} />
+              <Text style={{ color: textColor, fontSize: 16 }} selectable selectionColor={theme.colors.primary}>
+                {event.venue}
+              </Text>
+            </View>
+            <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
+          </>
+        )}
+        {/* Age Restriction */}
+        {event.requiredAge && (
           <>
             <View style={rowStyle}>
-              <FontAwesome6 name="location-dot" size={20} color={iconColor} style={{ marginRight: 12 }} />
-              <Text style={{ color: iconColor, fontSize: 16 }}>
-                {event.location.city}, {event.location.address}
-              </Text>
+              <FontAwesome6 name="user-shield" size={20} color={iconColor} style={{ marginRight: 12 }} />
+              <Text style={{ color: textColor, fontSize: 16 }}>Age limit {event.requiredAge}+</Text>
             </View>
             <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
           </>
@@ -116,7 +131,7 @@ export default function EventDetailsCard({ event }: Props) {
         <>
           <View style={rowStyle}>
             <FontAwesome6 name="calendar" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text style={{ color: iconColor, fontSize: 16 }}>{dayjs(event.startAt).format("DD MMMM YYYY")}</Text>
+            <Text style={{ color: textColor, fontSize: 16 }}>{dayjs(event.startAt).format("DD MMMM YYYY")}</Text>
           </View>
           <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
         </>
@@ -124,11 +139,60 @@ export default function EventDetailsCard({ event }: Props) {
         <>
           <View style={rowStyle}>
             <FontAwesome6 name="clock" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text style={{ color: iconColor, fontSize: 16 }}>{dayjs(event.startAt).format("HH:mm")}</Text>
+            <Text style={{ color: textColor, fontSize: 16 }}>{dayjs(event.startAt).format("HH:mm")}</Text>
           </View>
           <Divider style={{ marginVertical: 4, backgroundColor: "transparent", height: 1 }} />
         </>
       </View>
+      {/* Action Buttons as Card Bottom */}
+      {actionButtons && (
+        <View style={{ flexDirection: "row", width: "100%", height: 52, margin: 0, padding: 0 }}>
+          {onUnsubscribe ? (
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: theme.colors.error,
+                borderBottomLeftRadius: 16,
+                borderBottomRightRadius: 0,
+                borderTopLeftRadius: 0,
+                borderTopRightRadius: 0,
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+                margin: 0,
+                padding: 0,
+              }}
+              onPress={() => onUnsubscribe(event)}
+            >
+              <Text style={{ color: theme.colors.onError, fontWeight: "bold", fontSize: 16 }}>Unsubscribe</Text>
+            </TouchableOpacity>
+          ) : null}
+          {/* Divider between buttons */}
+          {onUnsubscribe && onSeeMore ? (
+            <View style={{ width: 0.5, height: "100%", backgroundColor: theme.colors.shadow, margin: 0, padding: 0 }} />
+          ) : null}
+          {onSeeMore ? (
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: theme.colors.primary,
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 16,
+                borderTopLeftRadius: 0,
+                borderTopRightRadius: 0,
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+                margin: 0,
+                padding: 0,
+              }}
+              onPress={() => onSeeMore(event)}
+            >
+              <Text style={{ color: theme.colors.onError, fontWeight: "bold", fontSize: 16 }}>See More</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      )}
     </View>
   )
 }

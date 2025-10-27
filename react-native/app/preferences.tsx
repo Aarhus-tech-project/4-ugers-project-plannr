@@ -1,14 +1,47 @@
+import AttendanceModeSelector from "@/components/AttendanceModeSelector"
+import CustomDateRangeCalendar from "@/components/CustomDateRangeCalendar"
+import DiscoveryRangeSlider from "@/components/DiscoveryRangeSlider"
+import EventThemeSelector from "@/components/EventThemeSelector"
+import LocationOptionSelector from "@/components/LocationOptionSelector"
+import MapPicker from "@/components/MapPicker"
+import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
+import { useLiveLocation } from "@/hooks/useLiveLocation"
+import { usePreferences } from "@/hooks/usePreferences"
 import { FontAwesome6 } from "@expo/vector-icons"
-import Slider from "@react-native-community/slider"
+import dayjs from "dayjs"
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
 import { useRouter } from "expo-router"
-import React, { useState } from "react"
-import { TouchableOpacity, View } from "react-native"
-import { Text, useTheme } from "react-native-paper"
+import React from "react"
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native"
+import { ActivityIndicator, Button, Chip, Text, useTheme } from "react-native-paper"
+
+dayjs.extend(isSameOrBefore)
 
 export default function Preferences() {
   const theme = useTheme()
   const router = useRouter()
-  const [rangeKm, setRangeKm] = useState(10)
+  const {
+    rangeKm,
+    setRangeKm,
+    selectedThemes,
+    setSelectedThemes,
+    dateRange,
+    setDateRange,
+    eventType,
+    setEventType,
+    customStart,
+    setCustomStart,
+    customEnd,
+    setCustomEnd,
+    resetPreferences,
+    isChanged,
+  } = usePreferences()
+  const [useCurrentLocation, setUseCurrentLocation] = React.useState(true)
+  const [selectedLocation, setSelectedLocation] = React.useState<{ latitude: number; longitude: number } | null>(null)
+  const { visibleThemes } = useLazyEventThemes(10, 600)
+  const { location: liveLocation } = useLiveLocation()
+  const locationLoading = !liveLocation
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.secondary }}>
       <View
@@ -25,7 +58,7 @@ export default function Preferences() {
       >
         <TouchableOpacity
           onPress={() => router.back()}
-          style={{ padding: 4, borderRadius: 20, position: "absolute", left: 20, top: 82 }}
+          style={{ padding: 4, borderRadius: 16, position: "absolute", left: 20, top: 82 }}
           activeOpacity={0.6}
         >
           <FontAwesome6 name="chevron-left" size={24} color={theme.colors.onBackground} />
@@ -42,40 +75,231 @@ export default function Preferences() {
           Preferences
         </Text>
       </View>
-      <View
-        style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: theme.colors.secondary }}
+      <ScrollView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+        contentContainerStyle={{ alignItems: "center", paddingBottom: 100, paddingTop: 16 }}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={{ width: "90%", height: 1, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+        {/* Location Option Card */}
         <View
           style={{
             width: "90%",
-            backgroundColor: theme.colors.surface,
-            borderRadius: 12,
-            padding: 16,
+            backgroundColor: theme.colors.secondary,
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
             shadowColor: theme.colors.shadow,
             shadowOpacity: 0.08,
             shadowRadius: 8,
-            marginTop: 40,
           }}
         >
-          <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 16, marginBottom: 8 }}>
-            Events Range
-          </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <Slider
-              minimumValue={1}
-              maximumValue={100}
-              value={rangeKm}
-              step={1}
-              onValueChange={setRangeKm}
-              style={{ flex: 1 }}
-              minimumTrackTintColor={theme.colors.primary}
-              maximumTrackTintColor={theme.colors.background}
-              thumbTintColor={theme.colors.onBackground}
-            />
-            <Text style={{ color: theme.colors.onBackground, marginLeft: 12, fontWeight: "500" }}>{rangeKm} km</Text>
-          </View>
+          <LocationOptionSelector useCurrentLocation={useCurrentLocation} onChange={setUseCurrentLocation} />
+          {useCurrentLocation ? (
+            <View style={{ position: "relative" }}>
+              <MapPicker
+                location={
+                  liveLocation
+                    ? {
+                        latitude: liveLocation.coords.latitude,
+                        longitude: liveLocation.coords.longitude,
+                      }
+                    : null
+                }
+                range={rangeKm * 1000}
+                disableSelection
+              />
+              {locationLoading && (
+                <View
+                  style={{
+                    ...StyleSheet.absoluteFillObject,
+                    backgroundColor: "rgba(0,0,0,0.3)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 10,
+                    borderRadius: 16,
+                  }}
+                >
+                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                </View>
+              )}
+            </View>
+          ) : (
+            <View style={{ position: "relative" }}>
+              <MapPicker
+                location={
+                  selectedLocation ??
+                  (liveLocation
+                    ? {
+                        latitude: liveLocation.coords.latitude,
+                        longitude: liveLocation.coords.longitude,
+                      }
+                    : null)
+                }
+                onLocationChange={setSelectedLocation}
+                range={rangeKm * 1000}
+              />
+              {locationLoading && (
+                <View
+                  style={{
+                    ...StyleSheet.absoluteFillObject,
+                    backgroundColor: "rgba(0,0,0,0.3)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 10,
+                    borderRadius: 16,
+                  }}
+                >
+                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                </View>
+              )}
+            </View>
+          )}
         </View>
+        {/* Discovery Range Card */}
+        <View
+          style={{
+            width: "90%",
+            backgroundColor: theme.colors.secondary,
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+            shadowColor: theme.colors.shadow,
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
+          }}
+        >
+          <DiscoveryRangeSlider value={rangeKm} onValueChange={setRangeKm} />
+        </View>
+        {/* Event Themes Card */}
+        <View
+          style={{
+            width: "90%",
+            backgroundColor: theme.colors.secondary,
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+            shadowColor: theme.colors.shadow,
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
+          }}
+        >
+          <EventThemeSelector themes={visibleThemes} selectedThemes={selectedThemes} onSelect={setSelectedThemes} />
+        </View>
+
+        {/* Date Range Card */}
+        <View
+          style={{
+            width: "90%",
+            backgroundColor: theme.colors.secondary,
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+            shadowColor: theme.colors.shadow,
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
+          }}
+        >
+          <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18, marginBottom: 8 }}>
+            Date Range
+          </Text>
+          <View style={{ flexDirection: "row" }}>
+            {["Today", "This Week", "Custom"].map((range) => {
+              const isSelected = dateRange === range
+              return (
+                <Chip
+                  key={range}
+                  icon={() => undefined}
+                  selected={isSelected}
+                  onPress={() => setDateRange(range)}
+                  style={{
+                    margin: 4,
+                    backgroundColor: isSelected ? theme.colors.primary : theme.colors.background,
+                  }}
+                  textStyle={{ color: isSelected ? theme.colors.onPrimary : theme.colors.onBackground }}
+                >
+                  {range}
+                </Chip>
+              )
+            })}
+          </View>
+          {dateRange === "Custom" && (
+            <CustomDateRangeCalendar
+              customStart={customStart}
+              customEnd={customEnd}
+              onStartChange={setCustomStart}
+              onEndChange={setCustomEnd}
+            />
+          )}
+        </View>
+        <View
+          style={{
+            width: "90%",
+            backgroundColor: theme.colors.secondary,
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+            shadowColor: theme.colors.shadow,
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
+          }}
+        >
+          <AttendanceModeSelector eventType={eventType} onChange={setEventType} />
+        </View>
+      </ScrollView>
+      {/* Bottom Navbar for Reset & Save Buttons */}
+      <View
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 100,
+          backgroundColor: theme.colors.tertiary,
+          borderTopWidth: 0,
+          padding: 21.5,
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Button
+          mode="outlined"
+          onPress={resetPreferences}
+          style={{
+            flex: 1,
+            marginRight: 8,
+            borderWidth: 0,
+            backgroundColor: theme.colors.scrim,
+            borderRadius: 16,
+            elevation: 0,
+            shadowColor: theme.colors.primary,
+            shadowOpacity: 0.08,
+            shadowRadius: 4,
+          }}
+        >
+          <Text style={{ color: theme.colors.onError, fontWeight: "bold" }}>Reset</Text>
+        </Button>
+        <Button
+          mode="contained"
+          onPress={() => {
+            /* Save logic here */
+          }}
+          style={{
+            flex: 1,
+            marginLeft: 8,
+            borderRadius: 16,
+            borderWidth: 0,
+            backgroundColor: theme.colors.primary,
+            elevation: 0,
+            shadowColor: theme.colors.primary,
+            shadowOpacity: 0.08,
+            shadowRadius: 4,
+          }}
+          disabled={!isChanged}
+        >
+          <Text style={{ color: theme.colors.onError, fontWeight: "bold" }}>Save</Text>
+        </Button>
       </View>
     </View>
   )

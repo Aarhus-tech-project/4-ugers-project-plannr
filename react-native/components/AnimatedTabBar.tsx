@@ -8,7 +8,7 @@ export function AnimatedTabBar(props: any) {
   const [tabBarHeight, setTabBarHeight] = useState(80)
   const { visible } = useTabBarVisibility()
   const routeName = props.state?.routeNames?.[props.state?.index] || ""
-  const shouldAnimate = routeName === "finder"
+  const shouldAnimate = routeName === "finder" || routeName === "index"
   const onLayout = (e: any) => {
     const { height } = e.nativeEvent.layout
     setTabBarHeight(height)

@@ -24,6 +24,7 @@ export default function Login() {
     setLoading(true)
     const clientId = GITHUB_CLIENT_ID || ""
     const redirectUri = AuthSession.makeRedirectUri()
+
     const discovery = {
       authorizationEndpoint: "https://github.com/login/oauth/authorize",
       tokenEndpoint: "https://github.com/login/oauth/access_token",
