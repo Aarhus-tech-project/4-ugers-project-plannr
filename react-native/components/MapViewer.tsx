@@ -27,34 +27,6 @@ const MapViewer: React.FC<MapViewerProps> = ({
     longitudeDelta: regionDelta,
   }
 
-  const customMapStyle = [
-    {
-      elementType: "geometry",
-      stylers: [{ color: theme.colors.background }],
-    },
-    {
-      featureType: "water",
-      elementType: "geometry",
-      stylers: [{ color: theme.colors.shadow }],
-    },
-    {
-      featureType: "landscape",
-      elementType: "geometry",
-      stylers: [{ color: theme.colors.background }],
-    },
-    {
-      featureType: "road",
-      elementType: "geometry",
-      stylers: [{ color: theme.colors.background }],
-    },
-    {
-      featureType: "transit",
-      elementType: "geometry",
-      stylers: [{ color: theme.colors.background }],
-    },
-    { featureType: "poi", stylers: [{ visibility: "off" }] },
-  ]
-
   return (
     <View style={[styles.container, style]}>
       <MapView
@@ -64,8 +36,6 @@ const MapViewer: React.FC<MapViewerProps> = ({
         zoomEnabled={true}
         rotateEnabled={true}
         pitchEnabled={true}
-        customMapStyle={customMapStyle}
-        provider="google"
       >
         <Marker coordinate={location} title={markerTitle} description={markerDescription}>
           <CustomPin color={theme.colors.brand.red} borderColor={theme.colors.background} />

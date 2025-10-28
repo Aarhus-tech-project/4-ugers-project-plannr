@@ -3,16 +3,33 @@ import { mockProfile } from "@/data/mockProfile.data"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
-import React, { useRef } from "react"
+import React, { useMemo, useRef, useState } from "react"
 import { ScrollView, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native-paper"
 import EventDetailsCard from "../components/EventDetailsCard"
+import { EventFormat } from "../components/FilterBar"
 
 export default function Home() {
   const theme = useCustomTheme()
   const bg = theme.colors.background
-  const { likedEvents = [] } = mockProfile
-  const sortedEvents = [...likedEvents].sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+  const { likedEvents = [], subscribedEvents = [] } = mockProfile
+  // Combine all events for filtering (demo: liked + subscribed, deduped by id)
+  const allEvents = useMemo(() => {
+    const map = new Map()
+    ;[...(likedEvents || []), ...(subscribedEvents || [])].forEach((e) => map?.set(e.id, e))
+    return Array?.from(map?.values())
+  }, [likedEvents, subscribedEvents])
+
+  // Filter state (event format)
+  const [selectedFormat, setSelectedFormat] = useState<EventFormat>("all")
+
+  // Filtered events by format
+  const filteredEvents = useMemo(() => {
+    let events = allEvents
+    if (selectedFormat !== "all") events = events.filter((e) => e.format === selectedFormat)
+    return events.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+  }, [allEvents, selectedFormat])
+
   const router = useRouter()
   const { setVisible } = useTabBarVisibility()
   const lastScrollY = useRef(0)
@@ -53,13 +70,13 @@ export default function Home() {
       <View
         style={{
           flex: 1,
-          justifyContent: "center",
+          justifyContent: "flex-start",
           alignItems: "center",
           backgroundColor: bg,
         }}
       >
         <ScrollView
-          style={{ flex: 1, width: "100%", paddingTop: 16 }}
+          style={{ flex: 1, width: "100%", paddingTop: 8 }}
           contentContainerStyle={{ alignItems: "center", paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={8}
@@ -73,32 +90,48 @@ export default function Home() {
             lastScrollY.current = currentY
           }}
         >
-          {sortedEvents.length > 0 && (
-            <View style={{ width: "100%", marginBottom: 18 }}>
+          {filteredEvents.length > 0 ? (
+            <View
+              style={{
+                width: "96%",
+                marginTop: 18,
+                marginBottom: 18,
+                backgroundColor: theme.colors.secondary,
+                borderRadius: 18,
+                padding: 16,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 8,
+                elevation: 2,
+              }}
+            >
               <Text
                 style={{
                   fontWeight: "bold",
-                  fontSize: 18,
-                  marginLeft: 24,
-                  marginBottom: 10,
+                  fontSize: 20,
+                  marginBottom: 18,
                   color: theme.colors.onBackground,
+                  letterSpacing: 0.5,
                 }}
               >
-                Upcoming Events
+                Events
               </Text>
-              {sortedEvents.map((event) => (
-                <View key={event.id} style={{ alignItems: "center", marginBottom: 16, width: "100%" }}>
-                  <EventDetailsCard
-                    event={event}
-                    onUnsubscribe={() => {
-                      /* TODO: Unsubscribe logic */
-                    }}
-                    actionButtons={true}
-                    onSeeMore={() => router.push(`/event/${event.id}`)}
-                  />
-                </View>
+              {filteredEvents.map((event) => (
+                <EventDetailsCard
+                  key={event.id}
+                  event={event}
+                  profile={mockProfile}
+                  onSubscribe={() => {
+                    /* TODO: Subscribe logic */
+                  }}
+                  actionButtons={true}
+                  onSeeMore={() => router.push(`/event/${event.id}`)}
+                />
               ))}
             </View>
+          ) : (
+            <Text style={{ color: theme.colors.onBackground, marginTop: 32 }}>No events found.</Text>
           )}
         </ScrollView>
       </View>

@@ -82,7 +82,7 @@ export default function Login() {
                 })
                 const emails = await emailRes.json()
                 if (Array.isArray(emails)) {
-                  const primaryEmail = emails.find((e) => e.brand.red && e.verified)
+                  const primaryEmail = emails?.find((e) => e.brand.red && e.verified)
                   email = primaryEmail?.email || emails[0]?.email || null
                 }
               } catch (emailErr) {
@@ -130,16 +130,16 @@ export default function Login() {
           borderRadius: 24,
           marginVertical: 8,
           width: 260,
-          backgroundColor: theme.colors.secondary,
+          backgroundColor: theme.colors.brand.blue,
           opacity: loading ? 0.6 : 1,
         }}
         labelStyle={{
-          color: theme.colors.onSecondary,
+          color: theme.colors.white,
           fontSize: theme.fonts.bodyLarge.fontSize,
           letterSpacing: 0.2,
         }}
         disabled={loading}
-        icon={() => <FontAwesome name="google" size={22} color={theme.colors.onSecondary} style={{ marginRight: 8 }} />}
+        icon={() => <FontAwesome name="google" size={22} color={theme.colors.white} style={{ marginRight: 8 }} />}
       >
         {loading && loginProvider === "google" ? "Logging in..." : "Login with Google"}
       </Button>
@@ -150,14 +150,14 @@ export default function Login() {
           borderRadius: 24,
           marginVertical: 8,
           width: 260,
-          backgroundColor: theme.colors.brand.red,
+          backgroundColor: theme.colors.brand.black,
         }}
         labelStyle={{
-          color: theme.colors.background,
+          color: theme.colors.white,
           fontSize: theme.fonts.bodyLarge.fontSize,
           letterSpacing: 0.2,
         }}
-        icon={() => <FontAwesome name="github" size={22} color={theme.colors.background} style={{ marginRight: 8 }} />}
+        icon={() => <FontAwesome name="github" size={22} color={theme.colors.white} style={{ marginRight: 8 }} />}
       >
         {loading && loginProvider === "github" ? "Logging in..." : "Login with GitHub"}
       </Button>

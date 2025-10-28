@@ -17,10 +17,12 @@ export default function TabLayout() {
           tabBarStyle: {
             backgroundColor: theme.colors.gray[900],
             borderTopWidth: 0,
-            display: "flex",
+            paddingTop: 10,
             flexDirection: "row",
+            alignContent: "center",
             justifyContent: "center",
             alignItems: "center",
+            height: 80,
           },
           headerShown: false,
         })}
@@ -53,14 +55,9 @@ export default function TabLayout() {
                   width: 32,
                   height: 32,
                   borderRadius: 10,
-                  shadowColor: color,
-                  shadowOpacity: 0.18,
-                  shadowRadius: 8,
-                  shadowOffset: { width: 0, height: 2 },
-                  elevation: 4,
                 }}
               >
-                <FontAwesome6 name="plus" color={theme.colors.onBackground} size={size || 28} />
+                <FontAwesome6 name="plus" color={theme.colors.gray[900]} size={size || 28} />
               </View>
             ),
           }}

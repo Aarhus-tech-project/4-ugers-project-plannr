@@ -6,14 +6,17 @@ import dayjs from "dayjs"
 import { Linking, Platform, TouchableOpacity, View } from "react-native"
 import { Divider, Text } from "react-native-paper"
 
+import type { Profile } from "@/interfaces/profile"
+
 interface Props {
   event: Event
-  onUnsubscribe?: (event: Event) => void
+  profile: Profile
+  onSubscribe?: (event: Event) => void
   onSeeMore?: (event: Event) => void
   actionButtons?: boolean
 }
 
-export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, actionButtons }: Props) {
+export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMore, actionButtons }: Props) {
   const theme = useCustomTheme()
   const iconColor = theme.colors.brand.red
   const textColor = theme.colors.onBackground
@@ -22,13 +25,14 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
     alignItems: "center" as const,
     paddingVertical: 8,
   }
+  const isSubscribed = profile?.subscribedEvents?.some((e) => e.id === event.id)
   return (
     <View
       style={{
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        width: "90%",
+        width: "100%",
         borderRadius: 16,
         backgroundColor: theme.colors.secondary,
         marginBottom: 24,
@@ -53,7 +57,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
           <FontAwesome6 name="users" size={20} color={iconColor} style={{ marginRight: 12 }} />
           <Text style={{ color: textColor, fontSize: 16 }}>{event.interestedCount}</Text>
         </View>
-        <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+        <View style={{ width: 0.5, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
         {/* Theme */}
         {event.theme && (
           <View style={rowStyle}>
@@ -63,7 +67,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
             </Text>
           </View>
         )}
-        <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+        <View style={{ width: 0.5, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
         {/* Country */}
         {event.country && (
           <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -79,7 +83,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
           paddingHorizontal: 16,
         }}
       >
-        <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
+        <Divider style={{ marginBottom: 4, backgroundColor: theme.colors.shadow, height: 0.5 }} />
         {/* Location */}
         {event.city && event.address && (
           <>
@@ -103,7 +107,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
                 {event.city}, {event.address}
               </Text>
             </View>
-            <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
+            <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 0.5 }} />
           </>
         )}
         {/* Venue */}
@@ -125,7 +129,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
               <FontAwesome6 name="user-shield" size={20} color={iconColor} style={{ marginRight: 12 }} />
               <Text style={{ color: textColor, fontSize: 16 }}>Age limit {event.requiredAge}+</Text>
             </View>
-            <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
+            <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 0.5 }} />
           </>
         )}
         {/* Start Time */}
@@ -134,7 +138,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
             <FontAwesome6 name="calendar" size={20} color={iconColor} style={{ marginRight: 12 }} />
             <Text style={{ color: textColor, fontSize: 16 }}>{dayjs(event.startAt).format("DD MMMM YYYY")}</Text>
           </View>
-          <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
+          <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 0.5 }} />
         </>
         {/* Start hour */}
         <>
@@ -142,56 +146,59 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
             <FontAwesome6 name="clock" size={20} color={iconColor} style={{ marginRight: 12 }} />
             <Text style={{ color: textColor, fontSize: 16 }}>{dayjs(event.startAt).format("HH:mm")}</Text>
           </View>
-          <Divider style={{ marginVertical: 4, backgroundColor: "transparent", height: 1 }} />
+          <Divider style={{ marginVertical: 4, backgroundColor: "transparent", height: 0.5 }} />
         </>
       </View>
-      {/* Action Buttons as Card Bottom */}
       {actionButtons && (
-        <View style={{ flexDirection: "row", width: "100%", height: 52, margin: 0, padding: 0 }}>
-          {onUnsubscribe ? (
-            <TouchableOpacity
-              style={{
-                flex: 1,
-                backgroundColor: theme.colors.brand.red,
-                borderBottomLeftRadius: 16,
-                borderBottomRightRadius: 0,
-                borderTopLeftRadius: 0,
-                borderTopRightRadius: 0,
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-                margin: 0,
-                padding: 0,
-              }}
-              onPress={() => onUnsubscribe(event)}
-            >
-              <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 16 }}>Unsubscribe</Text>
-            </TouchableOpacity>
-          ) : null}
-          {/* Divider between buttons */}
-          {onUnsubscribe && onSeeMore ? (
-            <View style={{ width: 0.5, height: "100%", backgroundColor: theme.colors.shadow, margin: 0, padding: 0 }} />
-          ) : null}
-          {onSeeMore ? (
-            <TouchableOpacity
-              style={{
-                flex: 1,
-                backgroundColor: theme.colors.brand.red,
-                borderBottomLeftRadius: 0,
-                borderBottomRightRadius: 16,
-                borderTopLeftRadius: 0,
-                borderTopRightRadius: 0,
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-                margin: 0,
-                padding: 0,
-              }}
-              onPress={() => onSeeMore(event)}
-            >
-              <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 16 }}>See More</Text>
-            </TouchableOpacity>
-          ) : null}
+        <View style={{ flexDirection: "row", width: "100%", height: 42, margin: 0, padding: 0 }}>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: isSubscribed ? theme.colors.brand.blue : theme.colors.brand.red,
+              borderBottomLeftRadius: 16,
+              borderBottomRightRadius: 0,
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+              margin: 0,
+              padding: 0,
+            }}
+            onPress={() => onSubscribe?.(event)}
+          >
+            <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 16 }}>
+              {isSubscribed ? "I'm not going" : "I'm going"}
+            </Text>
+          </TouchableOpacity>
+          <View
+            style={{
+              width: 1,
+              height: "100%",
+              backgroundColor: theme.colors.brand.red,
+              opacity: 0.7,
+              margin: 0,
+              padding: 1,
+            }}
+          />
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: theme.colors.brand.red,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 16,
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+              margin: 0,
+              padding: 0,
+            }}
+            onPress={() => onSeeMore?.(event)}
+          >
+            <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 16 }}>See More</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
