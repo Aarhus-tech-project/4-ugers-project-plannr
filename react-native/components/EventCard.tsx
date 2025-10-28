@@ -1,14 +1,15 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { Event } from "@/interfaces/event"
 import React from "react"
 import { StyleSheet } from "react-native"
-import { Button, Card, Text, useTheme } from "react-native-paper"
+import { Button, Card, Text } from "react-native-paper"
 
 interface EventCardProps {
   event: Event
 }
 
 const EventCard: React.FC<EventCardProps> = ({ event }) => {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   return (
     <Card style={styles.card}>
       <Card.Title title={event.title} subtitle={event.theme?.name} />

@@ -1,7 +1,8 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import React, { useMemo } from "react"
 import { ScrollView, View } from "react-native"
-import { Chip, Text, useTheme } from "react-native-paper"
+import { Chip, Text } from "react-native-paper"
 
 export interface EventTheme {
   name: string
@@ -15,7 +16,7 @@ interface EventThemeSelectorProps {
 }
 
 const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ themes, selectedThemes, onSelect }) => {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   // Memoize the chips to avoid unnecessary re-renders
   const chips = useMemo(
     () => [
@@ -30,14 +31,14 @@ const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ them
         }}
         style={{
           margin: 4,
-          backgroundColor: selectedThemes.length > 0 ? theme.colors.primary : theme.colors.background,
+          backgroundColor: selectedThemes.length > 0 ? theme.colors.brand.red : theme.colors.background,
           borderWidth: 1,
-          borderColor: theme.colors.primary,
+          borderColor: theme.colors.brand.red,
           minWidth: 100,
           justifyContent: "center",
         }}
         textStyle={{
-          color: selectedThemes.length > 0 ? theme.colors.onPrimary : theme.colors.onBackground,
+          color: selectedThemes.length > 0 ? theme.colors.background : theme.colors.onBackground,
           fontWeight: "bold",
         }}
       >
@@ -52,7 +53,7 @@ const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ them
               <FontAwesome6
                 name={themeObj.icon}
                 size={16}
-                color={isSelected ? theme.colors.onPrimary : theme.colors.primary}
+                color={isSelected ? theme.colors.background : theme.colors.brand.red}
               />
             )}
             selected={isSelected}
@@ -63,11 +64,11 @@ const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ them
             }}
             style={{
               margin: 4,
-              backgroundColor: isSelected ? theme.colors.primary : theme.colors.background,
+              backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
               minWidth: 80,
               justifyContent: "center",
             }}
-            textStyle={{ color: isSelected ? theme.colors.onPrimary : theme.colors.onBackground }}
+            textStyle={{ color: isSelected ? theme.colors.background : theme.colors.onBackground }}
           >
             {themeObj.name}
           </Chip>

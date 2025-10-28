@@ -1,15 +1,16 @@
 import Flag from "@/components/Flag"
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useSession } from "@/hooks/useSession"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import { useState } from "react"
 import { FlatList, ScrollView, TextInput, TouchableOpacity, View } from "react-native"
 import Modal from "react-native-modal"
-import { Text, useTheme } from "react-native-paper"
+import { Text } from "react-native-paper"
 import countries from "world-countries"
 
 export default function Account() {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   const router = useRouter()
   const { session } = useSession()
   const [bio, setBio] = useState("")
@@ -397,7 +398,7 @@ export default function Account() {
               alignItems: "center",
               marginTop: 12,
               width: "100%",
-              backgroundColor: theme.colors.scrim,
+              backgroundColor: theme.colors.gray.light,
               borderRadius: 16,
               paddingVertical: 12,
               paddingHorizontal: 12,
@@ -415,7 +416,7 @@ export default function Account() {
           right: 0,
           bottom: 0,
           zIndex: 100,
-          backgroundColor: theme.colors.tertiary,
+          backgroundColor: theme.colors.gray.dark,
           borderTopWidth: 0,
           padding: 21.5,
           display: "flex",
@@ -429,7 +430,7 @@ export default function Account() {
             flex: 1,
             marginRight: 8,
             borderWidth: 0,
-            backgroundColor: theme.colors.scrim,
+            backgroundColor: theme.colors.gray.light,
             borderRadius: 16,
             elevation: 0,
             alignItems: "center",
@@ -440,7 +441,7 @@ export default function Account() {
             setEditMode(false)
           }}
         >
-          <Text style={{ color: theme.colors.onError, fontWeight: "bold" }}>Reset</Text>
+          <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Reset</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={{
@@ -448,14 +449,14 @@ export default function Account() {
             marginLeft: 8,
             borderRadius: 16,
             borderWidth: 0,
-            backgroundColor: theme.colors.primary,
+            backgroundColor: theme.colors.brand.red,
             elevation: 0,
             alignItems: "center",
             padding: 12,
           }}
           onPress={() => setEditMode((e) => !e)}
         >
-          <Text style={{ color: theme.colors.onError, fontWeight: "bold" }}>{editMode ? "Save" : "Edit"}</Text>
+          <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>{editMode ? "Save" : "Edit"}</Text>
         </TouchableOpacity>
       </View>
     </View>

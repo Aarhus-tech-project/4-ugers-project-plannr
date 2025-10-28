@@ -1,13 +1,14 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import React from "react"
 import { View } from "react-native"
-import { Switch, Text, useTheme } from "react-native-paper"
+import { Switch, Text } from "react-native-paper"
 interface LocationOptionSelectorProps {
   useCurrentLocation: boolean
   onChange: (useCurrent: boolean) => void
 }
 
 const LocationOptionSelector: React.FC<LocationOptionSelectorProps> = ({ useCurrentLocation, onChange }) => {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   return (
     <View style={{ width: "100%" }}>
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
@@ -27,7 +28,7 @@ const LocationOptionSelector: React.FC<LocationOptionSelectorProps> = ({ useCurr
         <Switch
           value={useCurrentLocation}
           onValueChange={() => onChange(!useCurrentLocation)}
-          color={theme.colors.primary}
+          color={theme.colors.brand.red}
         />
       </View>
     </View>

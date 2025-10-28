@@ -1,21 +1,21 @@
 import { AnimatedTabBar } from "@/components/AnimatedTabBar"
 import { TabBarVisibilityProvider } from "@/context/TabBarVisibilityContext"
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome, FontAwesome6 } from "@expo/vector-icons"
 import { Tabs } from "expo-router"
 import React from "react"
 import { View } from "react-native"
-import { useTheme } from "react-native-paper"
 
 export default function TabLayout() {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   return (
     <TabBarVisibilityProvider>
       <Tabs
         screenOptions={() => ({
-          tabBarActiveTintColor: theme.colors.primary,
-          tabBarInactiveTintColor: theme.colors.scrim,
+          tabBarActiveTintColor: theme.colors.brand.red,
+          tabBarInactiveTintColor: theme.colors.gray[700],
           tabBarStyle: {
-            backgroundColor: theme.colors.tertiary,
+            backgroundColor: theme.colors.gray[900],
             borderTopWidth: 0,
             display: "flex",
             flexDirection: "row",

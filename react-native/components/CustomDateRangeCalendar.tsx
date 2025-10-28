@@ -1,9 +1,10 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import dayjs from "dayjs"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
 import React from "react"
 import { View } from "react-native"
 import { Calendar } from "react-native-calendars"
-import { Text, useTheme } from "react-native-paper"
+import { Text } from "react-native-paper"
 import { getDisabledDates } from "../utils/calendar-disabled"
 dayjs.extend(isSameOrBefore)
 
@@ -22,7 +23,7 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
   onEndChange,
   allDay = false,
 }) => {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   return (
     <View
       style={{
@@ -50,8 +51,8 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
             const start = dayjs(customStart).format("YYYY-MM-DD")
             dates[start] = {
               customStyles: {
-                container: { backgroundColor: allDay ? theme.colors.primary : theme.colors.scrim },
-                text: { color: allDay ? theme.colors.onPrimary : theme.colors.primary },
+                container: { backgroundColor: allDay ? theme.colors.brand.red : theme.colors.gray[700] },
+                text: { color: allDay ? theme.colors.background : theme.colors.brand.red },
               },
               startingDay: true,
               endingDay: true,
@@ -64,8 +65,8 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
               const key = current.format("YYYY-MM-DD")
               dates[key] = {
                 customStyles: {
-                  container: { backgroundColor: theme.colors.primary },
-                  text: { color: theme.colors.onPrimary },
+                  container: { backgroundColor: theme.colors.brand.red },
+                  text: { color: theme.colors.background },
                 },
                 startingDay: key === start.format("YYYY-MM-DD"),
                 endingDay: key === end.format("YYYY-MM-DD"),
@@ -100,13 +101,13 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
         theme={{
           calendarBackground: "transparent",
           dayTextColor: theme.dark ? theme.colors.onSecondary : theme.colors.onBackground,
-          monthTextColor: theme.colors.primary,
-          selectedDayBackgroundColor: theme.colors.primary,
-          selectedDayTextColor: theme.colors.onPrimary,
-          textDisabledColor: theme.colors.scrim,
-          todayTextColor: theme.colors.primary,
-          arrowColor: theme.colors.primary,
-          todayBackgroundColor: theme.colors.onPrimary,
+          monthTextColor: theme.colors.brand.red,
+          selectedDayBackgroundColor: theme.colors.brand.red,
+          selectedDayTextColor: theme.colors.background,
+          textDisabledColor: theme.colors.gray[700],
+          todayTextColor: theme.colors.brand.red,
+          arrowColor: theme.colors.brand.red,
+          todayBackgroundColor: theme.colors.background,
           textDayFontSize: 16,
           textMonthFontSize: 20,
           todayButtonFontWeight: "bold",
@@ -124,7 +125,7 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
         }}
       />
       {(customStart || customEnd) && (
-        <Text style={{ marginTop: 12, color: theme.colors.primary, fontWeight: "600", fontSize: 16 }}>
+        <Text style={{ marginTop: 12, color: theme.colors.brand.red, fontWeight: "600", fontSize: 16 }}>
           {customStart ? dayjs(customStart).format("DD MMM YYYY") : ""}
           {customEnd ? ` - ${dayjs(customEnd).format("DD MMM YYYY")}` : ""}
         </Text>

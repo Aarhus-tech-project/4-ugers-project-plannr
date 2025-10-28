@@ -1,16 +1,17 @@
 import AttendanceModeSelector from "@/components/AttendanceModeSelector"
 import CustomDateRangeCalendar from "@/components/CustomDateRangeCalendar"
 import EventThemeSelector from "@/components/EventThemeSelector"
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
 import { EventFormat, EventPageSection } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import React, { useRef, useState } from "react"
 import { ScrollView, TouchableOpacity, View } from "react-native"
-import { Button, Text, TextInput, useTheme } from "react-native-paper"
+import { Button, Text, TextInput } from "react-native-paper"
 
 export default function CreateEvent() {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   const router = useRouter()
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -159,16 +160,16 @@ export default function CreateEvent() {
                 }
               }}
               style={{
-                backgroundColor: allDay ? theme.colors.primary : theme.colors.surface,
+                backgroundColor: allDay ? theme.colors.brand.red : theme.colors.surface,
                 borderRadius: 16,
                 paddingVertical: 6,
                 paddingHorizontal: 16,
                 borderWidth: 1,
-                borderColor: allDay ? theme.colors.primary : theme.colors.outline,
+                borderColor: allDay ? theme.colors.brand.red : theme.colors.gray[700],
               }}
               activeOpacity={0.7}
             >
-              <Text style={{ color: allDay ? theme.colors.onPrimary : theme.colors.onSurface, fontWeight: "bold" }}>
+              <Text style={{ color: allDay ? theme.colors.background : theme.colors.onSurface, fontWeight: "bold" }}>
                 {allDay ? "All Day" : "Range"}
               </Text>
             </TouchableOpacity>
@@ -236,7 +237,7 @@ export default function CreateEvent() {
           right: 0,
           bottom: 0,
           zIndex: 100,
-          backgroundColor: theme.colors.tertiary,
+          backgroundColor: theme.colors.gray[900],
           borderTopWidth: 0,
           padding: 21.5,
           display: "flex",
@@ -252,14 +253,14 @@ export default function CreateEvent() {
             flex: 1,
             borderRadius: 16,
             paddingVertical: 8,
-            backgroundColor: theme.colors.primary,
+            backgroundColor: theme.colors.brand.red,
             elevation: 0,
-            shadowColor: theme.colors.primary,
+            shadowColor: theme.colors.brand.red,
             shadowOpacity: 0.08,
             shadowRadius: 4,
           }}
         >
-          <Text style={{ color: theme.colors.onError, fontWeight: "bold" }}>Create Event</Text>
+          <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Create Event</Text>
         </Button>
       </View>
     </View>
@@ -279,14 +280,14 @@ const styles = {
     alignItems: "stretch" as const,
   }),
   header: (theme: any) => ({
-    color: theme.colors.primary,
+    color: theme.colors.brand.red,
     fontWeight: "700" as const,
     fontSize: 28,
     textAlign: "center" as const,
     marginBottom: 8,
   }),
   label: (theme: any) => ({
-    color: theme.colors.primary,
+    color: theme.colors.brand.red,
     fontWeight: "700" as const,
     marginTop: 12,
     marginBottom: 4,
@@ -301,12 +302,12 @@ const styles = {
     padding: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: theme.colors.outline,
+    borderColor: theme.colors.gray.light,
   }),
   createBtn: (theme: any) => ({
     marginTop: 18,
     borderRadius: 16,
     paddingVertical: 8,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.brand.red,
   }),
 }

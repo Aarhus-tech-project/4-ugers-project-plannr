@@ -1,9 +1,9 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import * as Location from "expo-location"
 import React, { useEffect, useRef, useState } from "react"
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import MapView, { Circle, MapPressEvent, Marker, Region } from "react-native-maps"
-import { useTheme } from "react-native-paper"
 
 interface MapPickerProps {
   location: { latitude: number; longitude: number } | null
@@ -22,7 +22,7 @@ const MapPicker: React.FC<MapPickerProps> = ({
 }) => {
   const [address, setAddress] = useState<string>("")
   const mapRef = useRef<MapView>(null)
-  const theme = useTheme()
+  const theme = useCustomTheme()
   const initialRegion: Region = {
     latitude: location?.latitude || 56.162939,
     longitude: location?.longitude || 10.203921,
@@ -125,7 +125,9 @@ const MapPicker: React.FC<MapPickerProps> = ({
           borderTopRightRadius: 16,
         }}
       >
-        <Text style={{ color: theme.colors.primary, fontWeight: "bold", fontSize: 15 }}>{address ? address : ""}</Text>
+        <Text style={{ color: theme.colors.brand.red, fontWeight: "bold", fontSize: 15 }}>
+          {address ? address : ""}
+        </Text>
       </View>
       <View style={{ flex: 1 }}>
         <MapView
@@ -155,15 +157,15 @@ const MapPicker: React.FC<MapPickerProps> = ({
               <Circle
                 center={location}
                 radius={range}
-                strokeColor={theme.colors.primary + "100"}
-                fillColor={theme.colors.primary + "40"}
+                strokeColor={theme.colors.brand.red + "100"}
+                fillColor={theme.colors.brand.red + "40"}
               />
               <View
                 style={{
                   position: "absolute",
                   left: 16,
                   top: 16,
-                  backgroundColor: theme.colors.primary,
+                  backgroundColor: theme.colors.brand.red,
                   borderRadius: 12,
                   paddingHorizontal: 12,
                   paddingVertical: 4,
@@ -180,13 +182,13 @@ const MapPicker: React.FC<MapPickerProps> = ({
         {disableSelection && (
           <>
             <View style={styles.lockIconWrap} pointerEvents="none">
-              <FontAwesome6 name="lock" size={22} color={theme.colors.primary} />
+              <FontAwesome6 name="lock" size={22} color={theme.colors.brand.red} />
             </View>
           </>
         )}
       </View>
       <TouchableOpacity
-        style={{ ...styles.fab, backgroundColor: theme.colors.primary }}
+        style={{ ...styles.fab, backgroundColor: theme.colors.brand.red }}
         onPress={moveToCurrentLocation}
         activeOpacity={0.8}
       >

@@ -1,9 +1,10 @@
 import Flag from "@/components/Flag"
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import type { Event } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import dayjs from "dayjs"
 import { Linking, Platform, TouchableOpacity, View } from "react-native"
-import { Divider, Text, useTheme } from "react-native-paper"
+import { Divider, Text } from "react-native-paper"
 
 interface Props {
   event: Event
@@ -13,8 +14,8 @@ interface Props {
 }
 
 export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, actionButtons }: Props) {
-  const theme = useTheme()
-  const iconColor = theme.colors.primary
+  const theme = useCustomTheme()
+  const iconColor = theme.colors.brand.red
   const textColor = theme.colors.onBackground
   const rowStyle = {
     flexDirection: "row" as const,
@@ -87,7 +88,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
               <Text
                 style={{ color: textColor, fontSize: 16, textDecorationLine: "underline" }}
                 selectable
-                selectionColor={theme.colors.primary}
+                selectionColor={theme.colors.brand.red}
                 onPress={() => {
                   if (!event.address && !event.city) return
                   const query = encodeURIComponent(`${event.address}, ${event.city}`)
@@ -110,7 +111,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
           <>
             <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
               <FontAwesome6 name="building" size={20} color={iconColor} style={{ marginRight: 12 }} />
-              <Text style={{ color: textColor, fontSize: 16 }} selectable selectionColor={theme.colors.primary}>
+              <Text style={{ color: textColor, fontSize: 16 }} selectable selectionColor={theme.colors.brand.red}>
                 {event.venue}
               </Text>
             </View>
@@ -151,7 +152,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
             <TouchableOpacity
               style={{
                 flex: 1,
-                backgroundColor: theme.colors.error,
+                backgroundColor: theme.colors.brand.red,
                 borderBottomLeftRadius: 16,
                 borderBottomRightRadius: 0,
                 borderTopLeftRadius: 0,
@@ -164,7 +165,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
               }}
               onPress={() => onUnsubscribe(event)}
             >
-              <Text style={{ color: theme.colors.onError, fontWeight: "bold", fontSize: 16 }}>Unsubscribe</Text>
+              <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 16 }}>Unsubscribe</Text>
             </TouchableOpacity>
           ) : null}
           {/* Divider between buttons */}
@@ -175,7 +176,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
             <TouchableOpacity
               style={{
                 flex: 1,
-                backgroundColor: theme.colors.primary,
+                backgroundColor: theme.colors.brand.red,
                 borderBottomLeftRadius: 0,
                 borderBottomRightRadius: 16,
                 borderTopLeftRadius: 0,
@@ -188,7 +189,7 @@ export default function EventDetailsCard({ event, onUnsubscribe, onSeeMore, acti
               }}
               onPress={() => onSeeMore(event)}
             >
-              <Text style={{ color: theme.colors.onError, fontWeight: "bold", fontSize: 16 }}>See More</Text>
+              <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 16 }}>See More</Text>
             </TouchableOpacity>
           ) : null}
         </View>

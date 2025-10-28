@@ -4,6 +4,7 @@ import DiscoveryRangeSlider from "@/components/DiscoveryRangeSlider"
 import EventThemeSelector from "@/components/EventThemeSelector"
 import LocationOptionSelector from "@/components/LocationOptionSelector"
 import MapPicker from "@/components/MapPicker"
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
 import { usePreferences } from "@/hooks/usePreferences"
@@ -13,12 +14,12 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
 import { useRouter } from "expo-router"
 import React from "react"
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native"
-import { ActivityIndicator, Button, Chip, Text, useTheme } from "react-native-paper"
+import { ActivityIndicator, Button, Chip, Text } from "react-native-paper"
 
 dayjs.extend(isSameOrBefore)
 
 export default function Preferences() {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   const router = useRouter()
   const {
     rangeKm,
@@ -119,7 +120,7 @@ export default function Preferences() {
                     borderRadius: 16,
                   }}
                 >
-                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                  <ActivityIndicator size="large" color={theme.colors.brand.red} />
                 </View>
               )}
             </View>
@@ -149,7 +150,7 @@ export default function Preferences() {
                     borderRadius: 16,
                   }}
                 >
-                  <ActivityIndicator size="large" color={theme.colors.primary} />
+                  <ActivityIndicator size="large" color={theme.colors.brand.red} />
                 </View>
               )}
             </View>
@@ -213,9 +214,9 @@ export default function Preferences() {
                   onPress={() => setDateRange(range)}
                   style={{
                     margin: 4,
-                    backgroundColor: isSelected ? theme.colors.primary : theme.colors.background,
+                    backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
                   }}
-                  textStyle={{ color: isSelected ? theme.colors.onPrimary : theme.colors.onBackground }}
+                  textStyle={{ color: isSelected ? theme.colors.background : theme.colors.onBackground }}
                 >
                   {range}
                 </Chip>
@@ -254,7 +255,7 @@ export default function Preferences() {
           right: 0,
           bottom: 0,
           zIndex: 100,
-          backgroundColor: theme.colors.tertiary,
+          backgroundColor: theme.colors.gray[900],
           borderTopWidth: 0,
           padding: 21.5,
           display: "flex",
@@ -270,15 +271,15 @@ export default function Preferences() {
             flex: 1,
             marginRight: 8,
             borderWidth: 0,
-            backgroundColor: theme.colors.scrim,
+            backgroundColor: theme.colors.gray[700],
             borderRadius: 16,
             elevation: 0,
-            shadowColor: theme.colors.primary,
+            shadowColor: theme.colors.brand.red,
             shadowOpacity: 0.08,
             shadowRadius: 4,
           }}
         >
-          <Text style={{ color: theme.colors.onError, fontWeight: "bold" }}>Reset</Text>
+          <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Reset</Text>
         </Button>
         <Button
           mode="contained"
@@ -290,15 +291,15 @@ export default function Preferences() {
             marginLeft: 8,
             borderRadius: 16,
             borderWidth: 0,
-            backgroundColor: theme.colors.primary,
+            backgroundColor: theme.colors.brand.red,
             elevation: 0,
-            shadowColor: theme.colors.primary,
+            shadowColor: theme.colors.brand.red,
             shadowOpacity: 0.08,
             shadowRadius: 4,
           }}
           disabled={!isChanged}
         >
-          <Text style={{ color: theme.colors.onError, fontWeight: "bold" }}>Save</Text>
+          <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Save</Text>
         </Button>
       </View>
     </View>

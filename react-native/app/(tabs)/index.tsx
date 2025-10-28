@@ -1,17 +1,17 @@
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
 import { mockProfile } from "@/data/mockProfile.data"
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import React, { useRef } from "react"
 import { ScrollView, TouchableOpacity, View } from "react-native"
-import { Text, useTheme } from "react-native-paper"
+import { Text } from "react-native-paper"
 import EventDetailsCard from "../components/EventDetailsCard"
 
 export default function Home() {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   const bg = theme.colors.background
   const { likedEvents = [] } = mockProfile
-  // Sort events by start date ascending
   const sortedEvents = [...likedEvents].sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
   const router = useRouter()
   const { setVisible } = useTabBarVisibility()

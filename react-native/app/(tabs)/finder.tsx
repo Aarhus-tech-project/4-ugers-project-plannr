@@ -3,16 +3,17 @@ import mockEvents from "@/data/mockEvents.data"
 import { getSortedEventCards } from "@/utils/event-content"
 
 import MapViewer from "@/components/MapViewer"
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import { MotiView } from "moti"
 import { useRef, useState } from "react"
 import { Image, Linking, ScrollView, TouchableOpacity, View } from "react-native"
-import { Text, useTheme } from "react-native-paper"
+import { Text } from "react-native-paper"
 import EventDetailsCard from "../components/EventDetailsCard"
 
 export default function Finder() {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   const bg = theme.colors.background
   const router = useRouter()
   const { setVisible, visible } = useTabBarVisibility()
@@ -128,7 +129,7 @@ export default function Finder() {
                                 onPress={() => setSelectedImageIdx(idx)}
                                 style={{
                                   borderWidth: idx === selectedImageIdx ? 2 : 0,
-                                  borderColor: theme.colors.primary,
+                                  borderColor: theme.colors.brand.red,
                                   borderRadius: 16,
                                   marginRight: 8,
                                   overflow: "hidden",
@@ -287,7 +288,7 @@ export default function Finder() {
                                         height: 64,
                                         borderRadius: 32,
                                         borderWidth: 2,
-                                        borderColor: theme.colors.primary, // visible primary border
+                                        borderColor: theme.colors.brand.red, // visible primary border
                                         alignItems: "center",
                                         justifyContent: "center",
                                         marginBottom: 6,
@@ -321,7 +322,7 @@ export default function Finder() {
                                         height: 64,
                                         borderRadius: 32,
                                         borderWidth: 2,
-                                        borderColor: theme.colors.primary, // visible primary border
+                                        borderColor: theme.colors.brand.red, // visible primary border
                                         alignItems: "center",
                                         justifyContent: "center",
                                         marginBottom: 6,
@@ -338,7 +339,7 @@ export default function Finder() {
                                           justifyContent: "center",
                                         }}
                                       >
-                                        <FontAwesome6 name="user" size={30} color={theme.colors.primary} />
+                                        <FontAwesome6 name="user" size={30} color={theme.colors.brand.red} />
                                       </View>
                                     </View>
                                   )}
@@ -415,7 +416,7 @@ export default function Finder() {
                           marginBottom: 24,
                           padding: 24,
                           borderWidth: 2,
-                          borderColor: theme.colors.primary,
+                          borderColor: theme.colors.brand.red,
                           elevation: 8,
                         }}
                       >
@@ -426,12 +427,12 @@ export default function Finder() {
                             top: 12,
                             right: 16,
                             zIndex: 2,
-                            backgroundColor: theme.colors.primary,
+                            backgroundColor: theme.colors.brand.red,
                             borderRadius: 16,
                             padding: 6,
                           }}
                         >
-                          <FontAwesome6 name="ticket" size={18} color={theme.colors.onPrimary} />
+                          <FontAwesome6 name="ticket" size={18} color={theme.colors.background} />
                         </View>
                         <Text
                           style={{
@@ -461,7 +462,7 @@ export default function Finder() {
                             <FontAwesome6
                               name="ticket"
                               size={20}
-                              color={theme.colors.primary}
+                              color={theme.colors.brand.red}
                               style={{ marginRight: 12 }}
                             />
                             <View style={{ flex: 1 }}>
@@ -475,7 +476,7 @@ export default function Finder() {
                             <TouchableOpacity
                               onPress={() => ticket.link && Linking.openURL(ticket.link)}
                               style={{
-                                backgroundColor: theme.colors.primary,
+                                backgroundColor: theme.colors.brand.red,
                                 borderRadius: 20,
                                 paddingVertical: 8,
                                 paddingHorizontal: 18,
@@ -487,10 +488,10 @@ export default function Finder() {
                               <FontAwesome6
                                 name="cart-shopping"
                                 size={15}
-                                color={theme.colors.onPrimary}
+                                color={theme.colors.background}
                                 style={{ marginRight: 6 }}
                               />
-                              <Text style={{ color: theme.colors.onPrimary, fontWeight: "bold", fontSize: 15 }}>
+                              <Text style={{ color: theme.colors.background, fontWeight: "bold", fontSize: 15 }}>
                                 Buy
                               </Text>
                             </TouchableOpacity>
@@ -531,10 +532,10 @@ export default function Finder() {
                             <FontAwesome6
                               name="file"
                               size={18}
-                              color={theme.colors.primary}
+                              color={theme.colors.brand.red}
                               style={{ marginRight: 10 }}
                             />
-                            <Text style={{ color: theme.colors.primary, textDecorationLine: "underline" }}>
+                            <Text style={{ color: theme.colors.brand.red, textDecorationLine: "underline" }}>
                               {file.name}
                             </Text>
                           </TouchableOpacity>
@@ -601,7 +602,7 @@ export default function Finder() {
                 width: 60,
                 height: 60,
                 borderRadius: 30,
-                backgroundColor: theme.colors.primary,
+                backgroundColor: theme.colors.brand.red,
                 justifyContent: "center",
                 alignItems: "center",
                 shadowOpacity: 0.5,
@@ -632,7 +633,7 @@ export default function Finder() {
                 shadowColor: theme.colors.shadow,
               }}
             >
-              <FontAwesome6 name="xmark" size={32} color={theme.colors.primary} />
+              <FontAwesome6 name="xmark" size={32} color={theme.colors.brand.red} />
             </View>
           </TouchableOpacity>
         </MotiView>

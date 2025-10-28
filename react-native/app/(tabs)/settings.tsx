@@ -1,13 +1,14 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import React, { useRef } from "react"
 import { Image, ScrollView, TouchableOpacity, View } from "react-native"
-import { Text, useTheme } from "react-native-paper"
+import { Text } from "react-native-paper"
 import { useSession } from "../../hooks/useSession"
 
 export default function Settings() {
   const router = useRouter()
-  const theme = useTheme()
+  const theme = useCustomTheme()
   const { session, setSession } = useSession()
   const navigatingPreferences = useRef(false)
   const navigatingAccount = useRef(false)
@@ -71,7 +72,7 @@ export default function Settings() {
                 height: 112,
                 borderRadius: 56,
                 borderWidth: 3,
-                borderColor: theme.colors.primary,
+                borderColor: theme.colors.brand.red,
                 justifyContent: "center",
                 alignItems: "center",
               }}
@@ -135,7 +136,7 @@ export default function Settings() {
             }}
           >
             <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>Preferences</Text>
-            <FontAwesome6 name={"sliders"} size={20} color={theme.colors.primary} />
+            <FontAwesome6 name={"sliders"} size={20} color={theme.colors.brand.red} />
           </TouchableOpacity>
         </View>
         {/* Account Card */}
@@ -172,14 +173,14 @@ export default function Settings() {
             }}
           >
             <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>Account</Text>
-            <FontAwesome6 name={"gear"} size={20} color={theme.colors.primary} />
+            <FontAwesome6 name={"gear"} size={20} color={theme.colors.brand.red} />
           </TouchableOpacity>
         </View>
         {/* Logout Button */}
         <TouchableOpacity
           style={{
             width: "90%",
-            backgroundColor: theme.colors.primary,
+            backgroundColor: theme.colors.brand.red,
             borderRadius: 16,
             padding: 16,
             marginTop: 8,
@@ -192,7 +193,7 @@ export default function Settings() {
             router.replace("/login")
           }}
         >
-          <Text style={{ color: theme.colors.onError, fontWeight: "bold", fontSize: 18 }}>Log out</Text>
+          <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 18 }}>Log out</Text>
         </TouchableOpacity>
       </ScrollView>
     </>

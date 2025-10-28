@@ -1,7 +1,7 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import React from "react"
 import { StyleSheet, View } from "react-native"
 import MapView, { Marker, Region } from "react-native-maps"
-import { useTheme } from "react-native-paper"
 import CustomPin from "./CustomPin"
 
 interface MapViewerProps {
@@ -19,7 +19,7 @@ const MapViewer: React.FC<MapViewerProps> = ({
   regionDelta = 0.05,
   style = {},
 }) => {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   const region: Region = {
     latitude: location.latitude,
     longitude: location.longitude,
@@ -30,27 +30,27 @@ const MapViewer: React.FC<MapViewerProps> = ({
   const customMapStyle = [
     {
       elementType: "geometry",
-      stylers: [{ color: "#ffffff" }], // land in white
+      stylers: [{ color: theme.colors.background }],
     },
     {
       featureType: "water",
       elementType: "geometry",
-      stylers: [{ color: theme.colors.background }], // water in primary color
+      stylers: [{ color: theme.colors.shadow }],
     },
     {
       featureType: "landscape",
       elementType: "geometry",
-      stylers: [{ color: "#ffffff" }], // landscape in white
+      stylers: [{ color: theme.colors.background }],
     },
     {
       featureType: "road",
       elementType: "geometry",
-      stylers: [{ color: theme.colors.background }], // roads light gray
+      stylers: [{ color: theme.colors.background }],
     },
     {
       featureType: "transit",
       elementType: "geometry",
-      stylers: [{ color: theme.colors.background }], // transit light gray
+      stylers: [{ color: theme.colors.background }],
     },
     { featureType: "poi", stylers: [{ visibility: "off" }] },
   ]
@@ -68,7 +68,7 @@ const MapViewer: React.FC<MapViewerProps> = ({
         provider="google"
       >
         <Marker coordinate={location} title={markerTitle} description={markerDescription}>
-          <CustomPin color={theme.colors.primary} borderColor={theme.colors.background} />
+          <CustomPin color={theme.colors.brand.red} borderColor={theme.colors.background} />
         </Marker>
       </MapView>
     </View>

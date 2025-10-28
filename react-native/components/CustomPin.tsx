@@ -1,6 +1,6 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import React from "react"
 import { View } from "react-native"
-import { useTheme } from "react-native-paper"
 import { Circle, Path, Svg } from "react-native-svg"
 
 interface CustomPinProps {
@@ -10,8 +10,8 @@ interface CustomPinProps {
 }
 
 const CustomPin: React.FC<CustomPinProps> = ({ color, size = 40, borderColor }) => {
-  const theme = useTheme()
-  const pinColor = color || theme.colors.primary
+  const theme = useCustomTheme()
+  const pinColor = color || theme.colors.brand.red
   const pinBorder = borderColor || theme.colors.background
   return (
     <View style={{ alignItems: "center", justifyContent: "center" }}>

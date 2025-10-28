@@ -1,7 +1,8 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { EventFormat } from "@/interfaces/event"
 import React from "react"
 import { View } from "react-native"
-import { Chip, Text, useTheme } from "react-native-paper"
+import { Chip, Text } from "react-native-paper"
 
 interface AttendanceModeSelectorProps {
   eventType: EventFormat
@@ -15,7 +16,7 @@ const modes = [
 ]
 
 const AttendanceModeSelector: React.FC<AttendanceModeSelectorProps> = ({ eventType, onChange }) => {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   return (
     <View style={{ width: "100%" }}>
       <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18, marginBottom: 8 }}>
@@ -32,9 +33,9 @@ const AttendanceModeSelector: React.FC<AttendanceModeSelectorProps> = ({ eventTy
               onPress={() => onChange(mode.value as EventFormat)}
               style={{
                 margin: 4,
-                backgroundColor: isSelected ? theme.colors.primary : theme.colors.background,
+                backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
               }}
-              textStyle={{ color: isSelected ? theme.colors.onPrimary : theme.colors.onBackground }}
+              textStyle={{ color: isSelected ? theme.colors.background : theme.colors.onBackground }}
             >
               {mode.label}
             </Chip>

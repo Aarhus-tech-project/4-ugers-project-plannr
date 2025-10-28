@@ -1,7 +1,8 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import Slider from "@react-native-community/slider"
 import React from "react"
 import { View } from "react-native"
-import { Text, useTheme } from "react-native-paper"
+import { Text } from "react-native-paper"
 interface DiscoveryRangeSliderProps {
   value: number
   onValueChange: (value: number) => void
@@ -10,7 +11,7 @@ interface DiscoveryRangeSliderProps {
 }
 
 const DiscoveryRangeSlider: React.FC<DiscoveryRangeSliderProps> = ({ value, onValueChange, min = 1, max = 100 }) => {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   return (
     <View style={{ width: "100%" }}>
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
@@ -24,9 +25,9 @@ const DiscoveryRangeSlider: React.FC<DiscoveryRangeSliderProps> = ({ value, onVa
           step={1}
           onValueChange={onValueChange}
           style={{ flex: 1 }}
-          minimumTrackTintColor={theme.colors.primary}
+          minimumTrackTintColor={theme.colors.brand.red}
           maximumTrackTintColor={theme.colors.background}
-          thumbTintColor={theme.colors.primary}
+          thumbTintColor={theme.colors.brand.red}
         />
         <Text style={{ color: theme.colors.onBackground, marginLeft: 12, fontWeight: "500" }}>{value} km</Text>
       </View>
