@@ -95,66 +95,43 @@ export default function Preferences() {
           }}
         >
           <LocationOptionSelector useCurrentLocation={useCurrentLocation} onChange={setUseCurrentLocation} />
-          {useCurrentLocation ? (
-            <View style={{ position: "relative" }}>
-              <MapPicker
-                location={
-                  liveLocation
+          <View style={{ position: "relative" }}>
+            <MapPicker
+              location={
+                useCurrentLocation
+                  ? liveLocation
                     ? {
                         latitude: liveLocation.coords.latitude,
                         longitude: liveLocation.coords.longitude,
                       }
                     : null
-                }
-                range={rangeKm * 1000}
-                disableSelection
-              />
-              {locationLoading && (
-                <View
-                  style={{
-                    ...StyleSheet.absoluteFillObject,
-                    backgroundColor: "rgba(0,0,0,0.3)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 10,
-                    borderRadius: 16,
-                  }}
-                >
-                  <ActivityIndicator size="large" color={theme.colors.brand.red} />
-                </View>
-              )}
-            </View>
-          ) : (
-            <View style={{ position: "relative" }}>
-              <MapPicker
-                location={
-                  selectedLocation ??
-                  (liveLocation
-                    ? {
-                        latitude: liveLocation.coords.latitude,
-                        longitude: liveLocation.coords.longitude,
-                      }
-                    : null)
-                }
-                onLocationChange={setSelectedLocation}
-                range={rangeKm * 1000}
-              />
-              {locationLoading && (
-                <View
-                  style={{
-                    ...StyleSheet.absoluteFillObject,
-                    backgroundColor: "rgba(0,0,0,0.3)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 10,
-                    borderRadius: 16,
-                  }}
-                >
-                  <ActivityIndicator size="large" color={theme.colors.brand.red} />
-                </View>
-              )}
-            </View>
-          )}
+                  : selectedLocation ??
+                    (liveLocation
+                      ? {
+                          latitude: liveLocation.coords.latitude,
+                          longitude: liveLocation.coords.longitude,
+                        }
+                      : null)
+              }
+              range={rangeKm * 1000}
+              {...(!useCurrentLocation && { onLocationChange: setSelectedLocation })}
+              {...(useCurrentLocation && { disableSelection: true })}
+            />
+            {locationLoading && (
+              <View
+                style={{
+                  ...StyleSheet.absoluteFillObject,
+                  backgroundColor: "rgba(0,0,0,0.3)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 10,
+                  borderRadius: 16,
+                }}
+              >
+                <ActivityIndicator size="large" color={theme.colors.brand.red} />
+              </View>
+            )}
+          </View>
         </View>
         {/* Discovery Range Card */}
         <View

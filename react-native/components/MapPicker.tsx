@@ -160,25 +160,29 @@ const MapPicker: React.FC<MapPickerProps> = ({
                 strokeColor={theme.colors.brand.red + "100"}
                 fillColor={theme.colors.brand.red + "40"}
               />
-              <View
-                style={{
-                  position: "absolute",
-                  left: 16,
-                  top: 16,
-                  backgroundColor: theme.colors.brand.red,
-                  borderRadius: 12,
-                  paddingHorizontal: 12,
-                  paddingVertical: 4,
-                  shadowColor: "#000",
-                  shadowOpacity: 0.08,
-                  shadowRadius: 4,
-                }}
-              >
-                <Text style={{ color: "#FFFFFF", fontWeight: "bold" }}>{`Range: ${(range / 1000).toFixed(0)} km`}</Text>
-              </View>
             </>
           )}
         </MapView>
+        {/* Range label absolutely positioned over the map */}
+        {location && (
+          <View
+            style={{
+              position: "absolute",
+              left: 16,
+              top: 16,
+              backgroundColor: theme.colors.brand.red,
+              borderRadius: 12,
+              paddingHorizontal: 12,
+              paddingVertical: 4,
+              shadowColor: "#000",
+              shadowOpacity: 0.08,
+              shadowRadius: 4,
+              zIndex: 10,
+            }}
+          >
+            <Text style={{ color: "#FFFFFF", fontWeight: "bold" }}>{`Range: ${(range / 1000).toFixed(0)} km`}</Text>
+          </View>
+        )}
         {disableSelection && (
           <>
             <View style={styles.lockIconWrap} pointerEvents="none">

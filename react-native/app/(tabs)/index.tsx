@@ -1,34 +1,36 @@
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
 import { mockProfile } from "@/data/mockProfile.data"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import type { EventFormat } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import React, { useMemo, useRef, useState } from "react"
 import { ScrollView, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native-paper"
 import EventDetailsCard from "../components/EventDetailsCard"
-import { EventFormat } from "../components/FilterBar"
+import FilterModal from "../components/FilterModal"
 
 export default function Home() {
   const theme = useCustomTheme()
   const bg = theme.colors.background
-  const { likedEvents = [], subscribedEvents = [] } = mockProfile
-  // Combine all events for filtering (demo: liked + subscribed, deduped by id)
-  const allEvents = useMemo(() => {
-    const map = new Map()
-    ;[...(likedEvents || []), ...(subscribedEvents || [])].forEach((e) => map?.set(e.id, e))
-    return Array?.from(map?.values())
-  }, [likedEvents, subscribedEvents])
+  const { likedEvents = [] } = mockProfile
 
-  // Filter state (event format)
-  const [selectedFormat, setSelectedFormat] = useState<EventFormat>("all")
+  // Filter modal state
+  const [filterModalVisible, setFilterModalVisible] = useState(false)
+  const [eventType, setEventType] = useState<EventFormat | null>(null)
+  const [selectedThemes, setSelectedThemes] = useState<string[]>([])
+  const [rangeKm, setRangeKm] = useState<number>(50)
+  const [customStart, setCustomStart] = useState<Date | null>(null)
+  const [customEnd, setCustomEnd] = useState<Date | null>(null)
 
-  // Filtered events by format
+  // Filtered liked events by modal filters
   const filteredEvents = useMemo(() => {
-    let events = allEvents
-    if (selectedFormat !== "all") events = events.filter((e) => e.format === selectedFormat)
+    let events = likedEvents
+    if (eventType) events = events.filter((e) => e.format === eventType)
+    if (selectedThemes.length > 0) events = events.filter((e) => selectedThemes.includes(e.theme?.name ?? ""))
+    // Optionally add rangeKm, customStart, customEnd filtering here
     return events.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
-  }, [allEvents, selectedFormat])
+  }, [likedEvents, eventType, selectedThemes, rangeKm, customStart, customEnd])
 
   const router = useRouter()
   const { setVisible } = useTabBarVisibility()
@@ -65,7 +67,33 @@ export default function Home() {
         >
           Home
         </Text>
+        {/* Filter Button & Modal */}
+        <TouchableOpacity
+          onPress={() => setFilterModalVisible(true)}
+          style={{ padding: 4, borderRadius: 20, position: "absolute", right: 20, top: 42 }}
+          activeOpacity={0.6}
+        >
+          <FontAwesome6 name="sliders" size={24} color={theme.colors.onBackground} />
+        </TouchableOpacity>
       </View>
+      <FilterModal
+        visible={filterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        filters={{
+          eventType: eventType ?? "inperson",
+          setEventType: (v) => setEventType(v),
+          selectedThemes,
+          setSelectedThemes,
+          rangeKm,
+          setRangeKm,
+          dateRange: "custom",
+          setDateRange: () => {},
+          customStart,
+          setCustomStart,
+          customEnd,
+          setCustomEnd,
+        }}
+      />
       {/* Main Content */}
       <View
         style={{
@@ -93,17 +121,9 @@ export default function Home() {
           {filteredEvents.length > 0 ? (
             <View
               style={{
-                width: "96%",
-                marginTop: 18,
+                width: "90%",
                 marginBottom: 18,
-                backgroundColor: theme.colors.secondary,
                 borderRadius: 18,
-                padding: 16,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 8,
-                elevation: 2,
               }}
             >
               <Text

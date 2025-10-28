@@ -33,8 +33,8 @@ export interface FilterModalProps {
 const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, filters }) => {
   const theme = useCustomTheme()
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
+    <Modal visible={visible} animationType="slide" transparent navigationBarTranslucent>
+      <View style={[styles.overlay]}>
         <View style={[styles.modal, { backgroundColor: theme.colors.secondary }]}>
           <Text style={{ color: theme.colors.onBackground, fontWeight: "bold", fontSize: 22, marginBottom: 16 }}>
             Filter Events
@@ -67,9 +67,9 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, filters }) 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
   },
   modal: {
     width: "92%",
