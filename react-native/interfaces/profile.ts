@@ -1,6 +1,30 @@
 import { EventThemeName } from "./event"
 
-export interface ProfileSettings {
+export interface Filter {
+  location: {
+    useCurrentLocation: boolean
+    customLocation?: {
+      latitude: number
+      longitude: number
+    }
+  }
+  range: number
+  eventThemes: EventThemeName[]
+  dateRange: {
+    todayOnly: boolean
+    thisWeekendOnly: boolean
+    custom?: {
+      startDate: Date | null
+      endDate: Date | null
+    }
+  }
+  formats: {
+    inperson: boolean
+    online: boolean
+    hybrid: boolean
+  }
+}
+export interface EventFinderSettings {
   location: {
     useCurrentLocation: boolean
     customLocation?: {
@@ -34,7 +58,9 @@ export interface Profile {
   bio?: string
   phone?: string
   avatarUrl?: string
-  settings?: ProfileSettings
-  likedEvents?: Event[]
-  subscribedEvents?: Event[]
+  eventFinderSettings?: EventFinderSettings
+  filters?: {
+    likedEvents?: Event[]
+    subscribedEvents?: Event[]
+  }
 }
