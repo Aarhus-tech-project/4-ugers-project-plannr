@@ -1,4 +1,4 @@
-import { EventThemeName } from "./event"
+import { Event, EventThemeName } from "./event"
 
 export interface Filter {
   location: {
@@ -48,8 +48,6 @@ export interface EventFinderSettings {
     hybrid: boolean
   }
 }
-
-import { Event } from "./event"
 
 export interface Profile {
   id: string
