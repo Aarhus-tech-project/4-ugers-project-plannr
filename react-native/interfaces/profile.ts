@@ -57,8 +57,7 @@ export interface Profile {
   phone?: string
   avatarUrl?: string
   eventFinderSettings?: EventFinderSettings
-  filters?: {
-    likedEvents?: Event[]
-    subscribedEvents?: Event[]
-  }
+  likedEvents?: Event[]
+  subscribedEvents?: Event[]
+  filters?: Filter
 }
