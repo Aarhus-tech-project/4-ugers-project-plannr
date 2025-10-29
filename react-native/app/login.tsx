@@ -1,17 +1,18 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useSession } from "@/hooks/useSession"
 import { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } from "@env"
 import { FontAwesome } from "@expo/vector-icons"
 import * as AuthSession from "expo-auth-session"
 import { useRouter } from "expo-router"
 import React from "react"
-import { Button, Surface, useTheme } from "react-native-paper"
+import { Button, Surface } from "react-native-paper"
 
 export default function Login() {
   const router = useRouter()
   const [loginProvider, setLoginProvider] = React.useState<"google" | "github" | null>(null)
   const { setSession } = useSession()
   const [loading, setLoading] = React.useState(false)
-  const theme = useTheme()
+  const theme = useCustomTheme()
 
   const handleGoogleLogin = async () => {
     setLoginProvider("google")
@@ -24,6 +25,7 @@ export default function Login() {
     setLoading(true)
     const clientId = GITHUB_CLIENT_ID || ""
     const redirectUri = AuthSession.makeRedirectUri()
+
     const discovery = {
       authorizationEndpoint: "https://github.com/login/oauth/authorize",
       tokenEndpoint: "https://github.com/login/oauth/access_token",
@@ -80,7 +82,7 @@ export default function Login() {
                 })
                 const emails = await emailRes.json()
                 if (Array.isArray(emails)) {
-                  const primaryEmail = emails.find((e) => e.primary && e.verified)
+                  const primaryEmail = emails?.find((e) => e.brand.red && e.verified)
                   email = primaryEmail?.email || emails[0]?.email || null
                 }
               } catch (emailErr) {
@@ -118,7 +120,6 @@ export default function Login() {
         justifyContent: "center",
         alignItems: "center",
         padding: 24,
-        elevation: 0,
       }}
     >
       <Button
@@ -128,16 +129,16 @@ export default function Login() {
           borderRadius: 24,
           marginVertical: 8,
           width: 260,
-          backgroundColor: theme.colors.secondary,
+          backgroundColor: theme.colors.brand.blue,
           opacity: loading ? 0.6 : 1,
         }}
         labelStyle={{
-          color: theme.colors.onSecondary,
+          color: theme.colors.white,
           fontSize: theme.fonts.bodyLarge.fontSize,
           letterSpacing: 0.2,
         }}
         disabled={loading}
-        icon={() => <FontAwesome name="google" size={22} color={theme.colors.onSecondary} style={{ marginRight: 8 }} />}
+        icon={() => <FontAwesome name="google" size={22} color={theme.colors.white} style={{ marginRight: 8 }} />}
       >
         {loading && loginProvider === "google" ? "Logging in..." : "Login with Google"}
       </Button>
@@ -148,14 +149,14 @@ export default function Login() {
           borderRadius: 24,
           marginVertical: 8,
           width: 260,
-          backgroundColor: theme.colors.primary,
+          backgroundColor: theme.colors.brand.black,
         }}
         labelStyle={{
-          color: theme.colors.onPrimary,
+          color: theme.colors.white,
           fontSize: theme.fonts.bodyLarge.fontSize,
           letterSpacing: 0.2,
         }}
-        icon={() => <FontAwesome name="github" size={22} color={theme.colors.onPrimary} style={{ marginRight: 8 }} />}
+        icon={() => <FontAwesome name="github" size={22} color={theme.colors.white} style={{ marginRight: 8 }} />}
       >
         {loading && loginProvider === "github" ? "Logging in..." : "Login with GitHub"}
       </Button>

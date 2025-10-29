@@ -37,6 +37,7 @@ export function useLiveLocation({ delay = 5000, distance = 5 } = {}) {
             }
           }
         )
+        // oxlint-disable-next-line no-unused-vars
       } catch (err) {
         setError("Could not fetch location")
       }

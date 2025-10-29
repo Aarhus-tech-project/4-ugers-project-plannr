@@ -1,25 +1,28 @@
 import { AnimatedTabBar } from "@/components/AnimatedTabBar"
 import { TabBarVisibilityProvider } from "@/context/TabBarVisibilityContext"
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome, FontAwesome6 } from "@expo/vector-icons"
 import { Tabs } from "expo-router"
 import React from "react"
-import { useTheme } from "react-native-paper"
+import { View } from "react-native"
 
 export default function TabLayout() {
-  const theme = useTheme()
+  const theme = useCustomTheme()
   return (
     <TabBarVisibilityProvider>
       <Tabs
         screenOptions={() => ({
-          tabBarActiveTintColor: theme.colors.background,
-          tabBarInactiveTintColor: theme.colors.scrim,
+          tabBarActiveTintColor: theme.colors.brand.red,
+          tabBarInactiveTintColor: theme.colors.gray[700],
           tabBarStyle: {
-            backgroundColor: theme.colors.tertiary,
+            backgroundColor: theme.colors.gray[900],
             borderTopWidth: 0,
-            display: "flex",
+            paddingTop: 10,
             flexDirection: "row",
+            alignContent: "center",
             justifyContent: "center",
             alignItems: "center",
+            height: 80,
           },
           headerShown: false,
         })}
@@ -37,6 +40,33 @@ export default function TabLayout() {
           options={{
             tabBarLabel: "",
             tabBarIcon: ({ color, size }) => <FontAwesome name="heart" color={color} size={size || 24} />,
+          }}
+        />
+        <Tabs.Screen
+          name="create"
+          options={{
+            tabBarLabel: "",
+            tabBarIcon: ({ color, size }) => (
+              <View
+                style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: color,
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                }}
+              >
+                <FontAwesome6 name="plus" color={theme.colors.gray[900]} size={size || 28} />
+              </View>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="groups"
+          options={{
+            tabBarLabel: "",
+            tabBarIcon: ({ color, size }) => <FontAwesome6 name="users" color={color} size={size || 24} />,
           }}
         />
         <Tabs.Screen

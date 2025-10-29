@@ -1,67 +1,22 @@
-import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
-import React, { useRef, useState } from "react"
-import { Image, TouchableOpacity, View } from "react-native"
-import { Text, useTheme } from "react-native-paper"
-import { useLiveLocation } from "../../hooks/useLiveLocation"
+import React, { useRef } from "react"
+import { Image, ScrollView, TouchableOpacity, View } from "react-native"
+import { Text } from "react-native-paper"
 import { useSession } from "../../hooks/useSession"
-
-function Accordion({
-  title,
-  children,
-  dividerColor,
-  iconName,
-  expanded,
-  onPress,
-}: {
-  title: string
-  children: React.ReactNode
-  dividerColor: string
-  iconName?: string
-  expanded: boolean
-  onPress: () => void
-}) {
-  const theme = useTheme()
-  return (
-    <View style={{ width: "90%", marginBottom: 0 }}>
-      <View style={{ width: "100%", height: 1, backgroundColor: dividerColor, marginHorizontal: 0 }} />
-      <TouchableOpacity
-        style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12 }}
-        onPress={onPress}
-        activeOpacity={0.7}
-      >
-        <Text
-          style={{
-            borderRadius: 8,
-            color: theme.colors.onBackground,
-          }}
-        >
-          {title}
-        </Text>
-        {iconName && <FontAwesome6 name={iconName} size={16} />}
-      </TouchableOpacity>
-      {expanded && <View style={{ marginTop: 8 }}>{children}</View>}
-    </View>
-  )
-}
 
 export default function Settings() {
   const router = useRouter()
-  const theme = useTheme()
-  const [rangeKm, setRangeKm] = React.useState(10)
-  const { location, address, error: locationError } = useLiveLocation()
+  const theme = useCustomTheme()
   const { session, setSession } = useSession()
-  const bg = theme.colors.background
-  const [bio, setBio] = React.useState("")
-  const [phone, setPhone] = React.useState("")
-  const [editMode, setEditMode] = React.useState(false)
-  const [showSaveModal, setShowSaveModal] = React.useState(false)
-  const { setVisible } = useTabBarVisibility()
-  const lastScrollY = useRef(0)
-
-  // Accordion state: only one open at a time
-  const [openAccordion, setOpenAccordion] = useState<"preferences" | "account" | null>(null)
+  const navigatingPreferences = useRef(false)
+  const navigatingAccount = useRef(false)
+  // Helper to robustly reset navigation lock after a delay
+  const resetNavLock = (ref: React.RefObject<boolean>) =>
+    setTimeout(() => {
+      ref.current = false
+    }, 1200)
 
   return (
     <>
@@ -83,56 +38,53 @@ export default function Settings() {
             fontWeight: "bold",
             textAlign: "center",
             fontSize: 32,
+            left: 40,
           }}
         >
           Settings
         </Text>
       </View>
       {/* Cards */}
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: theme.colors.secondary,
-        }}
+      <ScrollView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+        contentContainerStyle={{ alignItems: "center", paddingBottom: 100, paddingTop: 16 }}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={{ width: "90%", height: 1, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+        {/* Profile Card */}
         <View
           style={{
-            flex: 1,
-            width: "100%",
+            width: "90%",
+            backgroundColor: theme.colors.secondary,
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+            shadowColor: theme.colors.shadow,
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
+            alignItems: "center",
           }}
         >
-          <View
-            style={{
-              flex: 1,
-              width: "100%",
-              paddingTop: 40,
-              marginBottom: -150,
-              alignItems: "center",
-            }}
-          >
-            {/* Outer border circle with transparent gap */}
+          <View style={{ justifyContent: "center", alignItems: "center", marginBottom: 12 }}>
+            {/* Outer red border */}
             <View
               style={{
+                width: 112,
+                height: 112,
+                borderRadius: 56,
+                borderWidth: 3,
+                borderColor: theme.colors.brand.red,
                 justifyContent: "center",
                 alignItems: "center",
-                width: 184,
-                height: 184,
-                borderRadius: 100,
-                borderColor: theme.colors.primary,
-                borderWidth: 6,
-                backgroundColor: "transparent",
-                position: "relative",
               }}
             >
-              {/* Transparent gap between border and image */}
+              {/* Transparent border */}
               <View
                 style={{
-                  width: 170,
-                  height: 170,
-                  borderRadius: 100,
+                  width: 106,
+                  height: 106,
+                  borderRadius: 53,
+                  borderWidth: 3,
+                  borderColor: "rgba(0,0,0,0)",
                   backgroundColor: "transparent",
                   justifyContent: "center",
                   alignItems: "center",
@@ -140,113 +92,112 @@ export default function Settings() {
               >
                 <Image
                   source={{ uri: session?.user?.avatarUrl || "" }}
-                  style={{
-                    width: 164,
-                    height: 164,
-                    borderRadius: 100,
-                  }}
+                  style={{ width: 100, height: 100, borderRadius: 50, marginBottom: 0 }}
                 />
               </View>
-              <View
-                style={{
-                  top: 140,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  position: "absolute",
-                  backgroundColor: theme.colors.secondary,
-                  borderRadius: 100,
-                  width: 120,
-                  height: 120,
-                  zIndex: 1,
-                }}
-              >
-                <FontAwesome6
-                  name="pencil"
-                  size={24}
-                  color={theme.colors.onBackground}
-                  style={{ marginBottom: 8, marginTop: -24 }}
-                />
-                <Text
-                  style={{
-                    color: theme.colors.onBackground,
-                    fontWeight: "bold",
-                    textAlign: "center",
-                    fontSize: 24,
-                  }}
-                >
-                  {"Daniel"}
-                </Text>
-                <Text
-                  style={{
-                    color: theme.colors.onBackground,
-                    position: "absolute",
-                    bottom: 16,
-                    textAlign: "center",
-                  }}
-                >
-                  {"Plannr member"}
-                </Text>
-              </View>
             </View>
-            <View
-              style={{
-                width: "90%",
-                top: 26,
-                height: 1,
-                backgroundColor: theme.colors.shadow,
-                marginHorizontal: 0,
-                zIndex: 0,
-              }}
-            />
-          </View>
-          <View
-            style={{
-              flex: 1,
-              paddingTop: 40,
-              alignItems: "center",
-              width: "100%",
-              backgroundColor: theme.colors.secondary,
-            }}
-          >
-            <View style={{ width: "90%", marginBottom: 0 }}>
-              <View style={{ width: "100%", height: 1, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
-              <TouchableOpacity
-                style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12 }}
-                activeOpacity={0.7}
-                onPress={() => router.push("/preferences")}
-              >
-                <Text
-                  style={{
-                    borderRadius: 8,
-                    color: theme.colors.onBackground,
-                  }}
-                >
-                  Preferences
-                </Text>
-                <FontAwesome6 name={"sliders"} size={16} />
-              </TouchableOpacity>
-            </View>
-            <View style={{ width: "90%", marginBottom: 0 }}>
-              <View style={{ width: "100%", height: 1, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
-              <TouchableOpacity
-                style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12 }}
-                activeOpacity={0.7}
-                onPress={() => router.push("/account")}
-              >
-                <Text
-                  style={{
-                    borderRadius: 8,
-                    color: theme.colors.onBackground,
-                  }}
-                >
-                  Account
-                </Text>
-                <FontAwesome6 name={"gear"} size={16} />
-              </TouchableOpacity>
-            </View>
+            <Text style={{ color: theme.colors.onBackground, fontWeight: "bold", fontSize: 22 }}>
+              {session?.user?.name || "Daniel"}
+            </Text>
+            <Text style={{ color: theme.colors.onBackground, fontSize: 16 }}>{"Plannr member"}</Text>
           </View>
         </View>
-      </View>
+        {/* Preferences Card */}
+        <View
+          style={{
+            width: "90%",
+            backgroundColor: theme.colors.secondary,
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+            shadowColor: theme.colors.shadow,
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingVertical: 8,
+              opacity: navigatingPreferences.current ? 0.5 : 1,
+            }}
+            activeOpacity={0.7}
+            disabled={navigatingPreferences.current}
+            onPress={async () => {
+              if (navigatingPreferences.current) return
+              navigatingPreferences.current = true
+              try {
+                await router.push("/preferences")
+              } finally {
+                resetNavLock(navigatingPreferences)
+              }
+            }}
+          >
+            <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>
+              Finder Preferences
+            </Text>
+            <FontAwesome6 name={"sliders"} size={20} color={theme.colors.brand.red} />
+          </TouchableOpacity>
+        </View>
+        {/* Account Card */}
+        <View
+          style={{
+            width: "90%",
+            backgroundColor: theme.colors.secondary,
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 16,
+            shadowColor: theme.colors.shadow,
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingVertical: 8,
+              opacity: navigatingAccount.current ? 0.5 : 1,
+            }}
+            activeOpacity={0.7}
+            disabled={navigatingAccount.current}
+            onPress={async () => {
+              if (navigatingAccount.current) return
+              navigatingAccount.current = true
+              try {
+                await router.push("/account")
+              } finally {
+                resetNavLock(navigatingAccount)
+              }
+            }}
+          >
+            <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>Account</Text>
+            <FontAwesome6 name={"gear"} size={20} color={theme.colors.brand.red} />
+          </TouchableOpacity>
+        </View>
+        {/* Logout Button */}
+        <TouchableOpacity
+          style={{
+            width: "90%",
+            backgroundColor: theme.colors.brand.red,
+            borderRadius: 16,
+            padding: 16,
+            marginTop: 8,
+            marginBottom: 32,
+            alignItems: "center",
+          }}
+          activeOpacity={0.8}
+          onPress={() => {
+            setSession(null)
+            router.replace("/login")
+          }}
+        >
+          <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 18 }}>Log out</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </>
   )
 }
