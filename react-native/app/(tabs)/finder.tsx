@@ -10,7 +10,7 @@ import { MotiView } from "moti"
 import { useRef, useState } from "react"
 import { Image, Linking, ScrollView, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native-paper"
-import EventDetailsCard from "../components/EventDetailsCard"
+import EventDetailsCard from "../../components/EventDetailsCard"
 
 export default function Finder() {
   const theme = useCustomTheme()
@@ -39,14 +39,14 @@ export default function Finder() {
           alignItems: "center",
           justifyContent: "center",
           width: "100%",
-          paddingTop: 46,
+          paddingTop: 56,
           paddingBottom: 16,
           backgroundColor: theme.colors.secondary,
         }}
       >
         <TouchableOpacity
           onPress={() => router.back()}
-          style={{ padding: 4, borderRadius: 16, position: "absolute", left: 20, top: 42 }}
+          style={{ padding: 4, borderRadius: 16, position: "absolute", left: 20, top: 52 }}
           activeOpacity={0.6}
         >
           <FontAwesome6 name="chevron-left" size={24} color={theme.colors.onBackground} />
@@ -158,7 +158,11 @@ export default function Finder() {
               })()}
               {cards?.map((card, idx) => {
                 if (card.type === "details") {
-                  return <EventDetailsCard key={idx} event={event} />
+                  return (
+                    <View key={idx} style={{ width: "90%", marginBottom: 24 }}>
+                      <EventDetailsCard key={idx} event={event} />
+                    </View>
+                  )
                 } else if (card.type === "section") {
                   const section = card.section
                   if (!section) return null
@@ -268,7 +272,6 @@ export default function Finder() {
                                   backgroundColor: theme.colors.background,
                                   borderRadius: 18,
                                   overflow: "hidden",
-                                  elevation: 4,
                                 }}
                               >
                                 {/* Colored top bar */}
@@ -417,7 +420,6 @@ export default function Finder() {
                           padding: 24,
                           borderWidth: 2,
                           borderColor: theme.colors.brand.red,
-                          elevation: 8,
                         }}
                       >
                         {/* Ticket badge icon */}
@@ -456,7 +458,6 @@ export default function Finder() {
                               borderRadius: 14,
                               paddingVertical: 12,
                               paddingHorizontal: 16,
-                              elevation: 2,
                             }}
                           >
                             <FontAwesome6
@@ -543,7 +544,6 @@ export default function Finder() {
                       </View>
                     )
                   }
-                  // Add more section types as needed, only if they exist in EventPageSection
                   if (section.type === "location") {
                     return (
                       <View
@@ -605,9 +605,7 @@ export default function Finder() {
                 backgroundColor: theme.colors.brand.red,
                 justifyContent: "center",
                 alignItems: "center",
-                shadowOpacity: 0.5,
-                shadowOffset: { width: 0, height: 0 },
-                shadowColor: theme.colors.shadow,
+                elevation: 3,
               }}
             >
               <FontAwesome6 name="heart" size={32} color={theme.colors.secondary} />
@@ -628,9 +626,7 @@ export default function Finder() {
                 backgroundColor: theme.colors.secondary,
                 justifyContent: "center",
                 alignItems: "center",
-                shadowOpacity: 0.5,
-                shadowOffset: { width: 0, height: 0 },
-                shadowColor: theme.colors.shadow,
+                elevation: 3,
               }}
             >
               <FontAwesome6 name="xmark" size={32} color={theme.colors.brand.red} />

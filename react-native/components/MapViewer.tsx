@@ -1,8 +1,6 @@
-import { useCustomTheme } from "@/hooks/useCustomTheme"
 import React from "react"
 import { StyleSheet, View } from "react-native"
 import MapView, { Marker, Region } from "react-native-maps"
-import CustomPin from "./CustomPin"
 
 interface MapViewerProps {
   location: { latitude: number; longitude: number }
@@ -19,7 +17,6 @@ const MapViewer: React.FC<MapViewerProps> = ({
   regionDelta = 0.05,
   style = {},
 }) => {
-  const theme = useCustomTheme()
   const region: Region = {
     latitude: location.latitude,
     longitude: location.longitude,
@@ -37,9 +34,7 @@ const MapViewer: React.FC<MapViewerProps> = ({
         rotateEnabled={true}
         pitchEnabled={true}
       >
-        <Marker coordinate={location} title={markerTitle} description={markerDescription}>
-          <CustomPin color={theme.colors.brand.red} borderColor={theme.colors.background} />
-        </Marker>
+        <Marker coordinate={location} title={markerTitle} description={markerDescription} />
       </MapView>
     </View>
   )

@@ -432,7 +432,6 @@ export default function Account() {
             borderWidth: 0,
             backgroundColor: theme.colors.gray[700],
             borderRadius: 16,
-            elevation: 0,
             alignItems: "center",
             padding: 12,
           }}
@@ -450,7 +449,6 @@ export default function Account() {
             borderRadius: 16,
             borderWidth: 0,
             backgroundColor: theme.colors.brand.red,
-            elevation: 0,
             alignItems: "center",
             padding: 12,
           }}

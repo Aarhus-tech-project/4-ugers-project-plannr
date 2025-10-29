@@ -73,7 +73,7 @@ export default function Preferences() {
             left: 40,
           }}
         >
-          Preferences
+          Finder Preferences
         </Text>
       </View>
       <ScrollView
@@ -250,7 +250,6 @@ export default function Preferences() {
             borderWidth: 0,
             backgroundColor: theme.colors.gray[700],
             borderRadius: 16,
-            elevation: 0,
             shadowColor: theme.colors.brand.red,
             shadowOpacity: 0.08,
             shadowRadius: 4,
@@ -269,7 +268,6 @@ export default function Preferences() {
             borderRadius: 16,
             borderWidth: 0,
             backgroundColor: theme.colors.brand.red,
-            elevation: 0,
             shadowColor: theme.colors.brand.red,
             shadowOpacity: 0.08,
             shadowRadius: 4,

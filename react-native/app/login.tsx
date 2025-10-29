@@ -120,7 +120,6 @@ export default function Login() {
         justifyContent: "center",
         alignItems: "center",
         padding: 24,
-        elevation: 0,
       }}
     >
       <Button

@@ -86,7 +86,10 @@ const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ them
       <View style={{ marginBottom: 8 }} />
       <View style={{ maxHeight: 180 }}>
         <ScrollView
-          showsVerticalScrollIndicator={true}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled={true}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
           contentContainerStyle={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start" }}
         >
           {chips}

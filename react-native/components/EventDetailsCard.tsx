@@ -10,7 +10,7 @@ import type { Profile } from "@/interfaces/profile"
 
 interface Props {
   event: Event
-  profile: Profile
+  profile?: Profile
   onSubscribe?: (event: Event) => void
   onSeeMore?: (event: Event) => void
   actionButtons?: boolean
@@ -154,7 +154,9 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
           <TouchableOpacity
             style={{
               flex: 1,
-              backgroundColor: isSubscribed ? theme.colors.brand.blue : theme.colors.brand.red,
+              display: "flex",
+              flexDirection: "row",
+              backgroundColor: theme.colors.brand.red,
               borderBottomLeftRadius: 16,
               borderBottomRightRadius: 0,
               borderTopLeftRadius: 0,
@@ -167,8 +169,27 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
             }}
             onPress={() => onSubscribe?.(event)}
           >
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: theme.colors.brand.white,
+                width: 24,
+                height: 24,
+                borderRadius: 8,
+                justifyContent: "center",
+                marginRight: 8,
+              }}
+            >
+              {isSubscribed ? (
+                <FontAwesome6 name="check" size={16} color={theme.colors.brand.red} />
+              ) : (
+                <FontAwesome6 name="plus" size={16} color={theme.colors.brand.red} />
+              )}
+            </View>
             <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 16 }}>
-              {isSubscribed ? "I'm not going" : "I'm going"}
+              {isSubscribed ? "Going" : "Confirm Attendance"}
             </Text>
           </TouchableOpacity>
           <View
@@ -184,6 +205,8 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
           <TouchableOpacity
             style={{
               flex: 1,
+              display: "flex",
+              flexDirection: "row",
               backgroundColor: theme.colors.brand.red,
               borderBottomLeftRadius: 0,
               borderBottomRightRadius: 16,
@@ -197,6 +220,21 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
             }}
             onPress={() => onSeeMore?.(event)}
           >
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: theme.colors.brand.white,
+                width: 24,
+                height: 24,
+                borderRadius: 8,
+                justifyContent: "center",
+                marginRight: 8,
+              }}
+            >
+              <FontAwesome6 name="info" size={16} color={theme.colors.brand.red} />
+            </View>
             <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 16 }}>See More</Text>
           </TouchableOpacity>
         </View>

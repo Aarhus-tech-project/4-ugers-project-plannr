@@ -135,7 +135,9 @@ export default function Settings() {
               }
             }}
           >
-            <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>Preferences</Text>
+            <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>
+              Finder Preferences
+            </Text>
             <FontAwesome6 name={"sliders"} size={20} color={theme.colors.brand.red} />
           </TouchableOpacity>
         </View>

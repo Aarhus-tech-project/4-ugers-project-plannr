@@ -33,7 +33,6 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
         shadowColor: theme.colors.shadow,
         shadowOpacity: 0.12,
         shadowRadius: 12,
-        elevation: 3,
       }}
     >
       <Text style={{ color: theme.colors.onBackground, marginBottom: 8, fontWeight: "bold", fontSize: 18 }}>
@@ -120,7 +119,6 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
           backgroundColor: "transparent",
           // Remove border/shadow for seamless card look
           borderWidth: 0,
-          elevation: 0,
           shadowOpacity: 0,
         }}
       />

@@ -7,6 +7,10 @@ export const palette = {
     red: "#e63946",
     blue: "#4285F4",
     black: "#181717",
+    success: "#3dad43ff",
+    info: "#1d9bf0ff",
+    warning: "#ffba08ff",
+    error: "#d00000",
   },
   gray: {
     50: "#f9f9f9ff",

@@ -1,3 +1,4 @@
+import FilterModal from "@/components/FilterModal"
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
 import { mockProfile } from "@/data/mockProfile.data"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
@@ -7,8 +8,20 @@ import { useRouter } from "expo-router"
 import React, { useMemo, useRef, useState } from "react"
 import { ScrollView, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native-paper"
-import EventDetailsCard from "../components/EventDetailsCard"
-import FilterModal from "../components/FilterModal"
+import EventDetailsCard from "../../components/EventDetailsCard"
+
+// Haversine formula to calculate distance between two lat/lng points in km
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371 // Radius of the earth in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const d = R * c // Distance in km
+  return d
+}
 
 export default function Home() {
   const theme = useCustomTheme()
@@ -17,20 +30,63 @@ export default function Home() {
 
   // Filter modal state
   const [filterModalVisible, setFilterModalVisible] = useState(false)
+  // Actual filter state
   const [eventType, setEventType] = useState<EventFormat | null>(null)
   const [selectedThemes, setSelectedThemes] = useState<string[]>([])
   const [rangeKm, setRangeKm] = useState<number>(50)
   const [customStart, setCustomStart] = useState<Date | null>(null)
   const [customEnd, setCustomEnd] = useState<Date | null>(null)
 
+  // Modal (draft) filter state
+  const [draftEventType, setDraftEventType] = useState<EventFormat | null>(eventType)
+  const [draftSelectedThemes, setDraftSelectedThemes] = useState<string[]>(selectedThemes)
+  const [draftRangeKm, setDraftRangeKm] = useState<number>(rangeKm)
+  const [draftCustomStart, setDraftCustomStart] = useState<Date | null>(customStart)
+  const [draftCustomEnd, setDraftCustomEnd] = useState<Date | null>(customEnd)
+  const [draftUseCurrentLocation, setDraftUseCurrentLocation] = useState(true)
+  const [selectedLocation, setSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [draftSelectedLocation, setDraftSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(
+    null
+  )
+
   // Filtered liked events by modal filters
   const filteredEvents = useMemo(() => {
     let events = likedEvents
+    // Attendance mode
     if (eventType) events = events.filter((e) => e.format === eventType)
+    // Theme
     if (selectedThemes.length > 0) events = events.filter((e) => selectedThemes.includes(e.theme?.name ?? ""))
-    // Optionally add rangeKm, customStart, customEnd filtering here
+    // Date range
+    if (customStart && customEnd) {
+      events = events.filter((e) => {
+        const eventStart = new Date(e.startAt).getTime()
+        const eventEnd = e.endAt ? new Date(e.endAt).getTime() : eventStart
+        return eventEnd >= customStart.getTime() && eventStart <= customEnd.getTime()
+      })
+    } else if (customStart) {
+      events = events.filter((e) => new Date(e.startAt).getTime() >= customStart.getTime())
+    } else if (customEnd) {
+      events = events.filter((e) => new Date(e.endAt ?? e.startAt).getTime() <= customEnd.getTime())
+    }
+    // Range (distance)
+    if (
+      selectedLocation &&
+      typeof selectedLocation.latitude === "number" &&
+      typeof selectedLocation.longitude === "number"
+    ) {
+      events = events.filter((e) => {
+        if (typeof e.latitude !== "number" || typeof e.longitude !== "number") return false
+        const dist = getDistanceFromLatLonInKm(
+          selectedLocation.latitude,
+          selectedLocation.longitude,
+          e.latitude,
+          e.longitude
+        )
+        return dist <= rangeKm
+      })
+    }
     return events.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
-  }, [likedEvents, eventType, selectedThemes, rangeKm, customStart, customEnd])
+  }, [likedEvents, eventType, selectedThemes, rangeKm, customStart, customEnd, selectedLocation])
 
   const router = useRouter()
   const { setVisible } = useTabBarVisibility()
@@ -45,18 +101,11 @@ export default function Home() {
           alignItems: "center",
           justifyContent: "center",
           width: "100%",
-          paddingTop: 46,
+          paddingTop: 56,
           paddingBottom: 16,
           backgroundColor: theme.colors.secondary,
         }}
       >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={{ padding: 4, borderRadius: 20, position: "absolute", left: 20, top: 42 }}
-          activeOpacity={0.6}
-        >
-          <FontAwesome6 name="chevron-left" size={24} color={theme.colors.onBackground} />
-        </TouchableOpacity>
         <Text
           style={{
             color: theme.colors.onBackground,
@@ -70,7 +119,7 @@ export default function Home() {
         {/* Filter Button & Modal */}
         <TouchableOpacity
           onPress={() => setFilterModalVisible(true)}
-          style={{ padding: 4, borderRadius: 20, position: "absolute", right: 20, top: 42 }}
+          style={{ padding: 4, borderRadius: 20, position: "absolute", right: 20, top: 52 }}
           activeOpacity={0.6}
         >
           <FontAwesome6 name="sliders" size={24} color={theme.colors.onBackground} />
@@ -78,20 +127,49 @@ export default function Home() {
       </View>
       <FilterModal
         visible={filterModalVisible}
-        onClose={() => setFilterModalVisible(false)}
-        filters={{
-          eventType: eventType ?? "inperson",
-          setEventType: (v) => setEventType(v),
-          selectedThemes,
-          setSelectedThemes,
-          rangeKm,
-          setRangeKm,
-          dateRange: "custom",
-          setDateRange: () => {},
-          customStart,
-          setCustomStart,
-          customEnd,
-          setCustomEnd,
+        onClose={() => {
+          setFilterModalVisible(false)
+          setDraftEventType(eventType)
+          setDraftSelectedThemes(selectedThemes)
+          setDraftRangeKm(rangeKm)
+          setDraftCustomStart(customStart)
+          setDraftCustomEnd(customEnd)
+          setDraftUseCurrentLocation(true)
+          setDraftSelectedLocation(selectedLocation)
+        }}
+        rangeKm={draftRangeKm}
+        setRangeKm={setDraftRangeKm}
+        selectedThemes={draftSelectedThemes}
+        setSelectedThemes={setDraftSelectedThemes}
+        dateRange={"Today"}
+        setDateRange={() => {}}
+        eventType={draftEventType ?? "inperson"}
+        setEventType={setDraftEventType}
+        customStart={draftCustomStart}
+        setCustomStart={setDraftCustomStart}
+        customEnd={draftCustomEnd}
+        setCustomEnd={setDraftCustomEnd}
+        useCurrentLocation={draftUseCurrentLocation}
+        setUseCurrentLocation={setDraftUseCurrentLocation}
+        selectedLocation={draftSelectedLocation}
+        setSelectedLocation={setDraftSelectedLocation}
+        onReset={() => {
+          setDraftRangeKm(50)
+          setDraftSelectedThemes([])
+          setDraftEventType(null)
+          setDraftCustomStart(null)
+          setDraftCustomEnd(null)
+          setDraftUseCurrentLocation(true)
+          setDraftSelectedLocation(null)
+        }}
+        onApply={() => {
+          setEventType(draftEventType)
+          setSelectedThemes(draftSelectedThemes)
+          setRangeKm(draftRangeKm)
+          setCustomStart(draftCustomStart)
+          setCustomEnd(draftCustomEnd)
+          setSelectedLocation(draftSelectedLocation)
+          setFilterModalVisible(false)
         }}
       />
       {/* Main Content */}
