@@ -36,11 +36,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
              .HasConversion<string>()        // "InPerson" | "Online" | "Hybrid"
              .HasMaxLength(16);
 
-            b.Property(e => e.ThemeName)
-             .HasConversion<string>()        // "Music" | "Art" | ...
-             .HasMaxLength(32);
-
-            b.Property(e => e.ThemeIcon).HasMaxLength(100);
+            // Theme som owned type
+            b.OwnsOne(e => e.Theme, theme =>
+            {
+                theme.Property(t => t.Name)
+                    .HasConversion<string>()
+                    .HasMaxLength(32);
+                theme.Property(t => t.Icon)
+                    .HasMaxLength(100);
+            });
 
             b.HasOne(e => e.Creator)
              .WithMany(p => p.EventsCreated)
@@ -88,6 +92,25 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.HasOne(p => p.Event)
              .WithMany(e => e.Prompts)
              .HasForeignKey(p => p.EventId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EventPageSection>(b =>
+        {
+            b.HasKey(s => s.Id); // Primærnøgle
+
+            b.Property(s => s.Type).HasMaxLength(50).IsRequired();
+
+            b.Property<string>("Content").HasMaxLength(4000);
+
+            b.HasDiscriminator<string>("SectionType")
+             .HasValue<DescriptionSection>("description")
+             .HasValue<LocationSection>("location");
+
+            b.Property<Guid>("EventId");
+            b.HasOne<Event>()
+             .WithMany(e => e.Sections)
+             .HasForeignKey("EventId")
              .OnDelete(DeleteBehavior.Cascade);
         });
     }

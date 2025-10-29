@@ -80,9 +80,15 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
         existing.AllDay = update.AllDay;
         existing.Format = update.Format;
         existing.InterestedCount = update.InterestedCount;
-        existing.ThemeName = update.ThemeName;
-        existing.ThemeIcon = update.ThemeIcon;
+        existing.GoingCount = update.GoingCount;
+        existing.CheckedInCount = update.CheckedInCount;
+        existing.Venue = update.Venue;
+        existing.AccessLink = update.AccessLink;
+        existing.RequiredAge = update.RequiredAge;
         existing.Location = update.Location;
+
+        // Theme som samlet objekt
+        existing.Theme = update.Theme;
 
         await db.SaveChangesAsync();
         return Ok(existing);
