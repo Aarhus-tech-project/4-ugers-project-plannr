@@ -1,18 +1,14 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { EventTheme } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import React, { useMemo } from "react"
 import { ScrollView, View } from "react-native"
 import { Chip, Text } from "react-native-paper"
 
-export interface EventTheme {
-  name: string
-  icon: string
-}
-
 interface EventThemeSelectorProps {
   themes: EventTheme[]
-  selectedThemes: string[]
-  onSelect: (themes: string[]) => void
+  selectedThemes: EventTheme[]
+  onSelect: (themes: EventTheme[]) => void
 }
 
 const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ themes, selectedThemes, onSelect }) => {
@@ -26,14 +22,13 @@ const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ them
           if (selectedThemes.length > 0) {
             onSelect([])
           } else {
-            onSelect(themes.map((t) => t.name))
+            onSelect(themes.map((t) => ({ name: t.name, icon: t.icon })))
           }
         }}
         style={{
           margin: 4,
           backgroundColor: selectedThemes.length > 0 ? theme.colors.brand.red : theme.colors.background,
-          borderWidth: 1,
-          borderColor: theme.colors.brand.red,
+          borderWidth: 0,
           minWidth: 100,
           justifyContent: "center",
         }}
@@ -45,7 +40,7 @@ const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ them
         {selectedThemes.length > 0 ? "Deselect All" : "Select All"}
       </Chip>,
       ...themes.map((themeObj) => {
-        const isSelected = selectedThemes.includes(themeObj.name)
+        const isSelected = selectedThemes.some((t) => t.name === themeObj.name)
         return (
           <Chip
             key={themeObj.name}
@@ -59,13 +54,14 @@ const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ them
             selected={isSelected}
             onPress={() => {
               onSelect(
-                isSelected ? selectedThemes.filter((t) => t !== themeObj.name) : [...selectedThemes, themeObj.name]
+                isSelected ? selectedThemes.filter((t) => t.name !== themeObj.name) : [...selectedThemes, themeObj]
               )
             }}
             style={{
               margin: 4,
               backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
               minWidth: 80,
+              borderWidth: 0,
               justifyContent: "center",
             }}
             textStyle={{ color: isSelected ? theme.colors.background : theme.colors.onBackground }}

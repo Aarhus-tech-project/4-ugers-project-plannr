@@ -1,14 +1,16 @@
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
 import mockEvents from "@/data/mockEvents.data"
+import { useScrollDrivenAnimation } from "@/hooks/useScrollDrivenAnimation"
 import { getSortedEventCards } from "@/utils/event-content"
 
+import EventImageGallery from "@/components/EventImageGallery"
 import MapViewer from "@/components/MapViewer"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
+import { useFocusEffect } from "@react-navigation/native"
 import { useRouter } from "expo-router"
-import { MotiView } from "moti"
-import { useRef, useState } from "react"
-import { Image, Linking, ScrollView, TouchableOpacity, View } from "react-native"
+import React, { useState } from "react"
+import { Animated, Image, Linking, ScrollView, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native-paper"
 import EventDetailsCard from "../../components/EventDetailsCard"
 
@@ -16,8 +18,7 @@ export default function Finder() {
   const theme = useCustomTheme()
   const bg = theme.colors.background
   const router = useRouter()
-  const { setVisible, visible } = useTabBarVisibility()
-  const lastScrollY = useRef(0)
+  const { setScrollY } = useTabBarVisibility()
 
   // Track current event index
   const [current, setCurrent] = useState(0)
@@ -30,6 +31,17 @@ export default function Finder() {
   }
   const denyEvent = () => nextEvent()
   const acceptEvent = () => nextEvent()
+
+  // Use scroll-driven animation hook
+  const { scrollY, onScroll } = useScrollDrivenAnimation({ hideDistance: 80, fade: true })
+  // Set scrollY in context and reset to 0 when page is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      setScrollY(scrollY)
+      scrollY.setValue(0)
+    }, [scrollY, setScrollY])
+  )
+
   return (
     <>
       {/* Header */}
@@ -77,89 +89,18 @@ export default function Finder() {
               width: "100%",
             }}
           >
-            <ScrollView
-              style={{ flex: 1, width: "100%", paddingTop: 16 }}
+            <Animated.ScrollView
+              style={{ flex: 1, width: "100%", paddingTop: 8 }}
               contentContainerStyle={{ alignItems: "center" }}
               showsVerticalScrollIndicator={false}
               scrollEventThrottle={8}
-              onScroll={(e) => {
-                const currentY = e.nativeEvent.contentOffset.y
-                if (currentY > lastScrollY.current + 10) {
-                  setVisible(false) // scrolling down
-                } else if (currentY < lastScrollY.current - 10) {
-                  setVisible(true) // scrolling up
-                }
-                lastScrollY.current = currentY
-              }}
+              onScroll={onScroll}
             >
-              {(() => {
-                const [selectedImageIdx, setSelectedImageIdx] = useState(0)
-                if (event?.images.length > 0) {
-                  const mainImage = event.images[selectedImageIdx] || event.images[0]
-                  return (
-                    <View style={{ width: "100%", alignItems: "center", marginBottom: 24, position: "relative" }}>
-                      {/* Main Image */}
-                      <View
-                        style={{
-                          width: "90%",
-                          aspectRatio: 1.3,
-                          borderRadius: 16,
-                          overflow: "hidden",
-                          backgroundColor: theme.colors.background,
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Image
-                          source={{ uri: mainImage.src }}
-                          style={{ width: "100%", height: "100%", borderRadius: 16 }}
-                          resizeMode="cover"
-                        />
-                        {/* Thumbnails Overlay */}
-                        <View style={{ position: "absolute", bottom: 12, left: 0, right: 0, alignItems: "center" }}>
-                          <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={{ alignItems: "center", paddingHorizontal: 8 }}
-                            style={{ maxWidth: "100%" }}
-                          >
-                            {event.images.map((img, idx) => (
-                              <TouchableOpacity
-                                key={idx}
-                                onPress={() => setSelectedImageIdx(idx)}
-                                style={{
-                                  borderWidth: idx === selectedImageIdx ? 2 : 0,
-                                  borderColor: theme.colors.brand.red,
-                                  borderRadius: 16,
-                                  marginRight: 8,
-                                  overflow: "hidden",
-                                  backgroundColor: theme.colors.background,
-                                  width: 48,
-                                  height: 48,
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  opacity: idx === selectedImageIdx ? 1 : 0.4,
-                                }}
-                              >
-                                <Image
-                                  source={{ uri: img.src }}
-                                  style={{ width: 48, height: 48, borderRadius: 0 }}
-                                  resizeMode="cover"
-                                />
-                              </TouchableOpacity>
-                            ))}
-                          </ScrollView>
-                        </View>
-                      </View>
-                    </View>
-                  )
-                }
-                return null
-              })()}
+              <EventImageGallery event={event} theme={theme} />
               {cards?.map((card, idx) => {
                 if (card.type === "details") {
                   return (
-                    <View key={idx} style={{ width: "90%", marginBottom: 24 }}>
+                    <View key={idx} style={{ width: "90%", flex: 1, marginVertical: 8 }}>
                       <EventDetailsCard key={idx} event={event} />
                     </View>
                   )
@@ -175,8 +116,10 @@ export default function Finder() {
                           width: "90%",
                           borderRadius: 16,
                           backgroundColor: theme.colors.secondary,
-                          marginBottom: 24,
                           padding: 24,
+                          paddingHorizontal: 24,
+                          paddingVertical: 16,
+                          marginVertical: 8,
                         }}
                       >
                         <Text
@@ -193,39 +136,6 @@ export default function Finder() {
                       </View>
                     )
                   }
-                  if (section.type === "faq") {
-                    return (
-                      <View
-                        key={idx}
-                        style={{
-                          width: "90%",
-                          borderRadius: 16,
-                          backgroundColor: theme.colors.secondary,
-                          marginBottom: 24,
-                          padding: 24,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: theme.colors.onBackground,
-                            fontSize: 18,
-                            fontWeight: "bold",
-                            marginBottom: 8,
-                          }}
-                        >
-                          FAQ
-                        </Text>
-                        {(section.items as { question: string; answer: string }[]).map((item, i) => (
-                          <View key={i} style={{ marginBottom: 10 }}>
-                            <Text style={{ color: theme.colors.onBackground, fontWeight: "bold" }}>
-                              {item.question}
-                            </Text>
-                            <Text style={{ color: theme.colors.onBackground }}>{item.answer}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    )
-                  }
                   // Guests section
                   if (section.type === "guests") {
                     return (
@@ -235,8 +145,8 @@ export default function Finder() {
                           width: "90%",
                           borderRadius: 16,
                           backgroundColor: theme.colors.secondary,
-                          marginBottom: 24,
                           padding: 24,
+                          marginVertical: 8,
                         }}
                       >
                         <Text
@@ -403,6 +313,88 @@ export default function Finder() {
                       </View>
                     )
                   }
+                  // Schedule section
+                  if (section.type === "schedule") {
+                    return (
+                      <View
+                        key={idx}
+                        style={{
+                          width: "90%",
+                          borderRadius: 16,
+                          backgroundColor: theme.colors.secondary,
+                          padding: 24,
+                          marginVertical: 8,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: theme.colors.onBackground,
+                            fontSize: 18,
+                            fontWeight: "bold",
+                            marginBottom: 8,
+                          }}
+                        >
+                          Schedule
+                        </Text>
+                        {section.items.map((item, i) => (
+                          <View
+                            key={i}
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              marginBottom: 10,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: theme.colors.brand.red,
+                                fontWeight: "bold",
+                                width: 100,
+                              }}
+                            >
+                              {item.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </Text>
+                            <Text style={{ color: theme.colors.onBackground }}>{item.activity}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )
+                  }
+
+                  if (section.type === "faq") {
+                    return (
+                      <View
+                        key={idx}
+                        style={{
+                          width: "90%",
+                          borderRadius: 16,
+                          backgroundColor: theme.colors.secondary,
+                          padding: 24,
+                          marginVertical: 8,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: theme.colors.onBackground,
+                            fontSize: 18,
+                            fontWeight: "bold",
+                            marginBottom: 8,
+                          }}
+                        >
+                          FAQ
+                        </Text>
+                        {(section.items as { question: string; answer: string }[]).map((item, i) => (
+                          <View key={i} style={{ marginBottom: 10 }}>
+                            <Text style={{ color: theme.colors.onBackground, fontWeight: "bold" }}>
+                              {item.question}
+                            </Text>
+                            <Text style={{ color: theme.colors.onBackground }}>{item.answer}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )
+                  }
+
                   // Tickets section
                   if (section.type === "tickets") {
                     // Only render if all tickets have a link
@@ -416,10 +408,10 @@ export default function Finder() {
                           width: "90%",
                           borderRadius: 20,
                           backgroundColor: theme.colors.secondary,
-                          marginBottom: 24,
                           padding: 24,
                           borderWidth: 2,
                           borderColor: theme.colors.brand.red,
+                          marginVertical: 8,
                         }}
                       >
                         {/* Ticket badge icon */}
@@ -510,8 +502,8 @@ export default function Finder() {
                           width: "90%",
                           borderRadius: 16,
                           backgroundColor: theme.colors.secondary,
-                          marginBottom: 24,
                           padding: 24,
+                          marginVertical: 8,
                         }}
                       >
                         <Text
@@ -544,7 +536,7 @@ export default function Finder() {
                       </View>
                     )
                   }
-                  if (section.type === "location") {
+                  if (section.type === "map") {
                     return (
                       <View
                         key={idx}
@@ -552,8 +544,9 @@ export default function Finder() {
                           width: "90%",
                           borderRadius: 16,
                           backgroundColor: theme.colors.secondary,
-                          marginBottom: 24,
                           padding: 24,
+                          marginVertical: 8,
+                          marginBottom: 24,
                         }}
                       >
                         <Text
@@ -566,7 +559,6 @@ export default function Finder() {
                         >
                           Location
                         </Text>
-                        <Text style={{ color: theme.colors.onBackground, fontSize: 16 }}>{section.address}</Text>
                         <View style={{ position: "relative" }}>
                           <MapViewer
                             location={{
@@ -574,7 +566,6 @@ export default function Finder() {
                               longitude: section.longitude || 0,
                             }}
                             markerTitle={event.title}
-                            markerDescription={section.address}
                             style={{ marginTop: 12 }}
                           />
                         </View>
@@ -585,39 +576,36 @@ export default function Finder() {
                 }
                 return null
               })}
-            </ScrollView>
+            </Animated.ScrollView>
           </View>
         ) : (
           <Text>No more events</Text>
         )}
-        {/* Sticky Buttons */}
-        <MotiView
-          style={{ position: "absolute", right: 24 }}
-          animate={{ bottom: visible ? 96 : 48 }}
-          transition={{ type: "timing", duration: 150 }}
+        {/* Bottom Like/Dislike Buttons, always visible and move up to fill bar space */}
+        <Animated.View
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 114,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingHorizontal: 24,
+            zIndex: 10,
+            transform: [
+              {
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 80],
+                  outputRange: [0, 80],
+                  extrapolate: "clamp",
+                }),
+              },
+            ],
+            opacity: 1,
+          }}
         >
-          <TouchableOpacity onPress={acceptEvent} activeOpacity={1}>
-            <View
-              style={{
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                backgroundColor: theme.colors.brand.red,
-                justifyContent: "center",
-                alignItems: "center",
-                elevation: 3,
-              }}
-            >
-              <FontAwesome6 name="heart" size={32} color={theme.colors.secondary} />
-            </View>
-          </TouchableOpacity>
-        </MotiView>
-        <MotiView
-          style={{ position: "absolute", left: 24 }}
-          animate={{ bottom: visible ? 96 : 48 }}
-          transition={{ type: "timing", duration: 150 }}
-        >
-          <TouchableOpacity onPress={denyEvent}>
+          <TouchableOpacity onPress={denyEvent} activeOpacity={0.9}>
             <View
               style={{
                 width: 60,
@@ -626,13 +614,36 @@ export default function Finder() {
                 backgroundColor: theme.colors.secondary,
                 justifyContent: "center",
                 alignItems: "center",
-                elevation: 3,
+                shadowColor: theme.colors.shadow,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 5,
               }}
             >
               <FontAwesome6 name="xmark" size={32} color={theme.colors.brand.red} />
             </View>
           </TouchableOpacity>
-        </MotiView>
+          <TouchableOpacity onPress={acceptEvent} activeOpacity={0.9}>
+            <View
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                backgroundColor: theme.colors.brand.red,
+                justifyContent: "center",
+                alignItems: "center",
+                shadowColor: theme.colors.shadow,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 5,
+              }}
+            >
+              <FontAwesome6 name="heart" size={32} color={theme.colors.secondary} />
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
     </>
   )

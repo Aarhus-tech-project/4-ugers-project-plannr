@@ -5,62 +5,28 @@ import EventThemeSelector from "@/components/EventThemeSelector"
 import LocationOptionSelector from "@/components/LocationOptionSelector"
 import MapPicker from "@/components/MapPicker"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { useFilters } from "@/hooks/useFilters"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
 import React from "react"
 import { Modal, ScrollView, StyleSheet, View } from "react-native"
 import { Button, Text } from "react-native-paper"
+import { DateRangeModeSelector } from "./DateRangeModeSelector"
 
-import { EventFormat } from "@/interfaces/event"
+import type { FiltersState } from "@/hooks/useFilters"
 
 interface FilterModalProps {
   visible: boolean
   onClose: () => void
-  rangeKm: number
-  setRangeKm: (value: number) => void
-  selectedThemes: string[]
-  setSelectedThemes: (themes: string[]) => void
-  dateRange: string
-  setDateRange: (range: string) => void
-  eventType: EventFormat
-  setEventType: (type: EventFormat) => void
-  customStart: Date | null
-  setCustomStart: (date: Date | null) => void
-  customEnd: Date | null
-  setCustomEnd: (date: Date | null) => void
-  useCurrentLocation: boolean
-  setUseCurrentLocation: (value: boolean) => void
-  selectedLocation: { latitude: number; longitude: number } | null
-  setSelectedLocation: (loc: { latitude: number; longitude: number } | null) => void
-  onReset: () => void
-  onApply: () => void
+  onApply: (filters: ReturnType<typeof useFilters>) => void
+  initial?: Partial<FiltersState>
 }
 
-const FilterModal: React.FC<FilterModalProps> = ({
-  visible,
-  onClose,
-  rangeKm,
-  setRangeKm,
-  selectedThemes,
-  setSelectedThemes,
-  dateRange,
-  setDateRange,
-  eventType,
-  setEventType,
-  customStart,
-  setCustomStart,
-  customEnd,
-  setCustomEnd,
-  useCurrentLocation,
-  setUseCurrentLocation,
-  selectedLocation,
-  setSelectedLocation,
-  onReset,
-  onApply,
-}) => {
+const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply, initial }) => {
   const theme = useCustomTheme()
-  const { visibleThemes } = useLazyEventThemes(10, 600)
+  const { visibleThemes } = useLazyEventThemes(1, 0)
   const { location: liveLocation } = useLiveLocation()
+  const filters = useFilters(initial)
 
   return (
     <Modal
@@ -88,17 +54,20 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 marginBottom: 16,
               }}
             >
-              <LocationOptionSelector useCurrentLocation={useCurrentLocation} onChange={setUseCurrentLocation} />
+              <LocationOptionSelector
+                useCurrentLocation={filters.useCurrentLocation}
+                onChange={filters.setUseCurrentLocation}
+              />
               <MapPicker
                 location={
-                  useCurrentLocation
+                  filters.useCurrentLocation
                     ? liveLocation
                       ? {
                           latitude: liveLocation.coords.latitude,
                           longitude: liveLocation.coords.longitude,
                         }
                       : null
-                    : selectedLocation ??
+                    : filters.selectedLocation ??
                       (liveLocation
                         ? {
                             latitude: liveLocation.coords.latitude,
@@ -106,22 +75,17 @@ const FilterModal: React.FC<FilterModalProps> = ({
                           }
                         : null)
                 }
-                range={rangeKm * 1000}
-                {...(!useCurrentLocation && { onLocationChange: setSelectedLocation })}
-                {...(useCurrentLocation && { disableSelection: true })}
+                range={(filters.range ?? 50) * 1000}
+                onLocationChange={filters.setSelectedLocation}
+                disableSelection={false}
               />
-            </View>
-            {/* Discovery Range Card */}
-            <View
-              style={{
-                width: "90%",
-                backgroundColor: theme.colors.secondary,
-                borderRadius: 16,
-                padding: 20,
-                marginBottom: 16,
-              }}
-            >
-              <DiscoveryRangeSlider value={rangeKm} onValueChange={setRangeKm} />
+              <View
+                style={{
+                  marginVertical: 16,
+                }}
+              >
+                <DiscoveryRangeSlider value={filters.range ?? 50} onValueChange={filters.setRange} />
+              </View>
             </View>
             {/* Event Themes Card */}
             <View
@@ -133,9 +97,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 marginBottom: 16,
               }}
             >
-              <EventThemeSelector themes={visibleThemes} selectedThemes={selectedThemes} onSelect={setSelectedThemes} />
+              <EventThemeSelector
+                themes={visibleThemes}
+                selectedThemes={visibleThemes.filter((theme) => filters.selectedThemes.includes(theme.name))}
+                onSelect={(themes) => filters.setSelectedThemes(themes.map((theme) => theme.name))}
+              />
             </View>
-
             {/* Date Range Card */}
             <View
               style={{
@@ -149,27 +116,20 @@ const FilterModal: React.FC<FilterModalProps> = ({
               <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18, marginBottom: 8 }}>
                 Date Range
               </Text>
-              <View style={{ flexDirection: "row" }}>
-                {["Today", "This Week", "Custom"].map((range) => {
-                  const isSelected = dateRange === range
-                  return (
-                    <Button
-                      key={range}
-                      mode={isSelected ? "contained" : "outlined"}
-                      onPress={() => setDateRange(range)}
-                      style={{ margin: 4 }}
-                    >
-                      {range}
-                    </Button>
-                  )
-                })}
-              </View>
-              {dateRange === "Custom" && (
+              <DateRangeModeSelector
+                mode={filters.mode}
+                setMode={filters.setMode}
+                customStart={filters.customStart}
+                setCustomStart={filters.setCustomStart}
+                customEnd={filters.customEnd}
+                setCustomEnd={filters.setCustomEnd}
+              />
+              {filters.mode.custom && (
                 <CustomDateRangeCalendar
-                  customStart={customStart}
-                  customEnd={customEnd}
-                  onStartChange={setCustomStart}
-                  onEndChange={setCustomEnd}
+                  customStart={filters.customStart}
+                  customEnd={filters.customEnd}
+                  onStartChange={filters.setCustomStart}
+                  onEndChange={filters.setCustomEnd}
                 />
               )}
             </View>
@@ -183,21 +143,26 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 marginBottom: 16,
               }}
             >
-              <AttendanceModeSelector eventType={eventType} onChange={setEventType} />
+              <AttendanceModeSelector formats={filters.formats} onChange={filters.setFormats} />
             </View>
           </ScrollView>
-          {/* Bottom Navbar for Reset & Apply Buttons */}
+          {/* Bottom Navbar for Cancel & Apply Buttons */}
           <View style={[styles.bottomBar, { backgroundColor: theme.colors.gray[900] }]}>
             <Button
               mode="outlined"
-              onPress={onReset}
-              style={[styles.button, { backgroundColor: theme.colors.gray[700] }]}
+              onPress={onClose}
+              style={[styles.button, { backgroundColor: theme.colors.gray[800] }]}
             >
-              <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Reset</Text>
+              <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Cancel</Text>
             </Button>
             <Button
               mode="contained"
-              onPress={onApply}
+              onPress={() =>
+                onApply({
+                  ...filters,
+                  dateRangeMode: filters.mode,
+                })
+              }
               style={[styles.button, { backgroundColor: theme.colors.brand.red }]}
             >
               <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Apply</Text>

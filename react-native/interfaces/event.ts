@@ -128,41 +128,56 @@ export interface EventTheme {
 }
 
 export type EventFormat = "inperson" | "online" | "hybrid"
-// Section types for customizable event pages
-export type EventPageSection =
-  | { type: "description"; content: string }
-  | { type: "location"; address: string; latitude?: number; longitude?: number }
-  | { type: "faq"; items: Array<{ question: string; answer: string }> }
-  | { type: "guests"; guests: Array<{ name: string; bio?: string; avatarUrl?: string; social?: string }> }
-  | { type: "tickets"; tickets: Array<{ type: string; price: number; link?: string }> }
-  | { type: "resources"; files: Array<{ name: string; url: string }> }
-  | { type: "dresscode"; content: string }
-export interface Event {
-  id: string
-  title: string
-  description: string
-  format: EventFormat
-  images: { src: string }[]
-  interestedCount?: number
-  goingCount?: number
-  checkedInCount?: number
-  startAt: Date
-  endAt?: Date
-  allDay?: boolean
+export interface EventLocation {
+  address: string
   city: string
   country: string
-  address: string
   venue?: string
   latitude?: number
   longitude?: number
-  accessLink?: string
-  requiredAge?: number
+}
+
+export type EventPageSection =
+  | { type: "description"; content: string }
+  | {
+      type: "map"
+      latitude: number
+      longitude: number
+    }
+  | { type: "faq"; items: Array<{ question: string; answer: string }> }
+  | { type: "guests"; guests: Array<{ name: string; bio?: string; avatarUrl?: string; social?: string }> }
+  | { type: "tickets"; tickets: Array<{ type: string; price: number; currency?: string; link?: string }> }
+  | { type: "resources"; files: Array<{ name: string; url: string }> }
+  | { type: "dresscode"; content: string }
+  | { type: "schedule"; items: Array<{ time: Date; activity: string }> }
+  | { type: "images"; srcs: Uint8Array[] | string[] } //string[] is for my mock data.
+
+export interface EventDateRange {
+  startAt: Date
+  endAt?: Date
+}
+
+export interface EventAccess {
+  instruction: string
+  password?: string
+}
+
+export interface EventAttendance {
+  interested?: number
+  going?: number
+  checkedIn?: number
+}
+
+export interface Event {
+  creatorId?: string
+  id: string
+  title: string
+  format: EventFormat
+  dateRange: EventDateRange
+  attendance?: EventAttendance
+  location?: EventLocation
+  access?: EventAccess
+  ageRestriction?: number
   theme?: EventTheme
-  creator: {
-    id: string
-    name: string
-    email: string
-    avatarUrl?: string
-  }
-  sections?: EventPageSection[] // Customizable event page sections
+  sections?: EventPageSection[]
 }

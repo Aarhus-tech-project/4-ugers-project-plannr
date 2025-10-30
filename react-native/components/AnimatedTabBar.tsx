@@ -1,27 +1,38 @@
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
-import { BottomTabBar } from "@react-navigation/bottom-tabs"
-import { MotiView } from "moti"
+import { BottomTabBar, BottomTabBarProps } from "@react-navigation/bottom-tabs"
 import React, { useState } from "react"
-import { StyleSheet } from "react-native"
+import { Animated, LayoutChangeEvent, StyleSheet } from "react-native"
 
-export function AnimatedTabBar(props: any) {
+export function AnimatedTabBar(props: BottomTabBarProps) {
   const [tabBarHeight, setTabBarHeight] = useState(80)
-  const { visible } = useTabBarVisibility()
+  const { visible, scrollY } = useTabBarVisibility()
   const routeName = props.state?.routeNames?.[props.state?.index] || ""
   const shouldAnimate = routeName === "finder" || routeName === "index"
-  const onLayout = (e: any) => {
+  const onLayout = (e: LayoutChangeEvent) => {
     const { height } = e.nativeEvent.layout
     setTabBarHeight(height)
   }
+  let translateY: number | Animated.AnimatedInterpolation<any> = 0
+  let opacity: number | Animated.AnimatedInterpolation<any> = 1
+  if (shouldAnimate && scrollY) {
+    translateY = scrollY.interpolate({
+      inputRange: [0, 80],
+      outputRange: [0, tabBarHeight],
+      extrapolate: "clamp",
+    })
+    opacity = scrollY.interpolate({
+      inputRange: [0, 80],
+      outputRange: [1, 0],
+      extrapolate: "clamp",
+    })
+  } else {
+    translateY = visible ? 0 : tabBarHeight
+    opacity = visible ? 1 : 0
+  }
   return (
-    <MotiView
-      style={[styles.tabBar]}
-      animate={{ translateY: shouldAnimate ? (visible ? 0 : tabBarHeight) : 0 }}
-      transition={{ type: "timing", duration: 150 }}
-      onLayout={onLayout}
-    >
+    <Animated.View style={[styles.tabBar, { transform: [{ translateY }], opacity }]} onLayout={onLayout}>
       <BottomTabBar {...props} />
-    </MotiView>
+    </Animated.View>
   )
 }
 

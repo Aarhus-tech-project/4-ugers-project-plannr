@@ -32,7 +32,7 @@ export default function TabLayout() {
           name="index"
           options={{
             tabBarLabel: "",
-            tabBarIcon: ({ color, size }) => <FontAwesome6 name="house" color={color} size={size || 24} />,
+            tabBarIcon: ({ color, size }) => <FontAwesome6 name="calendar" color={color} size={size || 24} />,
           }}
         />
         <Tabs.Screen

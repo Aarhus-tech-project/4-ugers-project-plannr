@@ -12,7 +12,15 @@ export function getDisabledDates({
   maxDate?: string | Date
   disabledDates?: Array<string | Date>
 }) {
-  const marks: Record<string, any> = {}
+  type Mark = {
+    disabled: boolean
+    disableTouchEvent?: boolean
+    customStyles?: {
+      container: object
+      text: object
+    }
+  }
+  const marks: Record<string, Mark> = {}
   if (minDate && maxDate) {
     let current = dayjs(minDate)
     const end = dayjs(maxDate)

@@ -7,6 +7,7 @@ import { useState } from "react"
 import { FlatList, ScrollView, TextInput, TouchableOpacity, View } from "react-native"
 import Modal from "react-native-modal"
 import { Text } from "react-native-paper"
+import type { Country } from "world-countries"
 import countries from "world-countries"
 
 export default function Account() {
@@ -16,7 +17,7 @@ export default function Account() {
   const [bio, setBio] = useState("")
   const [editMode, setEditMode] = useState(false)
   const [countryCode, setCountryCode] = useState<string>("DK")
-  const [country, setCountry] = useState<any>(countries.find((c) => c.cca2 === "DK"))
+  const [country, setCountry] = useState<Country | undefined>(countries.find((c) => c.cca2 === "DK"))
   const [phone, setPhone] = useState("")
   const [showCountryModal, setShowCountryModal] = useState(false)
 

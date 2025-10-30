@@ -10,7 +10,7 @@ interface DiscoveryRangeSliderProps {
   max?: number
 }
 
-const DiscoveryRangeSlider: React.FC<DiscoveryRangeSliderProps> = ({ value, onValueChange, min = 1, max = 100 }) => {
+const DiscoveryRangeSlider: React.FC<DiscoveryRangeSliderProps> = ({ value, onValueChange, min = 1, max = 300 }) => {
   const theme = useCustomTheme()
   return (
     <View style={{ width: "100%" }}>

@@ -1,13 +1,15 @@
+import type { EventLocation } from "@/interfaces/event"
 import React from "react"
+import type { StyleProp, ViewStyle } from "react-native"
 import { StyleSheet, View } from "react-native"
 import MapView, { Marker, Region } from "react-native-maps"
 
 interface MapViewerProps {
-  location: { latitude: number; longitude: number }
+  location: Pick<EventLocation, "latitude" | "longitude">
   markerTitle?: string
   markerDescription?: string
   regionDelta?: number
-  style?: object
+  style?: StyleProp<ViewStyle>
 }
 
 const MapViewer: React.FC<MapViewerProps> = ({
@@ -17,9 +19,11 @@ const MapViewer: React.FC<MapViewerProps> = ({
   regionDelta = 0.05,
   style = {},
 }) => {
+  const lat = location.latitude ?? 0
+  const lng = location.longitude ?? 0
   const region: Region = {
-    latitude: location.latitude,
-    longitude: location.longitude,
+    latitude: lat,
+    longitude: lng,
     latitudeDelta: regionDelta,
     longitudeDelta: regionDelta,
   }
@@ -34,7 +38,7 @@ const MapViewer: React.FC<MapViewerProps> = ({
         rotateEnabled={true}
         pitchEnabled={true}
       >
-        <Marker coordinate={location} title={markerTitle} description={markerDescription} />
+        <Marker coordinate={{ latitude: lat, longitude: lng }} title={markerTitle} description={markerDescription} />
       </MapView>
     </View>
   )

@@ -5,8 +5,8 @@ import { View } from "react-native"
 import { Chip, Text } from "react-native-paper"
 
 interface AttendanceModeSelectorProps {
-  eventType: EventFormat
-  onChange: (type: EventFormat) => void
+  formats: EventFormat[]
+  onChange: (type: EventFormat[]) => void
 }
 
 const modes = [
@@ -15,7 +15,7 @@ const modes = [
   { label: "Hybrid", value: "hybrid" },
 ]
 
-const AttendanceModeSelector: React.FC<AttendanceModeSelectorProps> = ({ eventType, onChange }) => {
+const AttendanceModeSelector: React.FC<AttendanceModeSelectorProps> = ({ formats, onChange }) => {
   const theme = useCustomTheme()
   return (
     <View style={{ width: "100%" }}>
@@ -24,15 +24,23 @@ const AttendanceModeSelector: React.FC<AttendanceModeSelectorProps> = ({ eventTy
       </Text>
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         {modes.map((mode) => {
-          const isSelected = eventType === mode.value
+          const isSelected = formats.includes(mode.value as EventFormat)
           return (
             <Chip
               key={mode.value}
               icon={() => undefined}
               selected={isSelected}
-              onPress={() => onChange(mode.value as EventFormat)}
+              onPress={() => {
+                const value = mode.value as EventFormat
+                if (formats.includes(value)) {
+                  onChange(formats.filter((f) => f !== value))
+                } else {
+                  onChange([...formats, value])
+                }
+              }}
               style={{
                 margin: 4,
+                borderWidth: 0,
                 backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
               }}
               textStyle={{ color: isSelected ? theme.colors.background : theme.colors.onBackground }}
