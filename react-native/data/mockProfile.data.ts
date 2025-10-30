@@ -11,7 +11,30 @@ export const mockProfile: Profile = {
   bio: "I love coding and coffee!",
   phone: "+45 1234 5678",
   avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-  // Add likedEvents and/or subscribedEvents for demo
+  filters: {
+    formats: ["inperson", "online"],
+    eventThemes: ["Tech", "Art"],
+    dateRange: {
+      current: {
+        day: false,
+        week: true,
+        month: false,
+        year: false,
+      },
+      custom: {
+        startDate: null,
+        endDate: null,
+      },
+    },
+    location: {
+      useCurrent: true,
+      range: 50,
+      custom: {
+        latitude: 55.6761, // Copenhagen
+        longitude: 12.5683, // Copenhagen
+      },
+    },
+  },
   likedEvents: mockEvents,
   subscribedEvents: [mockEvents[0]],
 }

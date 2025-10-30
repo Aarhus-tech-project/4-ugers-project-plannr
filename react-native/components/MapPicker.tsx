@@ -1,4 +1,5 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import type { EventLocation } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import * as Location from "expo-location"
 import React, { useEffect, useRef, useState } from "react"
@@ -6,8 +7,8 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import MapView, { Circle, MapPressEvent, Marker, Region } from "react-native-maps"
 
 interface MapPickerProps {
-  location: { latitude: number; longitude: number } | null
-  onLocationChange?: (location: { latitude: number; longitude: number }) => void
+  location: Pick<EventLocation, "latitude" | "longitude"> | null
+  onLocationChange?: (location: Pick<EventLocation, "latitude" | "longitude">) => void
   range?: number
   disableSelection?: boolean
   onAddressChange?: (address: string) => void
@@ -23,11 +24,13 @@ const MapPicker: React.FC<MapPickerProps> = ({
   const [address, setAddress] = useState<string>("")
   const mapRef = useRef<MapView>(null)
   const theme = useCustomTheme()
+  // Calculate initial delta based on range (in meters)
+  const initialDelta = (range / 1000 / 111) * 2.2 // 1 degree ~111km, 2.2 for padding
   const initialRegion: Region = {
     latitude: location?.latitude || 56.162939,
     longitude: location?.longitude || 10.203921,
-    latitudeDelta: 0.15,
-    longitudeDelta: 0.15,
+    latitudeDelta: initialDelta,
+    longitudeDelta: initialDelta,
   }
 
   const handlePress = async (e: MapPressEvent) => {
@@ -60,7 +63,9 @@ const MapPicker: React.FC<MapPickerProps> = ({
 
   useEffect(() => {
     if (location) {
-      fetchAddress(location.latitude, location.longitude)
+      const lat = location.latitude ?? 0
+      const lng = location.longitude ?? 0
+      fetchAddress(lat, lng)
     } else {
       setAddress("")
     }
@@ -72,10 +77,12 @@ const MapPicker: React.FC<MapPickerProps> = ({
       // Calculate latitudeDelta/longitudeDelta to fit the range
       // 1 degree latitude ~= 111km
       const delta = (range / 1000 / 111) * 2.2 // 2.2 for padding
+      const lat = location.latitude ?? 0
+      const lng = location.longitude ?? 0
       mapRef.current.animateToRegion(
         {
-          latitude: location.latitude,
-          longitude: location.longitude,
+          latitude: lat,
+          longitude: lng,
           latitudeDelta: delta,
           longitudeDelta: delta,
         },
@@ -143,7 +150,7 @@ const MapPicker: React.FC<MapPickerProps> = ({
           {location && (
             <>
               <Marker
-                coordinate={location}
+                coordinate={{ latitude: location.latitude ?? 0, longitude: location.longitude ?? 0 }}
                 draggable={!disableSelection && !!onLocationChange}
                 onDragEnd={
                   disableSelection || !onLocationChange
@@ -155,7 +162,7 @@ const MapPicker: React.FC<MapPickerProps> = ({
                 }
               />
               <Circle
-                center={location}
+                center={{ latitude: location.latitude ?? 0, longitude: location.longitude ?? 0 }}
                 radius={range}
                 strokeColor={theme.colors.brand.red + "100"}
                 fillColor={theme.colors.brand.red + "40"}

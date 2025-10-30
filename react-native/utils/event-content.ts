@@ -23,15 +23,15 @@ export function getSortedEventCards(event: Event) {
     result.push({ type: "section", section, event })
   }
 
-  // 3. Location map section at the end
-  if (event.latitude && event.longitude) {
+  // 3. Location map section at the end (from event.location)
+  if (event.location && event.location.latitude && event.location.longitude) {
     result.push({
       type: "section",
       section: {
         type: "location",
-        address: event.address,
-        latitude: event.latitude,
-        longitude: event.longitude,
+        address: event.location.address,
+        latitude: event.location.latitude,
+        longitude: event.location.longitude,
       } as EventPageSection,
       event,
     })

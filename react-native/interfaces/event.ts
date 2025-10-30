@@ -128,7 +128,7 @@ export interface EventTheme {
 }
 
 export type EventFormat = "inperson" | "online" | "hybrid"
-// Section types for customizable event pages
+
 export type EventPageSection =
   | { type: "description"; content: string }
   | { type: "location"; address: string; latitude?: number; longitude?: number }
@@ -137,32 +137,45 @@ export type EventPageSection =
   | { type: "tickets"; tickets: Array<{ type: string; price: number; link?: string }> }
   | { type: "resources"; files: Array<{ name: string; url: string }> }
   | { type: "dresscode"; content: string }
+  | { type: "schedule"; items: Array<{ time: string; activity: string }> }
+  | { type: "images"; srcs: string[] }
+
+export interface EventLocation {
+  address: string
+  city: string
+  country: string
+  venue?: string
+  latitude?: number
+  longitude?: number
+}
+
+export interface EventDateRange {
+  startAt: Date
+  endAt?: Date
+}
+
+export interface EventAccess {
+  instruction: string
+  password?: string
+}
+
+export interface EventAttendance {
+  interested?: number
+  going?: number
+  checkedIn?: number
+}
+
 export interface Event {
+  creatorId?: string
   id: string
   title: string
   description: string
   format: EventFormat
-  images: { src: string }[]
-  interestedCount?: number
-  goingCount?: number
-  checkedInCount?: number
-  startAt: Date
-  endAt?: Date
-  allDay?: boolean
-  city: string
-  country: string
-  address: string
-  venue?: string
-  latitude?: number
-  longitude?: number
-  accessLink?: string
-  requiredAge?: number
+  dateRange: EventDateRange
+  attendance?: EventAttendance
+  location?: EventLocation
+  access?: EventAccess
+  ageRestriction?: number
   theme?: EventTheme
-  creator: {
-    id: string
-    name: string
-    email: string
-    avatarUrl?: string
-  }
-  sections?: EventPageSection[] // Customizable event page sections
+  sections?: EventPageSection[]
 }

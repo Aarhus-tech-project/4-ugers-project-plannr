@@ -3,20 +3,23 @@ import CustomDateRangeCalendar from "@/components/CustomDateRangeCalendar"
 import EventThemeSelector from "@/components/EventThemeSelector"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
-import { EventFormat, EventPageSection } from "@/interfaces/event"
+import { EventFormat, EventPageSection, EventTheme } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
+import dayjs from "dayjs"
+import utc from "dayjs/plugin/utc"
 import { useRouter } from "expo-router"
 import React, { useRef, useState } from "react"
 import { ScrollView, TouchableOpacity, View } from "react-native"
 import { Text, TextInput } from "react-native-paper"
+dayjs.extend(utc)
 
 export default function CreateEvent() {
   const theme = useCustomTheme()
   const router = useRouter()
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [format, setFormat] = useState<EventFormat>("inperson")
-  const [selectedThemes, setSelectedThemes] = useState<string[]>([])
+  const [formats, setFormats] = useState<EventFormat[]>(["inperson"])
+  const [selectedThemes, setSelectedThemes] = useState<EventTheme[]>([])
   const { visibleThemes } = useLazyEventThemes(20, 600)
   const [startAt, setStartAt] = useState<Date | null>(null)
   const [endAt, setEndAt] = useState<Date | null>(null)
@@ -27,32 +30,31 @@ export default function CreateEvent() {
   // Store previous range for toggling
   const prevRange = useRef<{ start: Date | null; end: Date | null }>({ start: null, end: null })
 
-  const handleCreate = () => {
+  const _handleCreate = () => {
     // Example: Add description section from input
     const eventSections: EventPageSection[] = [
       { type: "description", content: description },
       // Add more sections as needed from UI
     ]
-    // TODO: Add logic to let user add more sections interactively
+    // Store all dates as UTC boundaries of the local day
     const event = {
       id: Date.now().toString(),
       title,
       description,
-      format,
-      images: [],
-      interestedCount: 0,
-      startAt: startAt ?? new Date(),
-      endAt: endAt ?? undefined,
-      allDay,
-      city,
-      country,
-      address,
-      theme: selectedThemes.length > 0 ? { name: selectedThemes[0], icon: "music" } : undefined,
-      creator: {
-        id: "demo",
-        name: "Demo User",
-        email: "demo@example.com",
+      format: formats[0],
+      dateRange: {
+        startAt: startAt ? dayjs(startAt).startOf("day").utc().toDate() : dayjs().startOf("day").utc().toDate(),
+        endAt: endAt ? dayjs(endAt).endOf("day").utc().toDate() : undefined,
       },
+      location: {
+        city,
+        country,
+        address,
+      },
+      ageRestriction: undefined, // Add UI for this if needed
+      theme: selectedThemes.length > 0 ? selectedThemes[0] : undefined,
+      creatorId: "demo",
+      attendance: { interested: 0 },
       sections: eventSections,
     }
     alert("Event created! (Demo)\n" + JSON.stringify(event, null, 2))
@@ -132,7 +134,7 @@ export default function CreateEvent() {
         </View>
         {/* Format Card */}
         <View style={styles.card(theme)}>
-          <AttendanceModeSelector eventType={format} onChange={setFormat} />
+          <AttendanceModeSelector formats={formats} onChange={setFormats} />
         </View>
         {/* Themes Card */}
         <View style={styles.card(theme)}>

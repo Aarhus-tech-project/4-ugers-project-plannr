@@ -1,5 +1,6 @@
 import AttendanceModeSelector from "@/components/AttendanceModeSelector"
 import CustomDateRangeCalendar from "@/components/CustomDateRangeCalendar"
+import { DateRangeModeSelector } from "@/components/DateRangeModeSelector"
 import DiscoveryRangeSlider from "@/components/DiscoveryRangeSlider"
 import EventThemeSelector from "@/components/EventThemeSelector"
 import LocationOptionSelector from "@/components/LocationOptionSelector"
@@ -8,37 +9,38 @@ import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
 import { usePreferences } from "@/hooks/usePreferences"
+import type { EventLocation } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
-import dayjs from "dayjs"
-import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
 import { useRouter } from "expo-router"
 import React from "react"
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native"
-import { ActivityIndicator, Button, Chip, Text } from "react-native-paper"
-
-dayjs.extend(isSameOrBefore)
-
+import { ActivityIndicator, Button, Text } from "react-native-paper"
 export default function Preferences() {
   const theme = useCustomTheme()
   const router = useRouter()
   const {
-    rangeKm,
-    setRangeKm,
+    range,
+    setRange,
     selectedThemes,
     setSelectedThemes,
-    dateRange,
-    setDateRange,
+    dateRangeMode,
+    setDateRangeMode,
     eventType,
     setEventType,
     customStart,
     setCustomStart,
     customEnd,
     setCustomEnd,
+    updateModeFromCustom,
     resetPreferences,
     isChanged,
   } = usePreferences()
+
   const [useCurrentLocation, setUseCurrentLocation] = React.useState(true)
-  const [selectedLocation, setSelectedLocation] = React.useState<{ latitude: number; longitude: number } | null>(null)
+
+  const [selectedLocation, setSelectedLocation] = React.useState<Pick<EventLocation, "latitude" | "longitude"> | null>(
+    null
+  )
   const { visibleThemes } = useLazyEventThemes(10, 600)
   const { location: liveLocation } = useLiveLocation()
   const locationLoading = !liveLocation
@@ -113,7 +115,7 @@ export default function Preferences() {
                         }
                       : null)
               }
-              range={rangeKm * 1000}
+              range={range * 1000}
               {...(!useCurrentLocation && { onLocationChange: setSelectedLocation })}
               {...(useCurrentLocation && { disableSelection: true })}
             />
@@ -146,7 +148,7 @@ export default function Preferences() {
             shadowRadius: 8,
           }}
         >
-          <DiscoveryRangeSlider value={rangeKm} onValueChange={setRangeKm} />
+          <DiscoveryRangeSlider value={range} onValueChange={setRange} />
         </View>
         {/* Event Themes Card */}
         <View
@@ -180,32 +182,26 @@ export default function Preferences() {
           <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18, marginBottom: 8 }}>
             Date Range
           </Text>
-          <View style={{ flexDirection: "row" }}>
-            {["Today", "This Week", "Custom"].map((range) => {
-              const isSelected = dateRange === range
-              return (
-                <Chip
-                  key={range}
-                  icon={() => undefined}
-                  selected={isSelected}
-                  onPress={() => setDateRange(range)}
-                  style={{
-                    margin: 4,
-                    backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
-                  }}
-                  textStyle={{ color: isSelected ? theme.colors.background : theme.colors.onBackground }}
-                >
-                  {range}
-                </Chip>
-              )
-            })}
-          </View>
-          {dateRange === "Custom" && (
+          <DateRangeModeSelector
+            mode={dateRangeMode}
+            setMode={setDateRangeMode}
+            customStart={customStart}
+            setCustomStart={setCustomStart}
+            customEnd={customEnd}
+            setCustomEnd={setCustomEnd}
+          />
+          {dateRangeMode.custom && (
             <CustomDateRangeCalendar
               customStart={customStart}
               customEnd={customEnd}
-              onStartChange={setCustomStart}
-              onEndChange={setCustomEnd}
+              onStartChange={(date) => {
+                setCustomStart(date)
+                updateModeFromCustom(date, customEnd)
+              }}
+              onEndChange={(date) => {
+                setCustomEnd(date)
+                updateModeFromCustom(customStart, date)
+              }}
             />
           )}
         </View>
@@ -221,7 +217,7 @@ export default function Preferences() {
             shadowRadius: 8,
           }}
         >
-          <AttendanceModeSelector eventType={eventType} onChange={setEventType} />
+          <AttendanceModeSelector formats={[eventType]} onChange={(arr) => setEventType(arr[0] || "inperson")} />
         </View>
       </ScrollView>
       {/* Bottom Navbar for Reset & Save Buttons */}

@@ -4,7 +4,7 @@ import type { Event } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import dayjs from "dayjs"
 import { Linking, Platform, TouchableOpacity, View } from "react-native"
-import { Divider, Text } from "react-native-paper"
+import { Text } from "react-native-paper"
 
 import type { Profile } from "@/interfaces/profile"
 
@@ -35,7 +35,8 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
         width: "100%",
         borderRadius: 16,
         backgroundColor: theme.colors.secondary,
-        marginBottom: 24,
+        paddingHorizontal: 24,
+        paddingVertical: 8,
       }}
     >
       <View
@@ -46,33 +47,30 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
           alignContent: "center",
           justifyContent: "flex-start",
           borderRadius: 16,
-          paddingTop: 16,
-          paddingBottom: 8,
-          paddingHorizontal: 16,
           gap: 16,
         }}
       >
         {/* Interested Count */}
         <View style={rowStyle}>
           <FontAwesome6 name="users" size={20} color={iconColor} style={{ marginRight: 12 }} />
-          <Text style={{ color: textColor, fontSize: 16 }}>{event.interestedCount}</Text>
+          <Text style={{ color: textColor, fontSize: 16 }}>{event.attendance?.interested ?? 0}</Text>
         </View>
-        <View style={{ width: 0.5, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+        <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
         {/* Theme */}
         {event.theme && (
           <View style={rowStyle}>
             <FontAwesome6 name={event.theme.icon} size={20} color={iconColor} style={{ marginRight: 12 }} />
             <Text style={{ color: textColor, fontSize: 16 }}>
-              {event.theme.name.split("")[0].toUpperCase() + event.theme.name.slice(1)}
+              {event.theme.name.charAt(0).toUpperCase() + event.theme.name.slice(1)}
             </Text>
           </View>
         )}
-        <View style={{ width: 0.5, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+        <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
         {/* Country */}
-        {event.country && (
+        {event.location?.country && (
           <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <Flag cca2={event?.country} />
-            <Text style={{ color: textColor, fontSize: 16 }}>{event.country}</Text>
+            <Flag cca2={event.location.country} />
+            <Text style={{ color: textColor, fontSize: 16 }}>{event.location.country}</Text>
           </View>
         )}
       </View>
@@ -80,12 +78,10 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
       <View
         style={{
           width: "100%",
-          paddingHorizontal: 16,
         }}
       >
-        <Divider style={{ marginBottom: 4, backgroundColor: theme.colors.shadow, height: 0.5 }} />
         {/* Location */}
-        {event.city && event.address && (
+        {event.location?.city && event.location?.address && (
           <>
             <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
               <FontAwesome6 name="location-dot" size={20} color={iconColor} style={{ marginRight: 12 }} />
@@ -94,8 +90,8 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
                 selectable
                 selectionColor={theme.colors.brand.red}
                 onPress={() => {
-                  if (!event.address && !event.city) return
-                  const query = encodeURIComponent(`${event.address}, ${event.city}`)
+                  if (!event.location?.address && !event.location?.city) return
+                  const query = encodeURIComponent(`${event.location.address}, ${event.location.city}`)
                   const url = Platform.select({
                     ios: `http://maps.apple.com/?q=${query}`,
                     android: `geo:0,0?q=${query}`,
@@ -104,50 +100,53 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
                   Linking.openURL(url as string)
                 }}
               >
-                {event.city}, {event.address}
+                {event.location.city}, {event.location.address}
               </Text>
             </View>
-            <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 0.5 }} />
           </>
         )}
         {/* Venue */}
-        {event.venue && (
+        {event.location?.venue && (
           <>
             <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
               <FontAwesome6 name="building" size={20} color={iconColor} style={{ marginRight: 12 }} />
               <Text style={{ color: textColor, fontSize: 16 }} selectable selectionColor={theme.colors.brand.red}>
-                {event.venue}
+                {event.location.venue}
               </Text>
             </View>
-            <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 1 }} />
           </>
         )}
         {/* Age Restriction */}
-        {event.requiredAge && (
+        {event.ageRestriction && (
           <>
             <View style={rowStyle}>
               <FontAwesome6 name="user-shield" size={20} color={iconColor} style={{ marginRight: 12 }} />
-              <Text style={{ color: textColor, fontSize: 16 }}>Age limit {event.requiredAge}+</Text>
+              <Text style={{ color: textColor, fontSize: 16 }}>Age limit {event.ageRestriction}+</Text>
             </View>
-            <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 0.5 }} />
           </>
         )}
         {/* Start Time */}
-        <>
-          <View style={rowStyle}>
-            <FontAwesome6 name="calendar" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text style={{ color: textColor, fontSize: 16 }}>{dayjs(event.startAt).format("DD MMMM YYYY")}</Text>
-          </View>
-          <Divider style={{ marginVertical: 4, backgroundColor: theme.colors.shadow, height: 0.5 }} />
-        </>
+        {event.dateRange?.startAt && (
+          <>
+            <View style={rowStyle}>
+              <FontAwesome6 name="calendar" size={20} color={iconColor} style={{ marginRight: 12 }} />
+              <Text style={{ color: textColor, fontSize: 16 }}>
+                {dayjs.utc(event.dateRange.startAt).local().format("DD MMMM YYYY")}
+              </Text>
+            </View>
+          </>
+        )}
         {/* Start hour */}
-        <>
-          <View style={rowStyle}>
-            <FontAwesome6 name="clock" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text style={{ color: textColor, fontSize: 16 }}>{dayjs(event.startAt).format("HH:mm")}</Text>
-          </View>
-          <Divider style={{ marginVertical: 4, backgroundColor: "transparent", height: 0.5 }} />
-        </>
+        {event.dateRange?.startAt && (
+          <>
+            <View style={rowStyle}>
+              <FontAwesome6 name="clock" size={20} color={iconColor} style={{ marginRight: 12 }} />
+              <Text style={{ color: textColor, fontSize: 16 }}>
+                {dayjs.utc(event.dateRange.startAt).local().format("HH:mm")}
+              </Text>
+            </View>
+          </>
+        )}
       </View>
       {actionButtons && (
         <View style={{ flexDirection: "row", width: "100%", height: 42, margin: 0, padding: 0 }}>
@@ -189,7 +188,7 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
               )}
             </View>
             <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 16 }}>
-              {isSubscribed ? "Going" : "Confirm Attendance"}
+              {isSubscribed ? "Going" : "Confirm"}
             </Text>
           </TouchableOpacity>
           <View
