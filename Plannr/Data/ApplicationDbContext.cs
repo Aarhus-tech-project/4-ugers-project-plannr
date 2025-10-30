@@ -51,7 +51,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
              .HasForeignKey(e => e.CreatorId)
              .OnDelete(DeleteBehavior.Restrict);
 
-            // Owned value object → egen tabel for klarhed i EF
+            //Owned value object → egen tabel for klarhed i EF
             b.OwnsOne(e => e.Location, loc =>
             {
                 loc.Property(l => l.City).HasMaxLength(200);

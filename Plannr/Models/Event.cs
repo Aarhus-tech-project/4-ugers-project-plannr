@@ -5,7 +5,7 @@ public class Event
     public Guid Id { get; set; }
     public string Title { get; set; } = default!;
     public string? Description { get; set; }
-    public string Format { get; set; } = EventFormat.InPerson; // string i stedet for enum
+    public string Format { get; set; } = EventFormat.InPerson;
     public int InterestedCount { get; set; } = 0;
     public int GoingCount { get; set; } = 0;
     public int CheckedInCount { get; set; } = 0;
@@ -15,13 +15,13 @@ public class Event
     public string? Venue { get; set; }
     public string? AccessLink { get; set; }
     public int? RequiredAge { get; set; }
-    public EventTheme? Theme { get; set; } // Objekt i stedet for ThemeName + ThemeIcon
+    public EventTheme? Theme { get; set; }
     public EventLocation? Location { get; set; }
     public Guid CreatorId { get; set; }
     public Profile Creator { get; set; } = default!;
     public ICollection<EventImage> Images { get; set; } = new List<EventImage>();
     public ICollection<EventPrompt> Prompts { get; set; } = new List<EventPrompt>();
-    public ICollection<EventPageSection>? Sections { get; set; } // NY: dynamiske sektioner
+    public ICollection<EventPageSection>? Sections { get; set; }
 }
 
 public static class EventFormat

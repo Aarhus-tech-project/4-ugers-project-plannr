@@ -15,9 +15,9 @@ public class DiagController : ControllerBase
     [HttpGet("config")]
     public IActionResult GetConfig()
     {
-        var raw = _cfg.GetConnectionString("DefaultConnection") ?? "(null)";
-        var env1 = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
-        var env2 = Environment.GetEnvironmentVariable("ConnectionStrings:DefaultConnection"); // just in case
+        string raw = _cfg.GetConnectionString("DefaultConnection") ?? "(null)";
+        string? env1 = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        string? env2 = Environment.GetEnvironmentVariable("ConnectionStrings:DefaultConnection"); // just in case
 
         // Mask password but show host/user/db
         string host = "(n/a)", user = "(n/a)", db = "(n/a)", ssl = "(n/a)";

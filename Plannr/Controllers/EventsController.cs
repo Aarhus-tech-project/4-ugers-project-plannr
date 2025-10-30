@@ -13,7 +13,7 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var events = await db.Events
+        List<Event> events = await db.Events
             .Include(e => e.Images)
             .Include(e => e.Prompts)
             .Include(e => e.Creator)
@@ -26,7 +26,7 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var ev = await db.Events
+        Event? ev = await db.Events
             .Include(e => e.Images)
             .Include(e => e.Prompts)
             .Include(e => e.Creator)
@@ -48,7 +48,7 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
         // Hvis ingen creator er angivet, opret midlertidig bruger (til test)
         if (input.CreatorId == Guid.Empty)
         {
-            var profile = new Profile
+            Profile profile = new Profile
             {
                 Id = Guid.NewGuid(),
                 Email = "test@plannr.local",
@@ -69,7 +69,7 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] Event update)
     {
-        var existing = await db.Events.FindAsync(id);
+        Event? existing = await db.Events.FindAsync(id);
         if (existing is null)
             return NotFound();
 
@@ -98,7 +98,7 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var ev = await db.Events.FindAsync(id);
+        Event? ev = await db.Events.FindAsync(id);
         if (ev is null)
             return NotFound();
 
