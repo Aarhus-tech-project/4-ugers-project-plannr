@@ -30,7 +30,7 @@ export const DateRangeModeSelector: React.FC<DateRangeModeSelectorProps> = ({
   const theme = useCustomTheme()
 
   return (
-    <View style={{ flexDirection: "row" }}>
+    <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start" }}>
       {MODES.map(({ key, label }) => {
         const isSelected = mode[key as keyof typeof mode]
         return (
@@ -50,8 +50,9 @@ export const DateRangeModeSelector: React.FC<DateRangeModeSelectorProps> = ({
             style={{
               margin: 4,
               backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
-              minWidth: 80,
               justifyContent: "center",
+              borderWidth: 0,
+              flexShrink: 1,
             }}
             textStyle={{ color: isSelected ? theme.colors.background : theme.colors.onBackground }}
           >

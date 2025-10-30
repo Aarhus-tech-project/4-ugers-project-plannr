@@ -1,4 +1,3 @@
-import { Event } from "./event"
 import { Filter } from "./filter"
 
 export interface Profile {
@@ -9,7 +8,7 @@ export interface Profile {
   phone?: string
   avatarUrl?: string
   eventFinderSettings?: Filter
-  likedEvents?: Event[]
-  subscribedEvents?: Event[]
+  likedEvents?: string[]
+  subscribedEvents?: string[]
   filters?: Filter
 }

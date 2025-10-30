@@ -4,111 +4,158 @@ import dayjs from "dayjs"
 // Example mock events for testing and development
 const mockEvents: Event[] = [
   {
-    id: "1",
-    title: "Roskilde Festival 2026",
-    description: "Northern Europe's largest music festival, featuring international and Danish artists.",
+    id: "0",
+    title: "Aarhus Jazz Festival 2026",
     theme: { name: "Music", icon: "music" },
     format: "inperson",
-    ageRestriction: 18,
+    ageRestriction: 16,
     location: {
-      address: "Darupvej 19",
-      city: "Roskilde",
+      address: "Vester Allé 15",
+      city: "Aarhus",
       country: "DK",
-      venue: "Roskilde Festival Grounds",
-      latitude: 55.6211,
-      longitude: 12.0803,
+      venue: "Musikhuset Aarhus",
+      latitude: 56.1535,
+      longitude: 10.1991,
     },
     dateRange: {
-      startAt: dayjs("2026-06-27T12:00:00Z").toDate(),
-      endAt: dayjs("2026-07-04T23:59:00Z").toDate(),
+      startAt: dayjs("2026-07-13T12:00:00Z").toDate(),
+      endAt: dayjs("2026-07-20T23:00:00Z").toDate(),
     },
     attendance: {
-      interested: 130000,
+      interested: 8000,
     },
     sections: [
       {
         type: "images",
         srcs: [
-          "https://randomuser.me/api/portraits/women/72.jpg",
-          "https://randomuser.me/api/portraits/women/77.jpg",
-          "https://randomuser.me/api/portraits/men/77.jpg",
-          "https://randomuser.me/api/portraits/women/78.jpg",
-          "https://randomuser.me/api/portraits/men/78.jpg",
-          "https://randomuser.me/api/portraits/women/79.jpg",
-          "https://randomuser.me/api/portraits/women/80.jpg",
+          "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+          "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80",
         ],
       },
-      {
-        type: "description",
-        content: "Experience a week of music, art, and community at Denmark's legendary festival.",
-      },
-      {
-        type: "dresscode",
-        content: "Festival casual. Bring rain boots just in case!",
-      },
-
+      { type: "description", content: "Enjoy world-class jazz in venues and open spaces across Aarhus." },
+      { type: "dresscode", content: "Smart casual or jazz-inspired attire recommended." },
       {
         type: "faq",
         items: [
-          { question: "Can I camp at the festival?", answer: "Yes, camping is included with your ticket." },
-          {
-            question: "Are there food options for vegetarians?",
-            answer: "Yes, many food stalls offer vegetarian and vegan options.",
-          },
+          { question: "Are concerts free?", answer: "Many concerts are free, but some require tickets." },
+          { question: "Where can I park?", answer: "Parking is available at Musikhuset and nearby lots." },
         ],
       },
       {
         type: "guests",
         guests: [
           {
-            name: "Billie Eilish",
-            bio: "Grammy-winning pop artist.",
-            avatarUrl: "https://randomuser.me/api/portraits/women/72.jpg",
+            name: "Cæcilie Norby",
+            bio: "Danish jazz singer.",
+            avatarUrl: "https://randomuser.me/api/portraits/women/81.jpg",
           },
-          { name: "The Minds of 99", bio: "Danish rock band." },
-          {
-            name: "Dua Lipa",
-            bio: "International pop sensation.",
-            avatarUrl: "https://randomuser.me/api/portraits/women/77.jpg",
-          },
-          {
-            name: "Kendrick Lamar",
-            bio: "Pulitzer-winning rapper.",
-            avatarUrl: "https://randomuser.me/api/portraits/men/77.jpg",
-          },
-          { name: "Mø", bio: "Danish electropop star.", avatarUrl: "https://randomuser.me/api/portraits/women/78.jpg" },
-          {
-            name: "Tobias Rahim",
-            bio: "Danish singer-songwriter.",
-            avatarUrl: "https://randomuser.me/api/portraits/men/78.jpg",
-          },
-          {
-            name: "Jada",
-            bio: "Award-winning Danish vocalist.",
-            avatarUrl: "https://randomuser.me/api/portraits/women/79.jpg",
-          },
-          { name: "Foo Fighters", bio: "Legendary rock band." },
-          { name: "Sigrid", bio: "Norwegian pop star.", avatarUrl: "https://randomuser.me/api/portraits/women/80.jpg" },
-          { name: "Arctic Monkeys", bio: "British indie rock band." },
+          { name: "Aarhus Jazz Orchestra", bio: "Big band jazz ensemble." },
+          { name: "Niels Lan Doky", bio: "Jazz pianist.", avatarUrl: "https://randomuser.me/api/portraits/men/81.jpg" },
         ],
       },
       {
         type: "tickets",
         tickets: [
-          { type: "Full Festival Pass", price: 2200, link: "https://www.roskilde-festival.dk/tickets" },
-          { type: "One Day Pass", price: 1200, link: "https://www.roskilde-festival.dk/tickets" },
+          { type: "Festival Pass", price: 600, link: "https://jazzfest.dk/tickets" },
+          { type: "Day Ticket", price: 150, link: "https://jazzfest.dk/tickets" },
         ],
       },
       {
         type: "resources",
-        files: [{ name: "Festival Map", url: "https://www.roskilde-festival.dk/map.pdf" }],
+        files: [
+          { name: "Festival Map", url: "https://jazzfest.dk/map.pdf" },
+          { name: "Artist Lineup", url: "https://jazzfest.dk/lineup" },
+        ],
+      },
+      {
+        type: "schedule",
+        items: [
+          { time: new Date("2026-07-13T12:00:00Z"), activity: "Opening Ceremony" },
+          { time: new Date("2026-07-14T18:00:00Z"), activity: "Main Concert" },
+          { time: new Date("2026-07-20T23:00:00Z"), activity: "Closing Jam" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "1",
+    title: "Copenhagen Marathon 2026",
+    theme: { name: "Sports", icon: "futbol" },
+    format: "inperson",
+    ageRestriction: 18,
+    location: {
+      address: "Islands Brygge 18",
+      city: "Copenhagen",
+      country: "DK",
+      venue: "Start/Finish: Islands Brygge",
+      latitude: 55.6631,
+      longitude: 12.5797,
+    },
+    dateRange: {
+      startAt: dayjs("2026-05-17T09:30:00Z").toDate(),
+      endAt: dayjs("2026-05-17T15:00:00Z").toDate(),
+    },
+    attendance: {
+      interested: 12000,
+    },
+    sections: [
+      {
+        type: "images",
+        srcs: [
+          "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+          "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80",
+        ],
+      },
+      {
+        type: "description",
+        content: "Join thousands of runners and experience the vibrant atmosphere of Copenhagen.",
+      },
+      { type: "dresscode", content: "Sportswear and running shoes required for participants." },
+      {
+        type: "faq",
+        items: [
+          {
+            question: "Is the course flat?",
+            answer: "Yes, the Copenhagen Marathon is known for its flat and fast course.",
+          },
+          { question: "Where do I collect my bib?", answer: "Bib pickup is at the Expo the day before the race." },
+        ],
+      },
+      {
+        type: "guests",
+        guests: [
+          { name: "Elite Runners", bio: "International marathon athletes." },
+          {
+            name: "Abdi Nageeye",
+            bio: "Olympic marathon medalist.",
+            avatarUrl: "https://randomuser.me/api/portraits/men/82.jpg",
+          },
+        ],
+      },
+      {
+        type: "tickets",
+        tickets: [{ type: "Marathon Entry", price: 650, link: "https://copenhagenmarathon.dk/tilmelding/" }],
+      },
+      {
+        type: "resources",
+        files: [
+          { name: "Course Map", url: "https://copenhagenmarathon.dk/course-map" },
+          { name: "Runner's Guide", url: "https://copenhagenmarathon.dk/guide" },
+        ],
+      },
+      {
+        type: "schedule",
+        items: [
+          { time: new Date("2026-05-17T09:30:00Z"), activity: "Race Start" },
+          { time: new Date("2026-05-17T12:00:00Z"), activity: "Halfway Point Entertainment" },
+          { time: new Date("2026-05-17T15:00:00Z"), activity: "Finish Line Ceremony" },
+        ],
       },
     ],
   },
   {
     id: "2",
     title: "Aarhus Jazz Festival 2026",
-    description: "Annual jazz festival with concerts all over Aarhus city.",
     theme: { name: "Music", icon: "music" },
     format: "inperson",
     ageRestriction: 16,
@@ -165,7 +212,6 @@ const mockEvents: Event[] = [
   {
     id: "3",
     title: "Copenhagen Marathon 2026",
-    description: "Run through the heart of Copenhagen in Denmark's biggest marathon.",
     theme: { name: "Sports", icon: "futbol" },
     format: "inperson",
     ageRestriction: 18,
@@ -230,7 +276,6 @@ const mockEvents: Event[] = [
   {
     id: "4",
     title: "Odense International Film Festival 2026",
-    description: "Denmark's oldest film festival, celebrating short films from around the world.",
     theme: { name: "Film", icon: "film" },
     format: "inperson",
     ageRestriction: 15,
@@ -285,7 +330,6 @@ const mockEvents: Event[] = [
   {
     id: "5",
     title: "Aalborg Carnival 2026",
-    description: "The largest carnival in Northern Europe, with parades, music, and costumes.",
     theme: { name: "Parade", icon: "people-line" },
     format: "inperson",
     ageRestriction: 18,
@@ -298,8 +342,8 @@ const mockEvents: Event[] = [
       longitude: 9.9187,
     },
     dateRange: {
-      startAt: dayjs("2026-05-23T10:00:00Z").toDate(),
-      endAt: dayjs("2026-05-23T23:00:00Z").toDate(),
+      startAt: dayjs("2025-10-23T10:00:00Z").toDate(),
+      endAt: dayjs("2025-10-24T23:00:00Z").toDate(),
     },
     attendance: {
       interested: 60000,
@@ -334,7 +378,6 @@ const mockEvents: Event[] = [
   {
     id: "6",
     title: "Copenhagen Cooking & Food Festival 2026",
-    description: "A celebration of Nordic cuisine with events across Copenhagen.",
     theme: { name: "Food", icon: "utensils" },
     format: "inperson",
     ageRestriction: 21,
@@ -386,7 +429,6 @@ const mockEvents: Event[] = [
   {
     id: "7",
     title: "Aarhus Festuge 2026",
-    description: "Aarhus Festival Week: 10 days of music, art, food, and culture in Denmark's second city.",
     theme: { name: "Festival", icon: "star" },
     location: {
       address: "Bispetorvet 1",
@@ -428,7 +470,6 @@ const mockEvents: Event[] = [
   {
     id: "8",
     title: "Distortion Copenhagen 2026",
-    description: "A massive street party and electronic music festival in the heart of Copenhagen.",
     theme: { name: "Music", icon: "music" },
     location: {
       address: "Nørrebro & Vesterbro",
@@ -475,7 +516,6 @@ const mockEvents: Event[] = [
   {
     id: "9",
     title: "Copenhagen Pride 2026",
-    description: "Denmark's largest human rights festival and parade for LGBTQ+ equality.",
     theme: { name: "Parade", icon: "people-line" },
     location: {
       address: "Rådhuspladsen 1",
@@ -522,7 +562,6 @@ const mockEvents: Event[] = [
   {
     id: "10",
     title: "NorthSide Festival 2026",
-    description: "Aarhus' biggest alternative music festival with a focus on sustainability.",
     theme: { name: "Music", icon: "music" },
     location: {
       address: "Eskelunden",
@@ -564,7 +603,6 @@ const mockEvents: Event[] = [
   {
     id: "11",
     title: "Odense Flower Festival 2026",
-    description: "A city-wide celebration of flowers, art, and nature in Odense.",
     theme: { name: "Nature", icon: "leaf" },
     location: {
       address: "Flakhaven 2",
@@ -606,7 +644,6 @@ const mockEvents: Event[] = [
   {
     id: "12",
     title: "Esbjerg Rock Festival 2026",
-    description: "A weekend of rock music by the North Sea in Esbjerg.",
     theme: { name: "Music", icon: "music" },
     location: {
       address: "Gl. Vardevej 82",
@@ -648,7 +685,6 @@ const mockEvents: Event[] = [
   {
     id: "13",
     title: "Bornholm Rundt 2026",
-    description: "Annual cycling race around the beautiful island of Bornholm.",
     theme: { name: "Sports", icon: "futbol" },
     location: {
       address: "Havnegade 1",
@@ -692,7 +728,6 @@ const mockEvents: Event[] = [
   {
     id: "14",
     title: "Skagen Winter Bathing Festival 2026",
-    description: "Join hundreds of winter bathers for a chilly dip in Skagen.",
     theme: { name: "Wellness", icon: "spa" },
     location: {
       address: "Sct. Laurentiivej 39",
@@ -734,7 +769,6 @@ const mockEvents: Event[] = [
   {
     id: "15",
     title: "Frederiksberg Garden Party 2026",
-    description: "A summer celebration with music, food, and family fun in Frederiksberg Gardens.",
     theme: { name: "Family", icon: "child" },
     location: {
       address: "Frederiksberg Runddel 1",
@@ -776,7 +810,6 @@ const mockEvents: Event[] = [
   {
     id: "16",
     title: "Aarhus Street Food Market 2026",
-    description: "Taste food from around the world at Aarhus' vibrant street food market.",
     theme: { name: "Food", icon: "utensils" },
     location: {
       address: "Ny Banegårdsgade 46",
@@ -820,7 +853,6 @@ const mockEvents: Event[] = [
   {
     id: "17",
     title: "Copenhagen Light Festival 2026",
-    description: "See Copenhagen illuminated with spectacular light installations.",
     theme: { name: "Art", icon: "paintbrush" },
     location: {
       address: "Nyhavn",
@@ -862,7 +894,6 @@ const mockEvents: Event[] = [
   {
     id: "18",
     title: "Odense Robotics Expo 2026",
-    description: "Explore the future of robotics and automation in Odense.",
     theme: { name: "Tech", icon: "laptop-code" },
     location: {
       address: "Munkebjergvej 1",
@@ -904,7 +935,6 @@ const mockEvents: Event[] = [
   {
     id: "19",
     title: "Aalborg Beer Walk 2026",
-    description: "Sample craft beers from Aalborg's best breweries on a city walk.",
     theme: { name: "Food", icon: "utensils" },
     location: {
       address: "Boulevarden 13",
@@ -946,7 +976,6 @@ const mockEvents: Event[] = [
   {
     id: "20",
     title: "Copenhagen Half Marathon 2026",
-    description: "Run through the streets of Copenhagen in this world-class half marathon.",
     theme: { name: "Sports", icon: "futbol" },
     location: {
       address: "Øster Allé 48",
@@ -988,7 +1017,6 @@ const mockEvents: Event[] = [
   {
     id: "21",
     title: "Vejle Fjord Festival 2026",
-    description: "A weekend of water sports, music, and fun by the Vejle Fjord.",
     theme: { name: "Festival", icon: "star" },
     location: {
       address: "Havneøen 1",
@@ -1032,7 +1060,6 @@ const mockEvents: Event[] = [
   {
     id: "22",
     title: "Randers Ugen 2026",
-    description: "A week-long city festival with concerts, markets, and family activities in Randers.",
     theme: { name: "Festival", icon: "star" },
     location: {
       address: "Rådhustorvet 1",

@@ -2,6 +2,7 @@
 // Example mock profile data for development
 
 import { Profile } from "@/interfaces/profile"
+import dayjs from "dayjs"
 import mockEvents from "./mockEvents.data"
 
 export const mockProfile: Profile = {
@@ -13,28 +14,28 @@ export const mockProfile: Profile = {
   avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
   filters: {
     formats: ["inperson", "online"],
-    eventThemes: ["Tech", "Art"],
+    eventThemes: [],
     dateRange: {
       current: {
         day: false,
-        week: true,
+        week: false,
         month: false,
         year: false,
       },
       custom: {
-        startDate: null,
-        endDate: null,
+        startDate: dayjs().toDate(),
+        endDate: dayjs().add(2, "years").toDate(),
       },
     },
     location: {
       useCurrent: true,
-      range: 50,
+      range: 200,
       custom: {
         latitude: 55.6761, // Copenhagen
         longitude: 12.5683, // Copenhagen
       },
     },
   },
-  likedEvents: mockEvents,
-  subscribedEvents: [mockEvents[0]],
+  likedEvents: mockEvents.map((event) => event.id),
+  subscribedEvents: [mockEvents[0].id, mockEvents[2].id],
 }

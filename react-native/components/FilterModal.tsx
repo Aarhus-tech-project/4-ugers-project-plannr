@@ -151,7 +151,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply, in
             <Button
               mode="outlined"
               onPress={onClose}
-              style={[styles.button, { backgroundColor: theme.colors.gray[700] }]}
+              style={[styles.button, { backgroundColor: theme.colors.gray[800] }]}
             >
               <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Cancel</Text>
             </Button>

@@ -28,8 +28,7 @@ const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ them
         style={{
           margin: 4,
           backgroundColor: selectedThemes.length > 0 ? theme.colors.brand.red : theme.colors.background,
-          borderWidth: 1,
-          borderColor: theme.colors.brand.red,
+          borderWidth: 0,
           minWidth: 100,
           justifyContent: "center",
         }}
@@ -62,6 +61,7 @@ const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ them
               margin: 4,
               backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
               minWidth: 80,
+              borderWidth: 0,
               justifyContent: "center",
             }}
             textStyle={{ color: isSelected ? theme.colors.background : theme.colors.onBackground }}

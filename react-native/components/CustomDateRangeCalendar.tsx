@@ -39,7 +39,14 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
   // When customStart/customEnd change, or if they are reset (e.g. by mode change), update local time state
   React.useEffect(() => {
     setStartTime(customStart ? dayjs(customStart).toDate() : null)
-    setEndTime(customEnd ? dayjs(customEnd).toDate() : null)
+    if (customEnd) {
+      setEndTime(dayjs(customEnd).toDate())
+    } else if (customStart) {
+      // If no end time, default to 24:00 (next day at 00:00) for the selected start day
+      setEndTime(dayjs(customStart).add(1, "day").startOf("day").toDate())
+    } else {
+      setEndTime(null)
+    }
   }, [customStart, customEnd])
 
   // Use markingType='period' and selected for single day
@@ -81,7 +88,7 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
     selectedDayBackgroundColor: theme.colors.brand.red,
     selectedDayTextColor: theme.colors.background,
     dayTextColor: theme.colors.onBackground,
-    textDisabledColor: colorScheme === "dark" ? theme.colors.gray[800] : theme.colors.gray[200],
+    textDisabledColor: colorScheme === "dark" ? theme.colors.gray[700] : theme.colors.gray[200],
     todayTextColor: theme.colors.brand.red,
     arrowColor: theme.colors.brand.red,
     textDayFontSize: 16,
@@ -105,9 +112,11 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
       }
       if (!customStart && !customEnd) {
         // No range yet, start new range
-        const base = selectedLocal.hour(startTime?.getHours() ?? 12).minute(startTime?.getMinutes() ?? 0)
+        const base = selectedLocal.hour(0).minute(0).second(0).millisecond(0)
         onStartChange(base.utc().toDate())
-        onEndChange(null)
+        // Set end to 24:00 (next day at 00:00)
+        const endOfDay = selectedLocal.add(1, "day").startOf("day")
+        onEndChange(endOfDay.utc().toDate())
       } else if (customStart && !customEnd) {
         const startDay = dayjs(customStart).startOf("day")
         if (selectedLocal.isBefore(startDay)) {
@@ -169,6 +178,7 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
       {/* Unified dropdown for hour/minute selection for start and end (if not allDay) */}
       {!allDay && (
         <View style={{ marginTop: 16 }}>
+          {/* Show both pickers if single day is selected (customStart set, and customEnd is null or same day) */}
           {customStart && (
             <View style={{ marginBottom: 8 }}>
               <Text style={{ color: theme.colors.onBackground, fontWeight: "bold", marginBottom: 4 }}>Start Time</Text>
@@ -181,11 +191,14 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
               />
             </View>
           )}
-          {customEnd && (
+          {/* Show end time picker if: (a) customEnd is set, or (b) customStart is set and customEnd is null (single day selection) */}
+          {(customEnd ||
+            (customStart && (!customEnd || (customEnd && dayjs(customStart).isSame(customEnd, "day"))))) && (
             <View style={{ marginBottom: 8 }}>
               <Text style={{ color: theme.colors.onBackground, fontWeight: "bold", marginBottom: 4 }}>End Time</Text>
               <WheelTimePicker
                 value={endTime}
+                min={startTime ?? undefined}
                 onChange={(date) => {
                   setEndTime(date)
                   onEndChange(dayjs(date).utc().toDate())

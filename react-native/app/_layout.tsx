@@ -1,4 +1,5 @@
 import LoginScreen from "@/app/login"
+import GestureRoot from "@/components/GestureRoot"
 import { SessionProvider, useSession } from "@/hooks/useSession"
 import { darkTheme, lightTheme } from "@/theme"
 import { Stack } from "expo-router"
@@ -33,7 +34,9 @@ export default function RootLayout() {
   return (
     <SessionProvider>
       <PaperProvider theme={colorScheme === "dark" ? darkTheme : lightTheme}>
-        <AppContent />
+        <GestureRoot>
+          <AppContent />
+        </GestureRoot>
       </PaperProvider>
     </SessionProvider>
   )

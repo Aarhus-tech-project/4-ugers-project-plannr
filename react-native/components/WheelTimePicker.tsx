@@ -5,7 +5,7 @@ import { Modal, ScrollView, StyleSheet, TouchableOpacity, View } from "react-nat
 import { Button, Text } from "react-native-paper"
 
 const HOUR_LIST = Array.from({ length: 24 }, (_, i) => i)
-const MINUTE_LIST = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
+const MINUTE_LIST = Array.from({ length: 60 }, (_, i) => i)
 
 const ITEM_HEIGHT = 44
 
@@ -13,9 +13,10 @@ interface WheelTimePickerProps {
   value: Date | null
   onChange: (date: Date) => void
   disabled?: boolean
+  min?: Date // New: minimum allowed time (inclusive)
 }
 
-export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChange, disabled }) => {
+export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChange, disabled, min }) => {
   const theme = useCustomTheme()
   const [visible, setVisible] = useState(false)
   const [hour, setHour] = useState<number>(value ? value.getHours() : 12)
@@ -23,13 +24,30 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
   const hourScrollRef = React.useRef<ScrollView>(null)
   const minuteScrollRef = React.useRef<ScrollView>(null)
 
+  // Helper: is this hour/minute valid?
+  function isValidTime(h: number, m: number) {
+    if (!min) return true
+    if (!value) return true
+    // Only block overlap for the same day
+    const base = new Date(value)
+    base.setHours(h)
+    base.setMinutes(m)
+    base.setSeconds(0)
+    base.setMilliseconds(0)
+    const isSameDay =
+      min.getFullYear() === base.getFullYear() && min.getMonth() === base.getMonth() && min.getDate() === base.getDate()
+    if (isSameDay) {
+      return base.getTime() > min.getTime() // strictly after
+    }
+    return true
+  }
+
   // Scroll to the middle selected value on open or value change
   React.useEffect(() => {
     if (visible && value && hourScrollRef.current && minuteScrollRef.current) {
       setHour(value.getHours())
       setMinute(value.getMinutes())
       setTimeout(() => {
-        // Always center the selected value on open
         const hourIndex = HOUR_LIST.findIndex((h, i) => h === value.getHours() && i >= HOUR_LIST.length / 2)
         const minuteIndex = MINUTE_LIST.findIndex((m, i) => m === value.getMinutes() && i >= MINUTE_LIST.length / 2)
         if (hourIndex !== -1) hourScrollRef.current?.scrollTo({ y: hourIndex * ITEM_HEIGHT, animated: false })
@@ -40,6 +58,7 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
 
   const handleSet = () => {
     if (value) {
+      if (!isValidTime(hour, minute)) return // Prevent invalid set
       const newDate = new Date(value)
       newDate.setHours(hour)
       newDate.setMinutes(minute)
@@ -58,11 +77,11 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
         style={{
           borderColor: theme.colors.brand.red,
           backgroundColor: theme.colors.background,
-          minWidth: 90,
-          borderRadius: 16,
+          minWidth: 80,
+          borderRadius: 8,
           borderWidth: 1,
-          paddingVertical: 8,
-          paddingHorizontal: 16,
+          paddingVertical: 6,
+          paddingHorizontal: 10,
           flexDirection: "row",
           alignItems: "center",
         }}
@@ -103,7 +122,7 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
               />
               {/* Hour wheel */}
               <View style={styles.wheelColumn}>
-                <Text style={[styles.wheelLabel, { color: theme.colors.gray[700] }]}>Hour</Text>
+                <Text style={[styles.wheelLabel, { color: theme.colors.onBackground }]}>Hour</Text>
                 <ScrollView
                   style={styles.wheelList}
                   showsVerticalScrollIndicator={false}
@@ -118,32 +137,44 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
                     setHour(h)
                   }}
                 >
-                  {HOUR_LIST.map((h, i) => (
-                    <TouchableOpacity
-                      key={i}
-                      style={styles.wheelItem}
-                      onPress={() => {
-                        setHour(h)
-                        hourScrollRef.current?.scrollTo({ y: i * ITEM_HEIGHT, animated: true })
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: h === hour ? theme.colors.brand.red : theme.colors.gray[700],
-                          fontWeight: h === hour ? "bold" : "normal",
-                          fontSize: 20,
-                          textAlign: "center",
+                  {HOUR_LIST.map((h, i) => {
+                    // Only show minutes that are valid for this hour
+                    const validMinuteExists = MINUTE_LIST.some((m) => isValidTime(h, m))
+                    return (
+                      <TouchableOpacity
+                        key={i}
+                        style={styles.wheelItem}
+                        onPress={() => {
+                          if (!validMinuteExists) return
+                          setHour(h)
+                          hourScrollRef.current?.scrollTo({ y: i * ITEM_HEIGHT, animated: true })
                         }}
+                        disabled={!validMinuteExists}
                       >
-                        {h.toString().padStart(2, "0")}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                        <Text
+                          style={{
+                            color:
+                              h === hour
+                                ? theme.colors.brand.red
+                                : validMinuteExists
+                                ? theme.colors.gray[700]
+                                : theme.colors.gray[400],
+                            fontWeight: h === hour ? "bold" : "normal",
+                            fontSize: 20,
+                            textAlign: "center",
+                            opacity: validMinuteExists ? 1 : 0.3,
+                          }}
+                        >
+                          {h.toString().padStart(2, "0")}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  })}
                 </ScrollView>
               </View>
               {/* Minute wheel */}
               <View style={styles.wheelColumn}>
-                <Text style={[styles.wheelLabel, { color: theme.colors.gray[700] }]}>Minute</Text>
+                <Text style={[styles.wheelLabel, { color: theme.colors.onBackground }]}>Minute</Text>
                 <ScrollView
                   style={styles.wheelList}
                   showsVerticalScrollIndicator={false}
@@ -158,27 +189,38 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
                     setMinute(m)
                   }}
                 >
-                  {MINUTE_LIST.map((m, i) => (
-                    <TouchableOpacity
-                      key={i}
-                      style={styles.wheelItem}
-                      onPress={() => {
-                        setMinute(m)
-                        minuteScrollRef.current?.scrollTo({ y: i * ITEM_HEIGHT, animated: true })
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: m === minute ? theme.colors.brand.red : theme.colors.gray[700],
-                          fontWeight: m === minute ? "bold" : "normal",
-                          fontSize: 20,
-                          textAlign: "center",
+                  {MINUTE_LIST.map((m, i) => {
+                    const valid = isValidTime(hour, m)
+                    return (
+                      <TouchableOpacity
+                        key={i}
+                        style={styles.wheelItem}
+                        onPress={() => {
+                          if (!valid) return
+                          setMinute(m)
+                          minuteScrollRef.current?.scrollTo({ y: i * ITEM_HEIGHT, animated: true })
                         }}
+                        disabled={!valid}
                       >
-                        {m.toString().padStart(2, "0")}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                        <Text
+                          style={{
+                            color:
+                              m === minute
+                                ? theme.colors.brand.red
+                                : valid
+                                ? theme.colors.gray[700]
+                                : theme.colors.gray[400],
+                            fontWeight: m === minute ? "bold" : "normal",
+                            fontSize: 20,
+                            textAlign: "center",
+                            opacity: valid ? 1 : 0.3,
+                          }}
+                        >
+                          {m.toString().padStart(2, "0")}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  })}
                 </ScrollView>
               </View>
             </View>
@@ -197,7 +239,7 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
                 onPress={() => setVisible(false)}
                 textColor={theme.colors.white}
                 style={{
-                  backgroundColor: theme.colors.gray[700],
+                  backgroundColor: theme.colors.gray[800],
                   flex: 1,
                   minWidth: 90,
                   marginHorizontal: 8,
@@ -219,6 +261,7 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
                   borderRadius: 16,
                   borderWidth: 0,
                 }}
+                disabled={!isValidTime(hour, minute)}
               >
                 Set
               </Button>

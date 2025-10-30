@@ -25,128 +25,133 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
     alignItems: "center" as const,
     paddingVertical: 8,
   }
-  const isSubscribed = profile?.subscribedEvents?.some((e) => e.id === event.id)
+  const isSubscribed = profile?.subscribedEvents?.some((e) => e === event.id)
   return (
-    <View
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        width: "100%",
-        borderRadius: 16,
-        backgroundColor: theme.colors.secondary,
-        paddingHorizontal: 24,
-        paddingVertical: 8,
-      }}
-    >
+    <>
       <View
         style={{
-          width: "100%",
           display: "flex",
-          flexDirection: "row",
-          alignContent: "center",
-          justifyContent: "flex-start",
-          borderRadius: 16,
-          gap: 16,
-        }}
-      >
-        {/* Interested Count */}
-        <View style={rowStyle}>
-          <FontAwesome6 name="users" size={20} color={iconColor} style={{ marginRight: 12 }} />
-          <Text style={{ color: textColor, fontSize: 16 }}>{event.attendance?.interested ?? 0}</Text>
-        </View>
-        <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
-        {/* Theme */}
-        {event.theme && (
-          <View style={rowStyle}>
-            <FontAwesome6 name={event.theme.icon} size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text style={{ color: textColor, fontSize: 16 }}>
-              {event.theme.name.charAt(0).toUpperCase() + event.theme.name.slice(1)}
-            </Text>
-          </View>
-        )}
-        <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
-        {/* Country */}
-        {event.location?.country && (
-          <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <Flag cca2={event.location.country} />
-            <Text style={{ color: textColor, fontSize: 16 }}>{event.location.country}</Text>
-          </View>
-        )}
-      </View>
-
-      <View
-        style={{
+          flexDirection: "column",
+          alignItems: "center",
           width: "100%",
+          borderTopRightRadius: 16,
+          borderTopLeftRadius: 16,
+          borderBottomLeftRadius: actionButtons ? 0 : 16,
+          borderBottomRightRadius: actionButtons ? 0 : 16,
+          backgroundColor: theme.colors.secondary,
+          paddingHorizontal: 24,
+          paddingVertical: 8,
         }}
       >
-        {/* Location */}
-        {event.location?.city && event.location?.address && (
-          <>
-            <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <FontAwesome6 name="location-dot" size={20} color={iconColor} style={{ marginRight: 12 }} />
-              <Text
-                style={{ color: textColor, fontSize: 16, textDecorationLine: "underline" }}
-                selectable
-                selectionColor={theme.colors.brand.red}
-                onPress={() => {
-                  if (!event.location?.address && !event.location?.city) return
-                  const query = encodeURIComponent(`${event.location.address}, ${event.location.city}`)
-                  const url = Platform.select({
-                    ios: `http://maps.apple.com/?q=${query}`,
-                    android: `geo:0,0?q=${query}`,
-                    default: `https://www.google.com/maps/search/?api=1&query=${query}`,
-                  })
-                  Linking.openURL(url as string)
-                }}
-              >
-                {event.location.city}, {event.location.address}
-              </Text>
-            </View>
-          </>
-        )}
-        {/* Venue */}
-        {event.location?.venue && (
-          <>
-            <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <FontAwesome6 name="building" size={20} color={iconColor} style={{ marginRight: 12 }} />
-              <Text style={{ color: textColor, fontSize: 16 }} selectable selectionColor={theme.colors.brand.red}>
-                {event.location.venue}
-              </Text>
-            </View>
-          </>
-        )}
-        {/* Age Restriction */}
-        {event.ageRestriction && (
-          <>
+        <View
+          style={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "row",
+            alignContent: "center",
+            justifyContent: "flex-start",
+            borderRadius: 16,
+            gap: 16,
+          }}
+        >
+          {/* Interested Count */}
+          <View style={rowStyle}>
+            <FontAwesome6 name="users" size={20} color={iconColor} style={{ marginRight: 12 }} />
+            <Text style={{ color: textColor, fontSize: 16 }}>{event.attendance?.interested ?? 0}</Text>
+          </View>
+          <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+          {/* Theme */}
+          {event.theme && (
             <View style={rowStyle}>
-              <FontAwesome6 name="user-shield" size={20} color={iconColor} style={{ marginRight: 12 }} />
-              <Text style={{ color: textColor, fontSize: 16 }}>Age limit {event.ageRestriction}+</Text>
-            </View>
-          </>
-        )}
-        {/* Start Time */}
-        {event.dateRange?.startAt && (
-          <>
-            <View style={rowStyle}>
-              <FontAwesome6 name="calendar" size={20} color={iconColor} style={{ marginRight: 12 }} />
+              <FontAwesome6 name={event.theme.icon} size={20} color={iconColor} style={{ marginRight: 12 }} />
               <Text style={{ color: textColor, fontSize: 16 }}>
-                {dayjs.utc(event.dateRange.startAt).local().format("DD MMMM YYYY")}
+                {event.theme.name.charAt(0).toUpperCase() + event.theme.name.slice(1)}
               </Text>
             </View>
-          </>
-        )}
-        {/* Start hour */}
-        {event.dateRange?.startAt && (
-          <>
-            <View style={rowStyle}>
-              <FontAwesome6 name="clock" size={20} color={iconColor} style={{ marginRight: 12 }} />
-              <Text style={{ color: textColor, fontSize: 16 }}>
-                {dayjs.utc(event.dateRange.startAt).local().format("HH:mm")}
-              </Text>
+          )}
+          <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
+          {/* Country */}
+          {event.location?.country && (
+            <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Flag cca2={event.location.country} />
+              <Text style={{ color: textColor, fontSize: 16 }}>{event.location.country}</Text>
             </View>
-          </>
-        )}
+          )}
+        </View>
+
+        <View
+          style={{
+            width: "100%",
+          }}
+        >
+          {/* Location */}
+          {event.location?.city && event.location?.address && (
+            <>
+              <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <FontAwesome6 name="location-dot" size={20} color={iconColor} style={{ marginRight: 12 }} />
+                <Text
+                  style={{ color: textColor, fontSize: 16, textDecorationLine: "underline" }}
+                  selectable
+                  selectionColor={theme.colors.brand.red}
+                  onPress={() => {
+                    if (!event.location?.address && !event.location?.city) return
+                    const query = encodeURIComponent(`${event.location.address}, ${event.location.city}`)
+                    const url = Platform.select({
+                      ios: `http://maps.apple.com/?q=${query}`,
+                      android: `geo:0,0?q=${query}`,
+                      default: `https://www.google.com/maps/search/?api=1&query=${query}`,
+                    })
+                    Linking.openURL(url as string)
+                  }}
+                >
+                  {event.location.city}, {event.location.address}
+                </Text>
+              </View>
+            </>
+          )}
+          {/* Venue */}
+          {event.location?.venue && (
+            <>
+              <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <FontAwesome6 name="building" size={20} color={iconColor} style={{ marginRight: 12 }} />
+                <Text style={{ color: textColor, fontSize: 16 }} selectable selectionColor={theme.colors.brand.red}>
+                  {event.location.venue}
+                </Text>
+              </View>
+            </>
+          )}
+          {/* Age Restriction */}
+          {event.ageRestriction && (
+            <>
+              <View style={rowStyle}>
+                <FontAwesome6 name="user-shield" size={20} color={iconColor} style={{ marginRight: 12 }} />
+                <Text style={{ color: textColor, fontSize: 16 }}>Age limit {event.ageRestriction}+</Text>
+              </View>
+            </>
+          )}
+          {/* Start Time */}
+          {event.dateRange?.startAt && (
+            <>
+              <View style={rowStyle}>
+                <FontAwesome6 name="calendar" size={20} color={iconColor} style={{ marginRight: 12 }} />
+                <Text style={{ color: textColor, fontSize: 16 }}>
+                  {dayjs.utc(event.dateRange.startAt).local().format("DD MMMM YYYY")}
+                </Text>
+              </View>
+            </>
+          )}
+          {/* Start hour */}
+          {event.dateRange?.startAt && (
+            <>
+              <View style={rowStyle}>
+                <FontAwesome6 name="clock" size={20} color={iconColor} style={{ marginRight: 12 }} />
+                <Text style={{ color: textColor, fontSize: 16 }}>
+                  {dayjs.utc(event.dateRange.startAt).local().format("HH:mm")}
+                </Text>
+              </View>
+            </>
+          )}
+        </View>
       </View>
       {actionButtons && (
         <View style={{ flexDirection: "row", width: "100%", height: 42, margin: 0, padding: 0 }}>
@@ -238,6 +243,6 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </>
   )
 }

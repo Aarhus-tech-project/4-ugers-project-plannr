@@ -128,18 +128,6 @@ export interface EventTheme {
 }
 
 export type EventFormat = "inperson" | "online" | "hybrid"
-
-export type EventPageSection =
-  | { type: "description"; content: string }
-  | { type: "location"; address: string; latitude?: number; longitude?: number }
-  | { type: "faq"; items: Array<{ question: string; answer: string }> }
-  | { type: "guests"; guests: Array<{ name: string; bio?: string; avatarUrl?: string; social?: string }> }
-  | { type: "tickets"; tickets: Array<{ type: string; price: number; link?: string }> }
-  | { type: "resources"; files: Array<{ name: string; url: string }> }
-  | { type: "dresscode"; content: string }
-  | { type: "schedule"; items: Array<{ time: string; activity: string }> }
-  | { type: "images"; srcs: string[] }
-
 export interface EventLocation {
   address: string
   city: string
@@ -148,6 +136,21 @@ export interface EventLocation {
   latitude?: number
   longitude?: number
 }
+
+export type EventPageSection =
+  | { type: "description"; content: string }
+  | {
+      type: "map"
+      latitude: number
+      longitude: number
+    }
+  | { type: "faq"; items: Array<{ question: string; answer: string }> }
+  | { type: "guests"; guests: Array<{ name: string; bio?: string; avatarUrl?: string; social?: string }> }
+  | { type: "tickets"; tickets: Array<{ type: string; price: number; currency?: string; link?: string }> }
+  | { type: "resources"; files: Array<{ name: string; url: string }> }
+  | { type: "dresscode"; content: string }
+  | { type: "schedule"; items: Array<{ time: Date; activity: string }> }
+  | { type: "images"; srcs: Uint8Array[] | string[] } //string[] is for my mock data.
 
 export interface EventDateRange {
   startAt: Date
@@ -169,7 +172,6 @@ export interface Event {
   creatorId?: string
   id: string
   title: string
-  description: string
   format: EventFormat
   dateRange: EventDateRange
   attendance?: EventAttendance

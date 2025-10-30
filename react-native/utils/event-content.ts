@@ -1,35 +1,60 @@
-import { Event, EventPageSection, EventTheme } from "../interfaces/event"
+import { Event, EventPageSection, EventTheme } from "@/interfaces/event"
 
-/**
- * Formats a single event's cards for display:
- * 1. First image (most likes)
- * 2. Details card
- * 3. First prompt (most likes)
- * 4. Second image
- * 5. Second prompt
- * ...alternating, all sorted by likes
- * @param event Event object
- * @returns Array formatted for display
- */
 export function getSortedEventCards(event: Event) {
-  const sections = event.sections ?? []
-  const result = []
+  const sections = [...(event.sections ?? [])]
+  const result: Array<{ type: string; section?: EventPageSection; event: Event }> = []
 
-  // 1. Details card
+  // Helper to find and remove a section by type
+  function extractSection(type: string): EventPageSection | undefined {
+    const idx = sections.findIndex((s) => s.type === type)
+    if (idx !== -1) {
+      return sections.splice(idx, 1)[0]
+    }
+    return undefined
+  }
+
+  // 1. Images card (if present)
+  const images = extractSection("images")
+  if (images) result.push({ type: "section", section: images, event })
+
+  // 2. Details card
   result.push({ type: "details", event })
 
-  // 2. All sections as cards (in order)
+  // 3. Description
+  const description = extractSection("description")
+  if (description) result.push({ type: "section", section: description, event })
+
+  // 4. Guests
+  const guests = extractSection("guests")
+  if (guests) result.push({ type: "section", section: guests, event })
+
+  // 5. Schedule
+  const schedule = extractSection("schedule")
+  if (schedule) result.push({ type: "section", section: schedule, event })
+
+  // 6. Tickets
+  const tickets = extractSection("tickets")
+  if (tickets) result.push({ type: "section", section: tickets, event })
+
+  // 7. FAQ
+  const faq = extractSection("faq")
+  if (faq) result.push({ type: "section", section: faq, event })
+
+  // 8. Resources
+  const resources = extractSection("resources")
+  if (resources) result.push({ type: "section", section: resources, event })
+
+  // 9. Any remaining sections (e.g., dresscode, etc.)
   for (const section of sections) {
     result.push({ type: "section", section, event })
   }
 
-  // 3. Location map section at the end (from event.location)
+  // 10. Location map section at the end (from event.location)
   if (event.location && event.location.latitude && event.location.longitude) {
     result.push({
       type: "section",
       section: {
-        type: "location",
-        address: event.location.address,
+        type: "map",
         latitude: event.location.latitude,
         longitude: event.location.longitude,
       } as EventPageSection,

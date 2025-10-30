@@ -35,6 +35,7 @@ const LocationOptionSelector: React.FC<LocationOptionSelectorProps> = ({ useCurr
                 backgroundColor: selected ? theme.colors.brand.red : theme.colors.background,
                 minWidth: 100,
                 justifyContent: "center",
+                borderWidth: 0,
               }}
               textStyle={{
                 color: selected ? theme.colors.background : theme.colors.onBackground,
