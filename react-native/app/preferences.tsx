@@ -14,7 +14,7 @@ import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import React from "react"
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native"
-import { ActivityIndicator, Button, Text } from "react-native-paper"
+import { ActivityIndicator, Text } from "react-native-paper"
 export default function Preferences() {
   const theme = useCustomTheme()
   const router = useRouter()
@@ -32,8 +32,6 @@ export default function Preferences() {
     customEnd,
     setCustomEnd,
     updateModeFromCustom,
-    resetPreferences,
-    isChanged,
   } = usePreferences()
 
   const [useCurrentLocation, setUseCurrentLocation] = React.useState(true)
@@ -80,7 +78,7 @@ export default function Preferences() {
       </View>
       <ScrollView
         style={{ flex: 1, backgroundColor: theme.colors.background }}
-        contentContainerStyle={{ alignItems: "center", paddingBottom: 100, paddingTop: 16 }}
+        contentContainerStyle={{ alignItems: "center", paddingBottom: 16, paddingTop: 16 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Location Option Card */}
@@ -91,9 +89,6 @@ export default function Preferences() {
             borderRadius: 16,
             padding: 20,
             marginBottom: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
           }}
         >
           <LocationOptionSelector useCurrentLocation={useCurrentLocation} onChange={setUseCurrentLocation} />
@@ -143,9 +138,6 @@ export default function Preferences() {
             borderRadius: 16,
             padding: 20,
             marginBottom: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
           }}
         >
           <DiscoveryRangeSlider value={range} onValueChange={setRange} />
@@ -158,9 +150,6 @@ export default function Preferences() {
             borderRadius: 16,
             padding: 20,
             marginBottom: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
           }}
         >
           <EventThemeSelector themes={visibleThemes} selectedThemes={selectedThemes} onSelect={setSelectedThemes} />
@@ -174,9 +163,6 @@ export default function Preferences() {
             borderRadius: 16,
             padding: 20,
             marginBottom: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
           }}
         >
           <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18, marginBottom: 8 }}>
@@ -212,67 +198,11 @@ export default function Preferences() {
             borderRadius: 16,
             padding: 20,
             marginBottom: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
           }}
         >
           <AttendanceModeSelector formats={[eventType]} onChange={(arr) => setEventType(arr[0] || "inperson")} />
         </View>
       </ScrollView>
-      {/* Bottom Navbar for Reset & Save Buttons */}
-      <View
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 100,
-          backgroundColor: theme.colors.gray[900],
-          borderTopWidth: 0,
-          padding: 21.5,
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Button
-          mode="outlined"
-          onPress={resetPreferences}
-          style={{
-            flex: 1,
-            marginRight: 8,
-            borderWidth: 0,
-            backgroundColor: theme.colors.gray[700],
-            borderRadius: 16,
-            shadowColor: theme.colors.brand.red,
-            shadowOpacity: 0.08,
-            shadowRadius: 4,
-          }}
-        >
-          <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Reset</Text>
-        </Button>
-        <Button
-          mode="contained"
-          onPress={() => {
-            /* Save logic here */
-          }}
-          style={{
-            flex: 1,
-            marginLeft: 8,
-            borderRadius: 16,
-            borderWidth: 0,
-            backgroundColor: theme.colors.brand.red,
-            shadowColor: theme.colors.brand.red,
-            shadowOpacity: 0.08,
-            shadowRadius: 4,
-          }}
-          disabled={!isChanged}
-        >
-          <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Save</Text>
-        </Button>
-      </View>
     </View>
   )
 }

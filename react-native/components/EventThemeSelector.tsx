@@ -1,8 +1,8 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { EventTheme } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
-import React, { useMemo } from "react"
-import { ScrollView, View } from "react-native"
+import React from "react"
+import { ScrollView, StyleSheet, View } from "react-native"
 import { Chip, Text } from "react-native-paper"
 
 interface EventThemeSelectorProps {
@@ -13,86 +13,145 @@ interface EventThemeSelectorProps {
 
 const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(({ themes, selectedThemes, onSelect }) => {
   const theme = useCustomTheme()
-  // Memoize the chips to avoid unnecessary re-renders
-  const chips = useMemo(
-    () => [
-      <Chip
-        key="toggle-all"
-        onPress={() => {
-          if (selectedThemes.length > 0) {
-            onSelect([])
-          } else {
-            onSelect(themes.map((t) => ({ name: t.name, icon: t.icon })))
-          }
-        }}
-        style={{
-          margin: 4,
+
+  // Example: first 3 themes as "popular"
+  const popularThemes = themes.slice(0, 3)
+  const otherThemes = themes.slice(3)
+
+  // Select All chip
+  const selectAllChip = (
+    <Chip
+      key="toggle-all"
+      icon={() => (
+        <FontAwesome6
+          name={selectedThemes.length > 0 ? "ban" : "check"}
+          size={16}
+          color={selectedThemes.length > 0 ? theme.colors.background : theme.colors.brand.red}
+        />
+      )}
+      onPress={() => {
+        if (selectedThemes.length > 0) {
+          onSelect([])
+        } else {
+          onSelect(themes.map((t) => ({ name: t.name, icon: t.icon })))
+        }
+      }}
+      style={[
+        styles.chip,
+        {
           backgroundColor: selectedThemes.length > 0 ? theme.colors.brand.red : theme.colors.background,
-          borderWidth: 0,
-          minWidth: 100,
-          justifyContent: "center",
+        },
+      ]}
+      textStyle={{
+        color: selectedThemes.length > 0 ? theme.colors.background : theme.colors.brand.red,
+        fontWeight: "bold",
+      }}
+    >
+      {selectedThemes.length > 0 ? "Deselect All" : "Select All"}
+    </Chip>
+  )
+
+  // Popular themes row
+  const popularChips = popularThemes.map((themeObj) => {
+    const isSelected = selectedThemes.some((t) => t.name === themeObj.name)
+    return (
+      <Chip
+        key={themeObj.name}
+        icon={() => (
+          <FontAwesome6
+            name={themeObj.icon}
+            size={16}
+            color={isSelected ? theme.colors.background : theme.colors.brand.red}
+          />
+        )}
+        selected={isSelected}
+        onPress={() => {
+          onSelect(isSelected ? selectedThemes.filter((t) => t.name !== themeObj.name) : [...selectedThemes, themeObj])
         }}
+        style={[
+          styles.chip,
+          {
+            backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
+          },
+        ]}
         textStyle={{
-          color: selectedThemes.length > 0 ? theme.colors.background : theme.colors.onBackground,
-          fontWeight: "bold",
+          color: isSelected ? theme.colors.background : theme.colors.onBackground,
         }}
       >
-        {selectedThemes.length > 0 ? "Deselect All" : "Select All"}
-      </Chip>,
-      ...themes.map((themeObj) => {
-        const isSelected = selectedThemes.some((t) => t.name === themeObj.name)
-        return (
-          <Chip
-            key={themeObj.name}
-            icon={() => (
-              <FontAwesome6
-                name={themeObj.icon}
-                size={16}
-                color={isSelected ? theme.colors.background : theme.colors.brand.red}
-              />
-            )}
-            selected={isSelected}
-            onPress={() => {
-              onSelect(
-                isSelected ? selectedThemes.filter((t) => t.name !== themeObj.name) : [...selectedThemes, themeObj]
-              )
-            }}
-            style={{
-              margin: 4,
-              backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
-              minWidth: 80,
-              borderWidth: 0,
-              justifyContent: "center",
-            }}
-            textStyle={{ color: isSelected ? theme.colors.background : theme.colors.onBackground }}
-          >
-            {themeObj.name}
-          </Chip>
-        )
-      }),
-    ],
-    [themes, selectedThemes, onSelect, theme.colors]
-  )
+        {themeObj.name}
+      </Chip>
+    )
+  })
+
+  // Other themes grid
+  const otherChips = otherThemes.map((themeObj) => {
+    const isSelected = selectedThemes.some((t) => t.name === themeObj.name)
+    return (
+      <Chip
+        key={themeObj.name}
+        icon={() => (
+          <FontAwesome6
+            name={themeObj.icon}
+            size={16}
+            color={isSelected ? theme.colors.background : theme.colors.brand.red}
+          />
+        )}
+        selected={isSelected}
+        onPress={() => {
+          onSelect(isSelected ? selectedThemes.filter((t) => t.name !== themeObj.name) : [...selectedThemes, themeObj])
+        }}
+        style={[
+          styles.chip,
+          {
+            backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
+          },
+        ]}
+        textStyle={{
+          color: isSelected ? theme.colors.background : theme.colors.onBackground,
+        }}
+      >
+        {themeObj.name}
+      </Chip>
+    )
+  })
 
   return (
     <View style={{ width: "100%" }}>
-      <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18, marginBottom: 8 }}>
+      <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18, marginBottom: 2 }}>
         Event Themes
       </Text>
-      <View style={{ marginBottom: 8 }} />
+      <Text style={{ color: theme.colors.gray[400], fontSize: 14, marginBottom: 8 }}>Pick what inspires you!</Text>
+      {/* Horizontal row for select all + popular */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ flexDirection: "row", alignItems: "center", paddingBottom: 4 }}
+      >
+        {selectAllChip}
+        {popularChips}
+      </ScrollView>
+      {/* Wrapping grid for the rest */}
       <View style={{ maxHeight: 180 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          nestedScrollEnabled={true}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchMove={(e) => e.stopPropagation()}
+          nestedScrollEnabled
           contentContainerStyle={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start" }}
         >
-          {chips}
+          {otherChips}
         </ScrollView>
       </View>
     </View>
   )
+})
+
+const styles = StyleSheet.create({
+  chip: {
+    margin: 4,
+    minWidth: 80,
+    borderWidth: 0,
+    justifyContent: "center",
+    borderRadius: 10,
+  },
 })
 
 export default EventThemeSelector

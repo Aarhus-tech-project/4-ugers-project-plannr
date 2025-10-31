@@ -10,7 +10,8 @@ import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
 import React from "react"
 import { Modal, ScrollView, StyleSheet, View } from "react-native"
-import { Button, Text } from "react-native-paper"
+import { Text } from "react-native-paper"
+import BottomButtonBar from "./BottomButtonBar"
 import { DateRangeModeSelector } from "./DateRangeModeSelector"
 
 import type { FiltersState } from "@/hooks/useFilters"
@@ -147,27 +148,29 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply, in
             </View>
           </ScrollView>
           {/* Bottom Navbar for Cancel & Apply Buttons */}
-          <View style={[styles.bottomBar, { backgroundColor: theme.colors.gray[900] }]}>
-            <Button
-              mode="outlined"
-              onPress={onClose}
-              style={[styles.button, { backgroundColor: theme.colors.gray[800] }]}
-            >
-              <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Cancel</Text>
-            </Button>
-            <Button
-              mode="contained"
-              onPress={() =>
-                onApply({
-                  ...filters,
-                  dateRangeMode: filters.mode,
-                })
-              }
-              style={[styles.button, { backgroundColor: theme.colors.brand.red }]}
-            >
-              <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Apply</Text>
-            </Button>
-          </View>
+          <BottomButtonBar
+            containerStyle={{ backgroundColor: theme.colors.gray[800] }}
+            buttons={[
+              {
+                label: "Cancel",
+                onPress: onClose,
+                mode: "outlined",
+                backgroundColor: theme.colors.gray[900],
+                textColor: theme.colors.white,
+              },
+              {
+                label: "Apply",
+                onPress: () =>
+                  onApply({
+                    ...filters,
+                    dateRangeMode: filters.mode,
+                  }),
+                mode: "contained",
+                backgroundColor: theme.colors.brand.red,
+                textColor: theme.colors.white,
+              },
+            ]}
+          />
         </View>
       </View>
     </Modal>
@@ -177,7 +180,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply, in
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.8)",
     justifyContent: "center",
     alignItems: "center",
   },

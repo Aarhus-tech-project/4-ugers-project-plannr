@@ -58,9 +58,7 @@ export default function Settings() {
             borderRadius: 16,
             padding: 20,
             marginBottom: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
+
             alignItems: "center",
           }}
         >
@@ -110,9 +108,6 @@ export default function Settings() {
             borderRadius: 16,
             padding: 20,
             marginBottom: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
           }}
         >
           <TouchableOpacity
@@ -149,9 +144,6 @@ export default function Settings() {
             borderRadius: 16,
             padding: 20,
             marginBottom: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
           }}
         >
           <TouchableOpacity

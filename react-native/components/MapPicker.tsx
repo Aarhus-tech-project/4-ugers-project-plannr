@@ -181,9 +181,6 @@ const MapPicker: React.FC<MapPickerProps> = ({
               borderRadius: 12,
               paddingHorizontal: 12,
               paddingVertical: 4,
-              shadowColor: "#000",
-              shadowOpacity: 0.08,
-              shadowRadius: 4,
               zIndex: 10,
             }}
           >

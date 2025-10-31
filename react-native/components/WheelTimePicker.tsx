@@ -2,7 +2,7 @@ import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import React, { useState } from "react"
 import { Modal, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native"
-import { Button, Text } from "react-native-paper"
+import { Button, Chip, Text } from "react-native-paper"
 
 const HOUR_LIST = Array.from({ length: 24 }, (_, i) => i)
 const MINUTE_LIST = Array.from({ length: 60 }, (_, i) => i)
@@ -71,26 +71,28 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
+      <Chip
         onPress={() => setVisible(true)}
         disabled={disabled}
         style={{
-          borderColor: theme.colors.brand.red,
           backgroundColor: theme.colors.background,
+          marginVertical: 4,
           minWidth: 80,
-          borderRadius: 8,
-          borderWidth: 1,
-          paddingVertical: 6,
-          paddingHorizontal: 10,
-          flexDirection: "row",
-          alignItems: "center",
+          borderWidth: 0,
+          justifyContent: "center",
+          width: "100%",
+          borderRadius: 10,
         }}
+        icon={() => null}
+        selected={visible}
       >
-        <FontAwesome6 name="clock" size={14} color={theme.colors.brand.red} style={{ marginRight: 8 }} />
-        <Text style={{ color: theme.colors.brand.red, fontWeight: "bold", fontSize: 16 }}>
-          {value ? `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}` : "--:--"}
-        </Text>
-      </TouchableOpacity>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+          <Text style={{ color: theme.colors.onBackground, fontWeight: "bold", fontSize: 16 }}>
+            {value ? `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}` : "--:--"}
+          </Text>
+          <FontAwesome6 name="chevron-down" size={14} color={theme.colors.brand.red} />
+        </View>
+      </Chip>
       <Modal
         visible={visible}
         transparent

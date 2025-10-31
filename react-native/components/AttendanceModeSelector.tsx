@@ -40,8 +40,11 @@ const AttendanceModeSelector: React.FC<AttendanceModeSelectorProps> = ({ formats
               }}
               style={{
                 margin: 4,
+                minWidth: 80,
                 borderWidth: 0,
+                justifyContent: "center",
                 backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
+                borderRadius: 10,
               }}
               textStyle={{ color: isSelected ? theme.colors.background : theme.colors.onBackground }}
             >

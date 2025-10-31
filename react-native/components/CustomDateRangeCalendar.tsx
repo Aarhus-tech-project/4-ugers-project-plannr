@@ -92,6 +92,7 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
     todayTextColor: theme.colors.brand.red,
     arrowColor: theme.colors.brand.red,
     textDayFontSize: 16,
+    textMonthFontWeight: "bold",
   }
 
   const calendarStyle = React.useMemo(
@@ -155,18 +156,9 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
   )
 
   return (
-    <View
-      style={{
-        marginTop: 8,
-        borderRadius: 16,
-        padding: 12,
-        shadowColor: theme.colors.shadow,
-        shadowOpacity: 0.12,
-        shadowRadius: 12,
-      }}
-    >
+    <View>
       <Calendar
-        markingType={customEnd ? "period" : undefined}
+        markingType={"period"}
         minDate={dayjs().toISOString()}
         hideExtraDays
         firstDay={1}
@@ -177,10 +169,12 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
       />
       {/* Unified dropdown for hour/minute selection for start and end (if not allDay) */}
       {!allDay && (
-        <View style={{ marginTop: 16 }}>
-          {/* Show both pickers if single day is selected (customStart set, and customEnd is null or same day) */}
+        <View
+          style={{ marginTop: 16, flexDirection: "row", gap: 16, alignItems: "flex-end", justifyContent: "center" }}
+        >
+          {/* Start Time Picker */}
           {customStart && (
-            <View style={{ marginBottom: 8 }}>
+            <View style={{ marginBottom: 0, flex: 1 }}>
               <Text style={{ color: theme.colors.onBackground, fontWeight: "bold", marginBottom: 4 }}>Start Time</Text>
               <WheelTimePicker
                 value={startTime}
@@ -191,11 +185,19 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
               />
             </View>
           )}
-          {/* Show end time picker if: (a) customEnd is set, or (b) customStart is set and customEnd is null (single day selection) */}
+          {/* End Time Picker */}
           {(customEnd ||
             (customStart && (!customEnd || (customEnd && dayjs(customStart).isSame(customEnd, "day"))))) && (
-            <View style={{ marginBottom: 8 }}>
-              <Text style={{ color: theme.colors.onBackground, fontWeight: "bold", marginBottom: 4 }}>End Time</Text>
+            <View style={{ marginBottom: 0, flex: 1, justifyContent: "flex-start" }}>
+              <Text
+                style={{
+                  color: theme.colors.onBackground,
+                  fontWeight: "bold",
+                  marginBottom: 4,
+                }}
+              >
+                End Time
+              </Text>
               <WheelTimePicker
                 value={endTime}
                 min={startTime ?? undefined}
