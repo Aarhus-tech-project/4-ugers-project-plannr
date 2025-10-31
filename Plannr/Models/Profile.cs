@@ -12,6 +12,6 @@ public class Profile
     public string? AvatarUrl { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    [JsonIgnore]            // <- undgå Event -> Creator -> EventsCreated -> Event ...
+    [JsonIgnore]            // <- Avoid Event -> Creator -> EventsCreated -> Event ...
     public ICollection<Event> EventsCreated { get; set; } = new List<Event>();
 }

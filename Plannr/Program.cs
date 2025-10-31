@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Plannr.Api.Data;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // CORS (justér origins til din frontend)
 builder.Services.AddCors(options =>
@@ -36,7 +36,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-var app = builder.Build();
+WebApplication? app = builder.Build();
 
 // Swagger
 app.UseSwagger();
@@ -81,11 +81,11 @@ app.MapGet("/ping", () => Results.Ok(new { ok = true, t = DateTimeOffset.UtcNow 
 app.MapControllers();
 
 // Kør migrationer ved opstart, men lad ikke hele app’en dø hvis DB driller
-using (var scope = app.Services.CreateScope())
+using (IServiceScope? scope = app.Services.CreateScope())
 {
     try
     {
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        ApplicationDbContext? db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         db.Database.Migrate();
     }
     catch (Exception ex)

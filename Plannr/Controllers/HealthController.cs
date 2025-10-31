@@ -16,11 +16,11 @@ public class HealthController : ControllerBase
     {
         try
         {
-            var can = await db.Database.CanConnectAsync();
+            bool can = await db.Database.CanConnectAsync();
             if (!can) return StatusCode(503, new { status = "db_unreachable" });
 
             // ekstra sanity: kør en helt simpel query
-            var now = await db.Database.ExecuteSqlRawAsync("select 1");
+            int now = await db.Database.ExecuteSqlRawAsync("select 1");
             return Ok(new { status = "ok", code = now });
         }
         catch (Exception ex)
