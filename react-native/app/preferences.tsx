@@ -152,7 +152,12 @@ export default function Preferences() {
             marginBottom: 16,
           }}
         >
-          <EventThemeSelector themes={visibleThemes} selectedThemes={selectedThemes} onSelect={setSelectedThemes} />
+          <EventThemeSelector
+            themes={visibleThemes}
+            selectedThemes={selectedThemes}
+            selectAllOption={true}
+            onSelect={setSelectedThemes}
+          />
         </View>
 
         {/* Date Range Card */}

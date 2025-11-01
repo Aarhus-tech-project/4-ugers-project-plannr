@@ -6,14 +6,12 @@ import EventPage from "@/components/EventPage"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useFocusEffect } from "@react-navigation/native"
-import { useRouter } from "expo-router"
 import React, { useState } from "react"
 import { Animated, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native-paper"
 
 export default function Finder() {
   const theme = useCustomTheme()
-  const router = useRouter()
   const { setScrollY } = useTabBarVisibility()
 
   // Track current event index
@@ -40,7 +38,7 @@ export default function Finder() {
   return (
     <View style={{ flex: 1 }}>
       {event ? (
-        <EventPage event={event} onScroll={onScroll} scrollY={scrollY} showHeader={true} onBack={() => router.back()} />
+        <EventPage event={event} onScroll={onScroll} scrollY={scrollY} showHeader={true} />
       ) : (
         <Text>No more events</Text>
       )}

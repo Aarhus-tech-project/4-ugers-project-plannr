@@ -101,6 +101,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply, in
               <EventThemeSelector
                 themes={visibleThemes}
                 selectedThemes={visibleThemes.filter((theme) => filters.selectedThemes.includes(theme.name))}
+                selectAllOption={true}
                 onSelect={(themes) => filters.setSelectedThemes(themes.map((theme) => theme.name))}
               />
             </View>

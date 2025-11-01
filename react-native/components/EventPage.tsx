@@ -2,6 +2,7 @@ import EventDetailsCard from "@/components/EventDetailsCard"
 import EventImageGallery from "@/components/EventImageGallery"
 import MapViewer from "@/components/MapViewer"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { Event } from "@/interfaces/event"
 import { getSortedEventCards } from "@/utils/event-content"
 import { FontAwesome6 } from "@expo/vector-icons"
 import React from "react"
@@ -15,10 +16,19 @@ interface EventPageProps {
   showHeader?: boolean
   headerTitle?: string
   showActions?: boolean
-  onBack?: () => void
 }
 
-const EventPage: React.FC<EventPageProps> = ({ event, onScroll, showHeader = true, headerTitle, onBack }) => {
+const EventPage: React.FC<EventPageProps> = ({
+  event,
+  onScroll,
+  showHeader = true,
+  headerTitle,
+}: {
+  event: Event
+  onScroll?: () => void
+  showHeader?: boolean
+  headerTitle?: string
+}) => {
   const theme = useCustomTheme()
   const bg = theme.colors.background
   const cards = event ? getSortedEventCards(event) : []
@@ -37,22 +47,17 @@ const EventPage: React.FC<EventPageProps> = ({ event, onScroll, showHeader = tru
             backgroundColor: theme.colors.secondary,
           }}
         >
-          {onBack && (
-            <TouchableOpacity
-              onPress={onBack}
-              style={{ padding: 4, borderRadius: 16, position: "absolute", left: 20, top: 52 }}
-              activeOpacity={0.6}
-            >
-              <FontAwesome6 name="chevron-left" size={24} color={theme.colors.onBackground} />
-            </TouchableOpacity>
-          )}
           <Text
             style={{
               color: theme.colors.onBackground,
               fontWeight: "bold",
               textAlign: "center",
               fontSize: 20,
+              paddingHorizontal: 16,
+              maxWidth: "100%",
             }}
+            numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {headerTitle || event?.title}
           </Text>
@@ -78,8 +83,22 @@ const EventPage: React.FC<EventPageProps> = ({ event, onScroll, showHeader = tru
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={8}
             onScroll={onScroll}
+            bounces={false}
+            overScrollMode="never"
+            alwaysBounceVertical={false}
+            contentInsetAdjustmentBehavior="never"
           >
-            <EventImageGallery event={event} theme={theme} />
+            <EventImageGallery
+              images={
+                event?.sections
+                  ?.filter((section) => section.type === "images")
+                  .flatMap((section) =>
+                    section.type === "images" && Array.isArray(section.srcs)
+                      ? section.srcs.filter((src) => typeof src === "string")
+                      : []
+                  ) ?? []
+              }
+            />
             {cards?.map((card: any, idx: number) => {
               if (card.type === "details") {
                 return (
@@ -146,6 +165,10 @@ const EventPage: React.FC<EventPageProps> = ({ event, onScroll, showHeader = tru
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={{ flexDirection: "row", alignItems: "flex-start" }}
                         style={{ width: "100%" }}
+                        bounces={false}
+                        overScrollMode="never"
+                        alwaysBounceVertical={false}
+                        contentInsetAdjustmentBehavior="never"
                       >
                         {section.guests.map((guest: any, i: number) => {
                           const textColor = theme.colors.onSecondary

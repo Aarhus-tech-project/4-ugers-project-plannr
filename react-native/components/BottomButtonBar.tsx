@@ -9,7 +9,6 @@ interface BottomButtonBarProps {
     mode?: "text" | "outlined" | "contained"
     style?: ViewStyle
     disabled?: boolean
-    icon?: string
     textColor?: string
     backgroundColor?: string
   }>
@@ -26,7 +25,6 @@ const BottomButtonBar: React.FC<BottomButtonBarProps> = ({ buttons, containerSty
           onPress={btn.onPress}
           style={[styles.button, btn.style, btn.backgroundColor ? { backgroundColor: btn.backgroundColor } : {}]}
           disabled={btn.disabled}
-          icon={btn.icon}
         >
           <Text style={btn.textColor ? { color: btn.textColor, fontWeight: "bold" } : { fontWeight: "bold" }}>
             {btn.label}

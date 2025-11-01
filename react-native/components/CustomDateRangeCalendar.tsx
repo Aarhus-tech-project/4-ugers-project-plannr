@@ -3,7 +3,7 @@ import dayjs from "dayjs"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
 import utc from "dayjs/plugin/utc"
 import React, { useState } from "react"
-import { useColorScheme, View } from "react-native"
+import { View } from "react-native"
 import { Calendar } from "react-native-calendars"
 import { Theme as CalendarTheme } from "react-native-calendars/src/types"
 import { Text } from "react-native-paper"
@@ -28,7 +28,7 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
   allDay = false,
 }) => {
   const theme = useCustomTheme()
-  const colorScheme = useColorScheme()
+  const darkMode = theme.dark
   // Local state for time pickers
   // Modal state for hour/minute selection removed (now using dropdown)
   // Default to 12:00 for new selections
@@ -88,7 +88,7 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
     selectedDayBackgroundColor: theme.colors.brand.red,
     selectedDayTextColor: theme.colors.background,
     dayTextColor: theme.colors.onBackground,
-    textDisabledColor: colorScheme === "dark" ? theme.colors.gray[700] : theme.colors.gray[200],
+    textDisabledColor: darkMode ? theme.colors.gray[700] : theme.colors.gray[200],
     todayTextColor: theme.colors.brand.red,
     arrowColor: theme.colors.brand.red,
     textDayFontSize: 16,
@@ -112,33 +112,43 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
         return
       }
       if (!customStart && !customEnd) {
-        // No range yet, start new range
+        // No range yet, set only start (00:00:00.000 local) and leave end null
         const base = selectedLocal.hour(0).minute(0).second(0).millisecond(0)
         onStartChange(base.utc().toDate())
-        // Set end to 24:00 (next day at 00:00)
-        const endOfDay = selectedLocal.add(1, "day").startOf("day")
-        onEndChange(endOfDay.utc().toDate())
+        onEndChange(null)
       } else if (customStart && !customEnd) {
         const startDay = dayjs(customStart).startOf("day")
         if (selectedLocal.isBefore(startDay)) {
           // Extend start
-          const newStart = selectedLocal.hour(startTime?.getHours() ?? 12).minute(startTime?.getMinutes() ?? 0)
+          const newStart = selectedLocal.hour(startTime?.getHours() ?? 0).minute(startTime?.getMinutes() ?? 0)
           onStartChange(newStart.utc().toDate())
         } else if (selectedLocal.isAfter(startDay)) {
           // Extend end
-          const newEnd = selectedLocal.hour(endTime?.getHours() ?? 12).minute(endTime?.getMinutes() ?? 0)
+          const newEnd = selectedLocal
+            .hour(endTime?.getHours() ?? 23)
+            .minute(endTime?.getMinutes() ?? 59)
+            .second(59)
+            .millisecond(999)
+          // Set end to 23:59:59.999 local time, then convert to UTC
           onEndChange(newEnd.utc().toDate())
-        } // If same day, do nothing
+        } else {
+          // Clicked same day: reset to single day selection (00:00:00.000–23:59:59.999 local)
+          const base = selectedLocal.hour(0).minute(0).second(0).millisecond(0)
+          onStartChange(base.utc().toDate())
+          const end = selectedLocal.hour(23).minute(59).second(59).millisecond(999)
+          // Set end to 23:59:59.999 local time, then convert to UTC
+          onEndChange(end.utc().toDate())
+        }
       } else if (customStart && customEnd) {
         const startDay = dayjs(customStart).startOf("day")
         const endDay = dayjs(customEnd).startOf("day")
         if (selectedLocal.isBefore(startDay)) {
           // Extend start only
-          const newStart = selectedLocal.hour(startTime?.getHours() ?? 12).minute(startTime?.getMinutes() ?? 0)
+          const newStart = selectedLocal.hour(startTime?.getHours() ?? 0).minute(startTime?.getMinutes() ?? 0)
           onStartChange(newStart.utc().toDate())
         } else if (selectedLocal.isAfter(endDay)) {
           // Extend end only
-          const newEnd = selectedLocal.hour(endTime?.getHours() ?? 12).minute(endTime?.getMinutes() ?? 0)
+          const newEnd = selectedLocal.hour(endTime?.getHours() ?? 23).minute(endTime?.getMinutes() ?? 59)
           onEndChange(newEnd.utc().toDate())
         } else if (
           selectedLocal.isSame(startDay) ||
@@ -146,7 +156,7 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
           (selectedLocal.isAfter(startDay) && selectedLocal.isBefore(endDay))
         ) {
           // Clicked inside the range: reset start to this date, clear end
-          const newStart = selectedLocal.hour(startTime?.getHours() ?? 12).minute(startTime?.getMinutes() ?? 0)
+          const newStart = selectedLocal.hour(startTime?.getHours() ?? 0).minute(startTime?.getMinutes() ?? 0)
           onStartChange(newStart.utc().toDate())
           onEndChange(null)
         }
