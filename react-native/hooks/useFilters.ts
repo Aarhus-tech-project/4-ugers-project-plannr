@@ -4,23 +4,22 @@ import { useCallback, useState } from "react"
 
 export interface FiltersState {
   dateRange: FilterDateRange
-  setDateRange: (range: FilterDateRange) => void
   customStart: Date | null
-  setCustomStart: (date: Date | null) => void
   customEnd: Date | null
-  setCustomEnd: (date: Date | null) => void
   mode: DateRangeMode
-  setMode: (mode: DateRangeMode) => void
-  dateRangeMode: DateRangeMode | undefined
   range: FilterLocation["range"]
-  setRange: (value: FilterLocation["range"]) => void
   selectedThemes: EventThemeName[]
-  setSelectedThemes: (themes: EventThemeName[]) => void
   formats: EventFormat[]
-  setFormats: (formats: EventFormat[]) => void
   useCurrentLocation: boolean
-  setUseCurrentLocation: (value: boolean) => void
   selectedLocation: Pick<EventLocation, "latitude" | "longitude"> | null
+  setDateRange: (range: FilterDateRange) => void
+  setCustomStart: (date: Date | null) => void
+  setCustomEnd: (date: Date | null) => void
+  setMode: (mode: DateRangeMode) => void
+  setRange: (value: FilterLocation["range"]) => void
+  setSelectedThemes: (themes: EventThemeName[]) => void
+  setFormats: (formats: EventFormat[]) => void
+  setUseCurrentLocation: (value: boolean) => void
   setSelectedLocation: (loc: Pick<EventLocation, "latitude" | "longitude"> | null) => void
 }
 
@@ -38,14 +37,9 @@ export function useFilters(initial?: Partial<FiltersState>): FiltersState {
     if (dateRange.custom !== undefined) return { custom: true }
     return { daily: true }
   }, [])
-  const [mode, _setMode] = useState<DateRangeMode>(
+  const [mode, setMode] = useState<DateRangeMode>(
     getModeFromDateRange(initial?.dateRange ?? { current: { day: true, week: false, month: false, year: false } })
   )
-  const setMode = useCallback((newMode: DateRangeMode) => {
-    _setMode(newMode)
-    // Optionally update dateRange here if you want to sync
-    // For now, just update mode
-  }, [])
   const [range, setRange] = useState<FilterLocation["range"]>(initial?.range ?? 50)
   const [selectedThemes, setSelectedThemes] = useState<EventThemeName[]>(initial?.selectedThemes ?? [])
   const [formats, setFormats] = useState<EventFormat[]>(initial?.formats ?? [])
@@ -56,23 +50,22 @@ export function useFilters(initial?: Partial<FiltersState>): FiltersState {
 
   return {
     dateRange,
-    setDateRange,
     customStart,
-    setCustomStart,
     customEnd,
-    setCustomEnd,
     mode,
-    setMode,
-    dateRangeMode: mode,
     range,
-    setRange,
     selectedThemes,
-    setSelectedThemes,
     formats,
-    setFormats,
     useCurrentLocation,
-    setUseCurrentLocation,
     selectedLocation,
+    setDateRange,
+    setCustomStart,
+    setCustomEnd,
+    setMode,
+    setRange,
+    setSelectedThemes,
+    setFormats,
+    setUseCurrentLocation,
     setSelectedLocation,
   }
 }

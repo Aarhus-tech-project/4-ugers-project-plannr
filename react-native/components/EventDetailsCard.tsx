@@ -1,9 +1,10 @@
 import Flag from "@/components/Flag"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import type { Event } from "@/interfaces/event"
+import { eventThemes } from "@/utils/event-content"
 import { FontAwesome6 } from "@expo/vector-icons"
 import dayjs from "dayjs"
-import { Linking, Platform, TouchableOpacity, View } from "react-native"
+import { Linking, Platform, ScrollView, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native-paper"
 
 import type { Profile } from "@/interfaces/profile"
@@ -16,8 +17,11 @@ interface Props {
   actionButtons?: boolean
 }
 
+import React from "react"
+
 export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMore, actionButtons }: Props) {
   const theme = useCustomTheme()
+
   const iconColor = theme.colors.brand.red
   const textColor = theme.colors.onBackground
   const rowStyle = {
@@ -41,14 +45,17 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
           backgroundColor: theme.colors.secondary,
           paddingHorizontal: 24,
           paddingVertical: 8,
+          position: "relative",
         }}
       >
-        <View
-          style={{
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
             width: "100%",
             display: "flex",
             flexDirection: "row",
-            alignContent: "center",
+            alignItems: "center",
             justifyContent: "flex-start",
             borderRadius: 16,
             gap: 16,
@@ -60,24 +67,73 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
             <Text style={{ color: textColor, fontSize: 16 }}>{event.attendance?.interested ?? 0}</Text>
           </View>
           <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
-          {/* Theme */}
-          {event.theme && (
-            <View style={rowStyle}>
-              <FontAwesome6 name={event.theme.icon} size={20} color={iconColor} style={{ marginRight: 12 }} />
-              <Text style={{ color: textColor, fontSize: 16 }}>
-                {event.theme.name.charAt(0).toUpperCase() + event.theme.name.slice(1)}
-              </Text>
+          {/* Themes (stacked icons and summary) */}
+          {event.themes && event.themes.length > 0 && (
+            <View style={{ ...rowStyle, gap: 0 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", marginRight: 8 }}>
+                {event.themes.slice(0, 3).map((themeName, idx) => {
+                  const themeObj = eventThemes.find((t) => t.name === themeName)
+                  if (!themeObj) return null
+                  return (
+                    <View
+                      key={themeName}
+                      style={{
+                        zIndex: 10 - idx,
+                        marginLeft: idx === 0 ? 0 : -12,
+                        backgroundColor: theme.colors.brand.red,
+                        borderRadius: 16,
+                        width: 32,
+                        height: 32,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderWidth: 1,
+                        borderColor: theme.colors.secondary,
+                      }}
+                    >
+                      <FontAwesome6 name={themeObj.icon} size={16} color={theme.colors.background} />
+                    </View>
+                  )
+                })}
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 4, position: "relative" }}>
+                <Text style={{ color: textColor, fontSize: 16 }}>
+                  {event.themes[0].charAt(0).toUpperCase() + event.themes[0].slice(1)}
+                </Text>
+                {event.themes.length > 1 && (
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      marginLeft: 2,
+                    }}
+                  >
+                    {`, +${event.themes.length - 1} more`}
+                  </Text>
+                )}
+              </View>
             </View>
           )}
           <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
           {/* Country */}
           {event.location?.country && (
             <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Flag cca2={event.location.country} />
+              <View
+                style={{
+                  backgroundColor: theme.colors.brand.red,
+                  borderRadius: 6,
+                  width: 26,
+                  height: 26,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderWidth: 0,
+                  overflow: "hidden",
+                }}
+              >
+                <Flag cca2={event.location.country} size={26} />
+              </View>
               <Text style={{ color: textColor, fontSize: 16 }}>{event.location.country}</Text>
             </View>
           )}
-        </View>
+        </ScrollView>
 
         <View
           style={{
@@ -153,6 +209,7 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
           )}
         </View>
       </View>
+
       {actionButtons && (
         <View style={{ flexDirection: "row", width: "100%", height: 42, margin: 0, padding: 0 }}>
           <TouchableOpacity

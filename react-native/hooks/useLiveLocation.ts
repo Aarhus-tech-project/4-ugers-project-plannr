@@ -1,10 +1,26 @@
 import * as Location from "expo-location"
 import { useEffect, useRef, useState } from "react"
 
-export function useLiveLocation({ delay = 5000, distance = 5 } = {}) {
-  const [location, setLocation] = useState<Location.LocationObject | null>(null)
-  const [address, setAddress] = useState("")
-  const [error, setError] = useState<string | null>(null)
+export interface LiveLocationState {
+  location: Location.LocationObject | null
+  address: Location.LocationGeocodedAddress | null
+  error: string | null
+}
+
+export interface UseLiveLocationOptions {
+  delay?: number
+  distance?: number
+  initial?: Partial<LiveLocationState>
+}
+
+export function useLiveLocation({
+  delay = 5000,
+  distance = 5,
+  initial,
+}: UseLiveLocationOptions = {}): LiveLocationState {
+  const [location, setLocation] = useState<Location.LocationObject | null>(initial?.location ?? null)
+  const [address, setAddress] = useState<Location.LocationGeocodedAddress | null>(initial?.address ?? null)
+  const [error, setError] = useState<string | null>(initial?.error ?? null)
   const subscriptionRef = useRef<Location.LocationSubscription | null>(null)
 
   useEffect(() => {
@@ -29,16 +45,11 @@ export function useLiveLocation({ delay = 5000, distance = 5 } = {}) {
             })
             if (geo && geo.length > 0) {
               const g = geo[0]
-              setAddress(
-                `${g.name ? g.name + ", " : ""}${g.street ? g.street + ", " : ""}${g.city ? g.city + ", " : ""}${
-                  g.region ? g.region + ", " : ""
-                }${g.country || ""}`
-              )
+              setAddress(g)
             }
           }
         )
-        // oxlint-disable-next-line no-unused-vars
-      } catch (err) {
+      } catch {
         setError("Could not fetch location")
       }
     }

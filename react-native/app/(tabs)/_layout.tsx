@@ -2,12 +2,21 @@ import { AnimatedTabBar } from "@/components/AnimatedTabBar"
 import { TabBarVisibilityProvider } from "@/context/TabBarVisibilityContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome, FontAwesome6 } from "@expo/vector-icons"
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs"
 import { Tabs } from "expo-router"
 import React from "react"
 import { View } from "react-native"
 
 export default function TabLayout() {
   const theme = useCustomTheme()
+  const customTabBar = (props: BottomTabBarProps) => {
+    const routeName = props.state?.routeNames?.[props.state?.index] || ""
+    if (routeName === "create") {
+      // Hide the tab bar for the create tab; it will be rendered in create.tsx
+      return null
+    }
+    return <AnimatedTabBar {...props} />
+  }
   return (
     <TabBarVisibilityProvider>
       <Tabs
@@ -17,22 +26,20 @@ export default function TabLayout() {
           tabBarStyle: {
             backgroundColor: theme.colors.gray[900],
             borderTopWidth: 0,
-            paddingTop: 10,
+            display: "flex",
             flexDirection: "row",
-            alignContent: "center",
             justifyContent: "center",
             alignItems: "center",
-            height: 80,
           },
           headerShown: false,
         })}
-        tabBar={(props) => <AnimatedTabBar {...props} />}
+        tabBar={customTabBar}
       >
         <Tabs.Screen
           name="index"
           options={{
             tabBarLabel: "",
-            tabBarIcon: ({ color, size }) => <FontAwesome6 name="calendar" color={color} size={size || 24} />,
+            tabBarIcon: ({ color, size }) => <FontAwesome6 name="house" color={color} size={size || 24} />,
           }}
         />
         <Tabs.Screen
@@ -52,14 +59,16 @@ export default function TabLayout() {
                   justifyContent: "center",
                   alignItems: "center",
                   backgroundColor: color,
-                  width: 32,
-                  height: 32,
+                  width: 28,
+                  height: 28,
                   borderRadius: 10,
                 }}
               >
-                <FontAwesome6 name="plus" color={theme.colors.gray[900]} size={size || 28} />
+                <FontAwesome6 name="plus" color={theme.colors.gray[900]} size={size || 24} />
               </View>
             ),
+            // Show tab bar for create, but content is context-driven
+            tabBarStyle: {},
           }}
         />
         <Tabs.Screen

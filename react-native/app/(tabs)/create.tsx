@@ -1,281 +1,270 @@
-import AttendanceModeSelector from "@/components/AttendanceModeSelector"
-import CustomDateRangeCalendar from "@/components/CustomDateRangeCalendar"
-import EventThemeSelector from "@/components/EventThemeSelector"
+import BottomButtonBar from "@/components/BottomButtonBar"
+import Stepper from "@/components/Stepper"
+import EventDateTimeStep, { EventDateTimeStepValidation } from "@/components/event-creation/EventDateTimeStep"
+import EventDetailsStep, { EventDetailsStepValidation } from "@/components/event-creation/EventDetailsStep"
+import EventImagesStep from "@/components/event-creation/EventImagesStep"
+import EventLocationStep from "@/components/event-creation/EventLocationStep"
+import EventReviewStep from "@/components/event-creation/EventReviewStep"
+import EventSectionsStep from "@/components/event-creation/EventSectionsStep"
+import { EventCreationProvider, useEventCreation } from "@/context/EventCreationContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
-import { EventFormat, EventPageSection, EventTheme } from "@/interfaces/event"
+import { EventTheme, EventThemeName } from "@/interfaces/event"
+import { areAllSectionsFilled } from "@/utils/section-validator"
 import { FontAwesome6 } from "@expo/vector-icons"
-import dayjs from "dayjs"
-import utc from "dayjs/plugin/utc"
-import { useRouter } from "expo-router"
-import React, { useRef, useState } from "react"
+import { router } from "expo-router"
+import React, { useCallback, useState } from "react"
 import { ScrollView, TouchableOpacity, View } from "react-native"
-import { Text, TextInput } from "react-native-paper"
-dayjs.extend(utc)
+import { Text } from "react-native-paper"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-export default function CreateEvent() {
-  const theme = useCustomTheme()
-  const router = useRouter()
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [formats, setFormats] = useState<EventFormat[]>(["inperson"])
-  const [selectedThemes, setSelectedThemes] = useState<EventTheme[]>([])
-  const { visibleThemes } = useLazyEventThemes(20, 600)
-  const [startAt, setStartAt] = useState<Date | null>(null)
-  const [endAt, setEndAt] = useState<Date | null>(null)
-  const [city, setCity] = useState("")
-  const [country, setCountry] = useState("")
-  const [address, setAddress] = useState("")
-  const [allDay, setAllDay] = useState(false)
-  // Store previous range for toggling
-  const prevRange = useRef<{ start: Date | null; end: Date | null }>({ start: null, end: null })
+const stepMeta = [
+  { key: "details", label: "Details", icon: "pen-to-square" },
+  { key: "dateTime", label: "Date & Time", icon: "calendar-days" },
+  { key: "location", label: "Location", icon: "location-dot" },
+  { key: "images", label: "Images", icon: "image" },
+  { key: "preferences", label: "Preferences", icon: "sliders" },
+  { key: "review", label: "Review", icon: "circle-check" },
+]
 
-  const _handleCreate = () => {
-    // Example: Add description section from input
-    const eventSections: EventPageSection[] = [
-      { type: "description", content: description },
-      // Add more sections as needed from UI
-    ]
-    // Store all dates as UTC boundaries of the local day
-    const event = {
-      id: Date.now().toString(),
-      title,
-      description,
-      format: formats[0],
-      dateRange: {
-        startAt: startAt ? dayjs(startAt).startOf("day").utc().toDate() : dayjs().startOf("day").utc().toDate(),
-        endAt: endAt ? dayjs(endAt).endOf("day").utc().toDate() : undefined,
-      },
-      location: {
-        city,
-        country,
-        address,
-      },
-      ageRestriction: undefined, // Add UI for this if needed
-      theme: selectedThemes.length > 0 ? selectedThemes[0] : undefined,
-      creatorId: "demo",
-      attendance: { interested: 0 },
-      sections: eventSections,
-    }
-    alert("Event created! (Demo)\n" + JSON.stringify(event, null, 2))
+type StepContentProps = {
+  step: number
+  eventDetails: { title: string; themes: EventThemeName[] }
+  setEventDetails: (val: { title: string; themes: EventThemeName[] }) => void
+  allThemes: EventTheme[]
+  setDetailsValidation: (v: EventDetailsStepValidation) => void
+  customStart: Date | null
+  setCustomStart: (val: Date | null) => void
+  customEnd: Date | null
+  setCustomEnd: (val: Date | null) => void
+  dateTimeValidation: EventDateTimeStepValidation
+  setDateTimeValidation: (v: EventDateTimeStepValidation) => void
+  selectedLocation: { latitude: number; longitude: number } | null
+  setSelectedLocation: (val: { latitude: number; longitude: number } | null) => void
+  images: import("@/components/event-creation/EventImagesStep").EventImage[]
+  setImages: (images: import("@/components/event-creation/EventImagesStep").EventImage[]) => void
+}
+
+function StepContent({
+  step,
+  eventDetails,
+  setEventDetails,
+  allThemes,
+  setDetailsValidation,
+  customStart,
+  setCustomStart,
+  customEnd,
+  setCustomEnd,
+  setDateTimeValidation,
+  selectedLocation,
+  setSelectedLocation,
+  images,
+  setImages,
+}: StepContentProps) {
+  // All defaults/initialization are handled in the provider. This component just passes props.
+  switch (step) {
+    case 0:
+      return (
+        <EventDetailsStep
+          value={eventDetails}
+          onChange={setEventDetails}
+          allThemes={allThemes}
+          onValidate={setDetailsValidation}
+        />
+      )
+    case 1:
+      return (
+        <EventDateTimeStep
+          customStart={customStart}
+          setCustomStart={setCustomStart}
+          customEnd={customEnd}
+          setCustomEnd={setCustomEnd}
+          onValidate={setDateTimeValidation}
+        />
+      )
+    case 2:
+      return <EventLocationStep selectedLocation={selectedLocation} setSelectedLocation={setSelectedLocation} />
+    case 3:
+      return <EventImagesStep images={images} setImages={setImages} />
+    case 4:
+      return <EventSectionsStep />
+    case 5:
+      return <EventReviewStep />
+    default:
+      return null
   }
+}
 
+function CreateEventHeader({ theme }: { theme: ReturnType<typeof useCustomTheme> }) {
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.secondary }}>
-      {/* Header */}
-      <View
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        width: "100%",
+        paddingTop: 80,
+        paddingBottom: 16,
+        paddingLeft: 20,
+        backgroundColor: theme.colors.secondary,
+      }}
+    >
+      <TouchableOpacity
+        onPress={() => router.back()}
+        style={{ padding: 4, borderRadius: 16, position: "absolute", left: 20, top: 82 }}
+        activeOpacity={0.6}
+      >
+        <FontAwesome6 name="chevron-left" size={24} color={theme.colors.onBackground} />
+      </TouchableOpacity>
+      <Text
         style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          width: "100%",
-          paddingTop: 80,
-          paddingBottom: 16,
-          paddingLeft: 20,
-          backgroundColor: theme.colors.secondary,
+          color: theme.colors.onBackground,
+          fontWeight: "bold",
+          textAlign: "center",
+          fontSize: 32,
+          left: 40,
         }}
       >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={{ padding: 4, borderRadius: 16, position: "absolute", left: 20, top: 82 }}
-          activeOpacity={0.6}
-        >
-          <FontAwesome6 name="chevron-left" size={24} color={theme.colors.onBackground} />
-        </TouchableOpacity>
-        <Text
-          style={{
-            color: theme.colors.onBackground,
-            fontWeight: "bold",
-            textAlign: "center",
-            fontSize: 32,
-            left: 40,
-          }}
-        >
-          Create Event
-        </Text>
-      </View>
-      <ScrollView
-        style={{ flex: 1, backgroundColor: theme.colors.background }}
-        contentContainerStyle={{ alignItems: "center", paddingBottom: 100, paddingTop: 16 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Title & Description Card */}
-        <View style={styles.card(theme)}>
-          <TextInput
-            label="Title"
-            value={title}
-            onChangeText={setTitle}
-            mode="outlined"
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderRadius: 8,
-              fontSize: 16,
-              color: theme.colors.onBackground,
-              marginBottom: 8,
-            }}
-            placeholderTextColor={theme.colors.onSurface}
-          />
-          <TextInput
-            label="Description"
-            value={description}
-            onChangeText={setDescription}
-            mode="outlined"
-            multiline
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderRadius: 8,
-              fontSize: 16,
-              color: theme.colors.onBackground,
-              marginBottom: 8,
-            }}
-            placeholderTextColor={theme.colors.onSurface}
-          />
-          {/* Future: Add UI for adding more section types */}
-        </View>
-        {/* Format Card */}
-        <View style={styles.card(theme)}>
-          <AttendanceModeSelector formats={formats} onChange={setFormats} />
-        </View>
-        {/* Themes Card */}
-        <View style={styles.card(theme)}>
-          <EventThemeSelector themes={visibleThemes} selectedThemes={selectedThemes} onSelect={setSelectedThemes} />
-        </View>
-        {/* Date & Time Card */}
-        <View style={styles.card(theme)}>
-          <View
-            style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                if (!allDay) {
-                  // Switching to allDay: store range, select today
-                  prevRange.current = { start: startAt, end: endAt }
-                  const today = new Date()
-                  setStartAt(today)
-                  setEndAt(null)
-                  setAllDay(true)
-                } else {
-                  // Switching to range: restore previous range
-                  setStartAt(prevRange.current.start)
-                  setEndAt(prevRange.current.end)
-                  setAllDay(false)
-                }
-              }}
-              style={{
-                backgroundColor: allDay ? theme.colors.brand.red : theme.colors.surface,
-                borderRadius: 16,
-                paddingVertical: 6,
-                paddingHorizontal: 16,
-                borderWidth: 1,
-                borderColor: allDay ? theme.colors.brand.red : theme.colors.gray[700],
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={{ color: allDay ? theme.colors.background : theme.colors.onSurface, fontWeight: "bold" }}>
-                {allDay ? "All Day" : "Range"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <CustomDateRangeCalendar
-            customStart={startAt}
-            customEnd={endAt}
-            onStartChange={setStartAt}
-            onEndChange={setEndAt}
-            allDay={allDay}
-          />
-        </View>
-        {/* Location Card */}
-        <View style={styles.card(theme)}>
-          <Text style={styles.label(theme)}>Location</Text>
-          <TextInput
-            label="City"
-            value={city}
-            onChangeText={setCity}
-            mode="outlined"
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderRadius: 8,
-              fontSize: 16,
-              color: theme.colors.onBackground,
-              marginBottom: 8,
-            }}
-            placeholderTextColor={theme.colors.onSurface}
-          />
-          <TextInput
-            label="Country"
-            value={country}
-            onChangeText={setCountry}
-            mode="outlined"
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderRadius: 8,
-              fontSize: 16,
-              color: theme.colors.onBackground,
-              marginBottom: 8,
-            }}
-            placeholderTextColor={theme.colors.onSurface}
-          />
-          <TextInput
-            label="Address"
-            value={address}
-            onChangeText={setAddress}
-            mode="outlined"
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderRadius: 8,
-              fontSize: 16,
-              color: theme.colors.onBackground,
-              marginBottom: 8,
-            }}
-            placeholderTextColor={theme.colors.onSurface}
-          />
-        </View>
-      </ScrollView>
+        Create Event
+      </Text>
     </View>
   )
 }
 
-const styles = {
-  card: (theme: any) => ({
-    width: "90%" as const,
-    backgroundColor: theme.colors.secondary,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: theme.colors.shadow,
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    alignItems: "stretch" as const,
-  }),
-  header: (theme: any) => ({
-    color: theme.colors.brand.red,
-    fontWeight: "700" as const,
-    fontSize: 28,
-    textAlign: "center" as const,
-    marginBottom: 8,
-  }),
-  label: (theme: any) => ({
-    color: theme.colors.brand.red,
-    fontWeight: "700" as const,
-    marginTop: 12,
-    marginBottom: 4,
-    fontSize: 16,
-  }),
-  input: {
-    marginBottom: 8,
-  },
-  inputBtn: (theme: any) => ({
-    backgroundColor: theme.colors.background,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: theme.colors.gray.light,
-  }),
-  createBtn: (theme: any) => ({
-    marginTop: 18,
-    borderRadius: 16,
-    paddingVertical: 8,
-    backgroundColor: theme.colors.brand.red,
-  }),
+function CreateEventScreenInner() {
+  const theme = useCustomTheme()
+  const [currentStep, setCurrentStep] = useState(0)
+  // All event creation state comes from useEventCreation (provider handles defaults)
+  const {
+    eventDetails,
+    setEventDetails,
+    detailsValidation,
+    setDetailsValidation,
+    customStart,
+    setCustomStart,
+    customEnd,
+    setCustomEnd,
+    dateTimeValidation,
+    setDateTimeValidation,
+    selectedLocation,
+    setSelectedLocation,
+    images,
+    setImages,
+    sections,
+  } = useEventCreation()
+
+  const { visibleThemes } = useLazyEventThemes(10, 600)
+
+  const handleSubmit = () => {
+    // Handle event submission logic here
+    console.log("Event submitted:", eventDetails)
+    router.back()
+  }
+
+  const handleCancel = () => {
+    // Handle cancellation logic here
+    router.back()
+  }
+
+  const handleNext = useCallback(() => {
+    setCurrentStep((s) => Math.min(s + 1, stepMeta.length - 1))
+    if (currentStep === stepMeta.length - 1) {
+      handleSubmit()
+    }
+  }, [currentStep, handleSubmit])
+
+  const handleBack = useCallback(() => {
+    if (currentStep === 0) {
+      handleCancel()
+    } else {
+      setCurrentStep((s) => Math.max(s - 1, 0))
+    }
+  }, [currentStep, handleCancel])
+
+  const insets = useSafeAreaInsets()
+
+  // Step validation logic
+  const isDetailsStep = stepMeta[currentStep].key === "details"
+  const isDetailsValid = !detailsValidation.title && !detailsValidation.themes
+  const isDateTimeStep = stepMeta[currentStep].key === "dateTime"
+  const isDateTimeValid = !dateTimeValidation.start && !dateTimeValidation.end
+  const isLocationStep = stepMeta[currentStep].key === "location"
+  const isLocationValid =
+    !!selectedLocation &&
+    typeof selectedLocation.latitude === "number" &&
+    typeof selectedLocation.longitude === "number"
+  const isImagesStep = stepMeta[currentStep].key === "images"
+  const isImagesValid = images && images.length > 0
+
+  const isSectionsStep = stepMeta[currentStep].key === "preferences"
+  const isSectionsValid = areAllSectionsFilled(sections)
+
+  // Only allow next if current step is valid
+  let isStepValid = true
+  if (isDetailsStep) isStepValid = isDetailsValid
+  else if (isDateTimeStep) isStepValid = isDateTimeValid
+  else if (isLocationStep) isStepValid = isLocationValid
+  else if (isImagesStep) isStepValid = isImagesValid
+  else if (isSectionsStep) isStepValid = isSectionsValid
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <CreateEventHeader theme={theme} />
+      <View style={{ backgroundColor: theme.colors.secondary }}>
+        <Stepper steps={stepMeta} currentStep={currentStep} />
+      </View>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+        contentContainerStyle={{ paddingBottom: 54 + insets.bottom, paddingTop: 16 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <StepContent
+          step={currentStep}
+          eventDetails={eventDetails}
+          setEventDetails={setEventDetails}
+          allThemes={visibleThemes}
+          setDetailsValidation={setDetailsValidation}
+          customStart={customStart}
+          setCustomStart={setCustomStart}
+          customEnd={customEnd}
+          setCustomEnd={setCustomEnd}
+          dateTimeValidation={dateTimeValidation}
+          setDateTimeValidation={setDateTimeValidation}
+          selectedLocation={selectedLocation}
+          setSelectedLocation={setSelectedLocation}
+          images={images}
+          setImages={setImages}
+        />
+      </ScrollView>
+      <BottomButtonBar
+        containerStyle={{ backgroundColor: theme.colors.gray[800], paddingVertical: 22 }}
+        buttons={[
+          {
+            label: stepMeta[currentStep].key === "details" ? "Cancel" : "Back",
+            onPress: handleBack,
+            mode: "outlined",
+            backgroundColor: theme.colors.gray[900],
+            textColor: theme.colors.white,
+          },
+          {
+            label: stepMeta[currentStep].key === "review" ? "Submit" : "Next",
+            onPress: handleNext,
+            mode: "contained",
+            backgroundColor: !isStepValid ? theme.colors.brand.red + "66" : theme.colors.brand.red,
+            textColor: theme.colors.white,
+            disabled: !isStepValid,
+            style: !isStepValid ? { opacity: 0.5 } : undefined,
+          },
+        ]}
+      />
+    </View>
+  )
+}
+
+export default function CreateEventScreen() {
+  return (
+    <EventCreationProvider>
+      <CreateEventScreenInner />
+    </EventCreationProvider>
+  )
 }

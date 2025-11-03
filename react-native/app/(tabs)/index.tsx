@@ -143,7 +143,11 @@ export default function Home() {
     let events = allEvents
     if (filters.formats && filters.formats.length > 0) events = events.filter((e) => filters.formats.includes(e.format))
     if (filters.selectedThemes && filters.selectedThemes.length > 0)
-      events = events.filter((e) => e?.theme?.name !== undefined && filters.selectedThemes.includes(e.theme.name))
+      events = events.filter(
+        (e) =>
+          Array.isArray(e.themes) &&
+          e.themes.some((t: import("@/interfaces/event").EventThemeName) => filters.selectedThemes.includes(t))
+      )
     if (filters.customStart && filters.customEnd) {
       events = events.filter((e) => {
         const eventStart = dayjs.utc(e.dateRange.startAt).valueOf()
@@ -202,6 +206,7 @@ export default function Home() {
         return aStart - bStart
       })
   }, [allEvents, filters, now])
+
   // Collapsible header logic
   const [headerHeight, setHeaderHeight] = useState(0)
   return (

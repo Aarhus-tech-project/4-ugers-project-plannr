@@ -1,11 +1,12 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
+import * as Location from "expo-location"
 import React from "react"
 import { Platform, View } from "react-native"
 import { Text } from "react-native-paper"
 
 export interface StatsCardProps {
-  liveAddress?: string
+  liveAddress?: Location.LocationGeocodedAddress | null
   liveLocation?: { coords: { latitude: number; longitude: number } }
   statsNearby?: {
     count: number
@@ -57,7 +58,19 @@ export const StatsCard: React.FC<StatsCardProps> = ({
           }}
           numberOfLines={1}
         >
-          {liveAddress.split(",")[0]}
+          {liveAddress.street
+            ? liveAddress.streetNumber
+              ? `${liveAddress.street} ${liveAddress.streetNumber}`
+              : liveAddress.street
+            : liveAddress.city
+            ? liveAddress.city
+            : liveAddress.region
+            ? liveAddress.region
+            : liveAddress.subregion
+            ? liveAddress.subregion
+            : liveAddress.district
+            ? liveAddress.district
+            : ""}
         </Text>
       )}
       <View

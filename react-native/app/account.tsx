@@ -1,3 +1,4 @@
+import BottomButtonBar from "@/components/BottomButtonBar"
 import Flag from "@/components/Flag"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useSession } from "@/hooks/useSession"
@@ -67,9 +68,6 @@ export default function Account() {
             borderRadius: 16,
             padding: 20,
             marginBottom: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
           }}
         >
           <Text
@@ -162,9 +160,6 @@ export default function Account() {
             borderRadius: 16,
             padding: 20,
             marginBottom: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
           }}
         >
           <Text
@@ -218,9 +213,6 @@ export default function Account() {
             borderRadius: 16,
             padding: 20,
             marginBottom: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
           }}
         >
           <Text
@@ -355,10 +347,6 @@ export default function Account() {
             width: "90%",
             maxHeight: "70%",
             padding: 16,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
-            shadowOffset: { width: 0, height: 2 },
           }}
         >
           <Text
@@ -410,54 +398,30 @@ export default function Account() {
         </View>
       </Modal>
       {/* Bottom Navbar for Edit, Reset & Save Buttons */}
-      <View
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 100,
-          backgroundColor: theme.colors.gray[900],
-          borderTopWidth: 0,
-          padding: 21.5,
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            marginRight: 8,
-            borderWidth: 0,
+      <BottomButtonBar
+        containerStyle={{ backgroundColor: theme.colors.gray[900], padding: 21.5 }}
+        buttons={[
+          {
+            label: "Reset",
+            onPress: () => {
+              setBio("")
+              setEditMode(false)
+            },
             backgroundColor: theme.colors.gray[700],
-            borderRadius: 16,
-            alignItems: "center",
-            padding: 12,
-          }}
-          onPress={() => {
-            setBio("")
-            setEditMode(false)
-          }}
-        >
-          <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>Reset</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            marginLeft: 8,
-            borderRadius: 16,
-            borderWidth: 0,
+            textColor: theme.colors.white,
+            mode: "contained",
+            style: { marginRight: 8 },
+          },
+          {
+            label: editMode ? "Save" : "Edit",
+            onPress: () => setEditMode((e) => !e),
             backgroundColor: theme.colors.brand.red,
-            alignItems: "center",
-            padding: 12,
-          }}
-          onPress={() => setEditMode((e) => !e)}
-        >
-          <Text style={{ color: theme.colors.white, fontWeight: "bold" }}>{editMode ? "Save" : "Edit"}</Text>
-        </TouchableOpacity>
-      </View>
+            textColor: theme.colors.white,
+            mode: "contained",
+            style: { marginLeft: 8 },
+          },
+        ]}
+      />
     </View>
   )
 }

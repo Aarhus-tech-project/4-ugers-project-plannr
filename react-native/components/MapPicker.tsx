@@ -17,21 +17,39 @@ interface MapPickerProps {
 const MapPicker: React.FC<MapPickerProps> = ({
   location,
   onLocationChange,
-  range = 500,
+  range,
   disableSelection = false,
   onAddressChange,
 }) => {
   const [address, setAddress] = useState<string>("")
+  const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null)
   const mapRef = useRef<MapView>(null)
   const theme = useCustomTheme()
-  // Calculate initial delta based on range (in meters)
-  const initialDelta = (range / 1000 / 111) * 2.2 // 1 degree ~111km, 2.2 for padding
+  // Calculate initial delta based on range (in meters), or use a default if no range
+  const initialDelta = range ? (range / 1000 / 111) * 2.2 : 0.05
   const initialRegion: Region = {
-    latitude: location?.latitude || 56.162939,
-    longitude: location?.longitude || 10.203921,
+    latitude: location?.latitude || currentLocation?.latitude || 56.162939,
+    longitude: location?.longitude || currentLocation?.longitude || 10.203921,
     latitudeDelta: initialDelta,
     longitudeDelta: initialDelta,
   }
+  // On mount, if no location is provided, get current location
+  useEffect(() => {
+    if (!location && !currentLocation) {
+      ;(async () => {
+        try {
+          let { status } = await Location.requestForegroundPermissionsAsync()
+          if (status === "granted") {
+            const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest })
+            setCurrentLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude })
+            if (onLocationChange) {
+              onLocationChange({ latitude: loc.coords.latitude, longitude: loc.coords.longitude })
+            }
+          }
+        } catch {}
+      })()
+    }
+  }, [location, currentLocation, onLocationChange])
 
   const handlePress = async (e: MapPressEvent) => {
     if (disableSelection || !onLocationChange) return
@@ -74,9 +92,8 @@ const MapPicker: React.FC<MapPickerProps> = ({
   // Automatically zoom to fit range unless user manually zooms
   useEffect(() => {
     if (location && mapRef.current) {
-      // Calculate latitudeDelta/longitudeDelta to fit the range
-      // 1 degree latitude ~= 111km
-      const delta = (range / 1000 / 111) * 2.2 // 2.2 for padding
+      // Only animate to region with range if range is provided
+      const delta = range ? (range / 1000 / 111) * 2.2 : 0.05
       const lat = location.latitude ?? 0
       const lng = location.longitude ?? 0
       mapRef.current.animateToRegion(
@@ -100,8 +117,9 @@ const MapPicker: React.FC<MapPickerProps> = ({
       }
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest })
       const { latitude, longitude } = loc.coords
+      setCurrentLocation({ latitude, longitude })
       // Calculate latitudeDelta/longitudeDelta to fit the range
-      const delta = (range / 1000 / 111) * 2.2
+      const delta = ((range ?? 100) / 1000 / 111) * 2.2 // Default to 100 meters if range is undefined
       const region = {
         latitude,
         longitude,
@@ -116,8 +134,8 @@ const MapPicker: React.FC<MapPickerProps> = ({
       if (onLocationChange) {
         onLocationChange({ latitude, longitude })
       }
-      // oxlint-disable-next-line no-unused-vars
     } catch (err) {
+      console.error(err)
       Alert.alert("Location Error", "Could not get current location. Please check permissions and try again.")
     }
   }
@@ -161,17 +179,19 @@ const MapPicker: React.FC<MapPickerProps> = ({
                       }
                 }
               />
-              <Circle
-                center={{ latitude: location.latitude ?? 0, longitude: location.longitude ?? 0 }}
-                radius={range}
-                strokeColor={theme.colors.brand.red + "100"}
-                fillColor={theme.colors.brand.red + "40"}
-              />
+              {typeof range === "number" && (
+                <Circle
+                  center={{ latitude: location.latitude ?? 0, longitude: location.longitude ?? 0 }}
+                  radius={range}
+                  strokeColor={theme.colors.brand.red + "100"}
+                  fillColor={theme.colors.brand.red + "40"}
+                />
+              )}
             </>
           )}
         </MapView>
         {/* Range label absolutely positioned over the map */}
-        {location && (
+        {location && typeof range === "number" && (
           <View
             style={{
               position: "absolute",
@@ -181,9 +201,6 @@ const MapPicker: React.FC<MapPickerProps> = ({
               borderRadius: 12,
               paddingHorizontal: 12,
               paddingVertical: 4,
-              shadowColor: "#000",
-              shadowOpacity: 0.08,
-              shadowRadius: 4,
               zIndex: 10,
             }}
           >

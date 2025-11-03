@@ -178,6 +178,6 @@ export interface Event {
   location?: EventLocation
   access?: EventAccess
   ageRestriction?: number
-  theme?: EventTheme
+  themes?: EventThemeName[]
   sections?: EventPageSection[]
 }

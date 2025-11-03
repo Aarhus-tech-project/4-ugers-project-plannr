@@ -4,83 +4,9 @@ import dayjs from "dayjs"
 // Example mock events for testing and development
 const mockEvents: Event[] = [
   {
-    id: "0",
-    title: "Aarhus Jazz Festival 2026",
-    theme: { name: "Music", icon: "music" },
-    format: "inperson",
-    ageRestriction: 16,
-    location: {
-      address: "Vester Allé 15",
-      city: "Aarhus",
-      country: "DK",
-      venue: "Musikhuset Aarhus",
-      latitude: 56.1535,
-      longitude: 10.1991,
-    },
-    dateRange: {
-      startAt: dayjs("2026-07-13T12:00:00Z").toDate(),
-      endAt: dayjs("2026-07-20T23:00:00Z").toDate(),
-    },
-    attendance: {
-      interested: 8000,
-    },
-    sections: [
-      {
-        type: "images",
-        srcs: [
-          "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80",
-        ],
-      },
-      { type: "description", content: "Enjoy world-class jazz in venues and open spaces across Aarhus." },
-      { type: "dresscode", content: "Smart casual or jazz-inspired attire recommended." },
-      {
-        type: "faq",
-        items: [
-          { question: "Are concerts free?", answer: "Many concerts are free, but some require tickets." },
-          { question: "Where can I park?", answer: "Parking is available at Musikhuset and nearby lots." },
-        ],
-      },
-      {
-        type: "guests",
-        guests: [
-          {
-            name: "Cæcilie Norby",
-            bio: "Danish jazz singer.",
-            avatarUrl: "https://randomuser.me/api/portraits/women/81.jpg",
-          },
-          { name: "Aarhus Jazz Orchestra", bio: "Big band jazz ensemble." },
-          { name: "Niels Lan Doky", bio: "Jazz pianist.", avatarUrl: "https://randomuser.me/api/portraits/men/81.jpg" },
-        ],
-      },
-      {
-        type: "tickets",
-        tickets: [
-          { type: "Festival Pass", price: 600, link: "https://jazzfest.dk/tickets" },
-          { type: "Day Ticket", price: 150, link: "https://jazzfest.dk/tickets" },
-        ],
-      },
-      {
-        type: "resources",
-        files: [
-          { name: "Festival Map", url: "https://jazzfest.dk/map.pdf" },
-          { name: "Artist Lineup", url: "https://jazzfest.dk/lineup" },
-        ],
-      },
-      {
-        type: "schedule",
-        items: [
-          { time: new Date("2026-07-13T12:00:00Z"), activity: "Opening Ceremony" },
-          { time: new Date("2026-07-14T18:00:00Z"), activity: "Main Concert" },
-          { time: new Date("2026-07-20T23:00:00Z"), activity: "Closing Jam" },
-        ],
-      },
-    ],
-  },
-  {
     id: "1",
     title: "Copenhagen Marathon 2026",
-    theme: { name: "Sports", icon: "futbol" },
+    themes: ["Sports"],
     format: "inperson",
     ageRestriction: 18,
     location: {
@@ -102,8 +28,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       {
@@ -156,7 +81,7 @@ const mockEvents: Event[] = [
   {
     id: "2",
     title: "Aarhus Jazz Festival 2026",
-    theme: { name: "Music", icon: "music" },
+    themes: ["Music"],
     format: "inperson",
     ageRestriction: 16,
     location: {
@@ -175,6 +100,12 @@ const mockEvents: Event[] = [
       interested: 8000,
     },
     sections: [
+      {
+        type: "images",
+        srcs: [
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
+        ],
+      },
       { type: "description", content: "Enjoy world-class jazz in venues and open spaces across Aarhus." },
       { type: "dresscode", content: "Smart casual or jazz-inspired attire recommended." },
       {
@@ -212,7 +143,7 @@ const mockEvents: Event[] = [
   {
     id: "3",
     title: "Copenhagen Marathon 2026",
-    theme: { name: "Sports", icon: "futbol" },
+    themes: ["Sports"],
     format: "inperson",
     ageRestriction: 18,
     location: {
@@ -231,6 +162,12 @@ const mockEvents: Event[] = [
       interested: 12000,
     },
     sections: [
+      {
+        type: "images",
+        srcs: [
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
+        ],
+      },
       {
         type: "description",
         content: "Join thousands of runners and experience the vibrant atmosphere of Copenhagen.",
@@ -276,7 +213,7 @@ const mockEvents: Event[] = [
   {
     id: "4",
     title: "Odense International Film Festival 2026",
-    theme: { name: "Film", icon: "film" },
+    themes: ["Film"],
     format: "inperson",
     ageRestriction: 15,
     location: {
@@ -295,6 +232,12 @@ const mockEvents: Event[] = [
       interested: 3000,
     },
     sections: [
+      {
+        type: "images",
+        srcs: [
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
+        ],
+      },
       { type: "description", content: "Watch award-winning short films and meet filmmakers in Odense." },
       { type: "dresscode", content: "Smart casual. Red carpet attire for opening night." },
       {
@@ -330,7 +273,7 @@ const mockEvents: Event[] = [
   {
     id: "5",
     title: "Aalborg Carnival 2026",
-    theme: { name: "Parade", icon: "people-line" },
+    themes: ["Parade"],
     format: "inperson",
     ageRestriction: 18,
     location: {
@@ -349,6 +292,12 @@ const mockEvents: Event[] = [
       interested: 60000,
     },
     sections: [
+      {
+        type: "images",
+        srcs: [
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
+        ],
+      },
       { type: "description", content: "Join the colorful parade and party in the streets of Aalborg." },
       { type: "dresscode", content: "Carnival costumes encouraged!" },
       {
@@ -378,7 +327,7 @@ const mockEvents: Event[] = [
   {
     id: "6",
     title: "Copenhagen Cooking & Food Festival 2026",
-    theme: { name: "Food", icon: "utensils" },
+    themes: ["Food"],
     format: "inperson",
     ageRestriction: 21,
     location: {
@@ -397,6 +346,12 @@ const mockEvents: Event[] = [
       interested: 15000,
     },
     sections: [
+      {
+        type: "images",
+        srcs: [
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
+        ],
+      },
       { type: "description", content: "Taste the best of Danish and Nordic food at pop-ups, tastings, and workshops." },
       {
         type: "faq",
@@ -429,7 +384,7 @@ const mockEvents: Event[] = [
   {
     id: "7",
     title: "Aarhus Festuge 2026",
-    theme: { name: "Festival", icon: "star" },
+    themes: ["Festival"],
     location: {
       address: "Bispetorvet 1",
       city: "Aarhus",
@@ -448,8 +403,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Aarhus comes alive with concerts, street art, and performances for all ages." },
@@ -470,7 +424,7 @@ const mockEvents: Event[] = [
   {
     id: "8",
     title: "Distortion Copenhagen 2026",
-    theme: { name: "Music", icon: "music" },
+    themes: ["Music"],
     location: {
       address: "Nørrebro & Vesterbro",
       city: "Copenhagen",
@@ -489,8 +443,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Join the wildest street party in Scandinavia with music, dancing, and fun." },
@@ -516,7 +469,7 @@ const mockEvents: Event[] = [
   {
     id: "9",
     title: "Copenhagen Pride 2026",
-    theme: { name: "Parade", icon: "people-line" },
+    themes: ["Parade"],
     location: {
       address: "Rådhuspladsen 1",
       city: "Copenhagen",
@@ -535,8 +488,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Celebrate love, diversity, and equality at Copenhagen Pride." },
@@ -562,7 +514,7 @@ const mockEvents: Event[] = [
   {
     id: "10",
     title: "NorthSide Festival 2026",
-    theme: { name: "Music", icon: "music" },
+    themes: ["Music"],
     location: {
       address: "Eskelunden",
       city: "Aarhus",
@@ -581,8 +533,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Enjoy top international and Danish acts at a green festival." },
@@ -603,7 +554,7 @@ const mockEvents: Event[] = [
   {
     id: "11",
     title: "Odense Flower Festival 2026",
-    theme: { name: "Nature", icon: "leaf" },
+    themes: ["Nature"],
     location: {
       address: "Flakhaven 2",
       city: "Odense",
@@ -622,8 +573,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://images.unsplash.com/photo-1465101178521-c1a9136a3b99?auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "See Odense transformed with floral displays and art installations." },
@@ -644,7 +594,7 @@ const mockEvents: Event[] = [
   {
     id: "12",
     title: "Esbjerg Rock Festival 2026",
-    theme: { name: "Music", icon: "music" },
+    themes: ["Music"],
     location: {
       address: "Gl. Vardevej 82",
       city: "Esbjerg",
@@ -663,8 +613,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://rockfestival.dk/wp-content/uploads/2023/06/esbjerg-rock-festival-2023.jpg",
-          "https://upload.wikimedia.org/wikipedia/commons/3/3d/Esbjerg_Rock_Festival_2018.jpg",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Rock out with Danish and international bands in Esbjerg." },
@@ -685,7 +634,7 @@ const mockEvents: Event[] = [
   {
     id: "13",
     title: "Bornholm Rundt 2026",
-    theme: { name: "Sports", icon: "futbol" },
+    themes: ["Sports"],
     location: {
       address: "Havnegade 1",
       city: "Rønne",
@@ -704,8 +653,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://bornholmrundt.dk/wp-content/uploads/2023/08/bornholm-rundt-2023.jpg",
-          "https://upload.wikimedia.org/wikipedia/commons/5/5e/Bornholm_Rundt_2019.jpg",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Cycle 105 km around Denmark's sunshine island." },
@@ -728,7 +676,7 @@ const mockEvents: Event[] = [
   {
     id: "14",
     title: "Skagen Winter Bathing Festival 2026",
-    theme: { name: "Wellness", icon: "spa" },
+    themes: ["Wellness", "Spirituality"],
     location: {
       address: "Sct. Laurentiivej 39",
       city: "Skagen",
@@ -747,8 +695,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://skagenvinterbadning.dk/wp-content/uploads/2023/01/skagen-winter-bathing-2023.jpg",
-          "https://upload.wikimedia.org/wikipedia/commons/6/6a/Skagen_Winter_Bathing_2018.jpg",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Experience the thrill of winter bathing in Denmark's northernmost town." },
@@ -769,7 +716,7 @@ const mockEvents: Event[] = [
   {
     id: "15",
     title: "Frederiksberg Garden Party 2026",
-    theme: { name: "Family", icon: "child" },
+    themes: ["Family"],
     location: {
       address: "Frederiksberg Runddel 1",
       city: "Frederiksberg",
@@ -788,8 +735,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://frederiksbergfest.dk/wp-content/uploads/2023/07/frederiksberg-garden-party-2023.jpg",
-          "https://upload.wikimedia.org/wikipedia/commons/4/4b/Frederiksberg_Garden_Party_2019.jpg",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Bring the whole family for a day of games, music, and picnics." },
@@ -810,7 +756,7 @@ const mockEvents: Event[] = [
   {
     id: "16",
     title: "Aarhus Street Food Market 2026",
-    theme: { name: "Food", icon: "utensils" },
+    themes: ["Food"],
     location: {
       address: "Ny Banegårdsgade 46",
       city: "Aarhus",
@@ -829,8 +775,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://aarhusstreetfood.com/wp-content/uploads/2023/06/aarhus-street-food-market-2023.jpg",
-          "https://upload.wikimedia.org/wikipedia/commons/7/7c/Aarhus_Street_Food_2018.jpg",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Sample global cuisine from dozens of food stalls in the heart of Aarhus." },
@@ -853,7 +798,7 @@ const mockEvents: Event[] = [
   {
     id: "17",
     title: "Copenhagen Light Festival 2026",
-    theme: { name: "Art", icon: "paintbrush" },
+    themes: ["Art"],
     location: {
       address: "Nyhavn",
       city: "Copenhagen",
@@ -872,8 +817,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://copenhagenlightfestival.org/wp-content/uploads/2023/02/copenhagen-light-festival-2023.jpg",
-          "https://upload.wikimedia.org/wikipedia/commons/2/2b/Copenhagen_Light_Festival_2019.jpg",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Walk the city and experience magical light art on buildings and bridges." },
@@ -894,7 +838,7 @@ const mockEvents: Event[] = [
   {
     id: "18",
     title: "Odense Robotics Expo 2026",
-    theme: { name: "Tech", icon: "laptop-code" },
+    themes: ["Tech"],
     location: {
       address: "Munkebjergvej 1",
       city: "Odense",
@@ -913,8 +857,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://odenserobotics.dk/wp-content/uploads/2023/09/odense-robotics-expo-2023.jpg",
-          "https://upload.wikimedia.org/wikipedia/commons/8/8c/Odense_Robotics_Expo_2018.jpg",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "See the latest in robotics, drones, and automation from Danish innovators." },
@@ -935,7 +878,7 @@ const mockEvents: Event[] = [
   {
     id: "19",
     title: "Aalborg Beer Walk 2026",
-    theme: { name: "Food", icon: "utensils" },
+    themes: ["Food"],
     location: {
       address: "Boulevarden 13",
       city: "Aalborg",
@@ -954,8 +897,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://aalborgbeerwalk.dk/wp-content/uploads/2023/09/aalborg-beer-walk-2023.jpg",
-          "https://upload.wikimedia.org/wikipedia/commons/3/3e/Aalborg_Beer_Walk_2019.jpg",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Walk Aalborg and taste beers from local microbreweries." },
@@ -976,7 +918,7 @@ const mockEvents: Event[] = [
   {
     id: "20",
     title: "Copenhagen Half Marathon 2026",
-    theme: { name: "Sports", icon: "futbol" },
+    themes: ["Sports"],
     location: {
       address: "Øster Allé 48",
       city: "Copenhagen",
@@ -995,8 +937,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://cphhalf.dk/wp-content/uploads/2023/09/copenhagen-half-marathon-2023.jpg",
-          "https://upload.wikimedia.org/wikipedia/commons/1/1e/Copenhagen_Half_Marathon_2019.jpg",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Join thousands of runners and experience the city like never before." },
@@ -1017,7 +958,7 @@ const mockEvents: Event[] = [
   {
     id: "21",
     title: "Vejle Fjord Festival 2026",
-    theme: { name: "Festival", icon: "star" },
+    themes: ["Festival"],
     location: {
       address: "Havneøen 1",
       city: "Vejle",
@@ -1036,8 +977,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://fjordfestival.dk/wp-content/uploads/2023/08/vejle-fjord-festival-2023.jpg",
-          "https://upload.wikimedia.org/wikipedia/commons/6/6d/Vejle_Fjord_Festival_2019.jpg",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Try kayaking, SUP, and enjoy live music by the water." },
@@ -1060,7 +1000,7 @@ const mockEvents: Event[] = [
   {
     id: "22",
     title: "Randers Ugen 2026",
-    theme: { name: "Festival", icon: "star" },
+    themes: ["Festival"],
     location: {
       address: "Rådhustorvet 1",
       city: "Randers",
@@ -1079,8 +1019,7 @@ const mockEvents: Event[] = [
       {
         type: "images",
         srcs: [
-          "https://randersugen.dk/wp-content/uploads/2023/08/randers-ugen-2023.jpg",
-          "https://upload.wikimedia.org/wikipedia/commons/5/5f/Randers_Ugen_2019.jpg",
+          "https://media.istockphoto.com/id/479977238/photo/table-setting-for-an-event-party-or-wedding-reception.jpg?s=612x612&w=0&k=20&c=yIKLzW7wMydqmuItTTtUGS5cYTmrRGy0rXk81AltdTA=",
         ],
       },
       { type: "description", content: "Enjoy concerts, food markets, and family fun in Randers." },

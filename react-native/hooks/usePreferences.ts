@@ -12,14 +12,34 @@ export interface PreferencesState {
   eventType: EventFormat
   customStart: Date | null // always UTC
   customEnd: Date | null // always UTC
+  setRange: (v: number) => void
+  setSelectedThemes: (v: EventTheme[]) => void
+  setDateRangeMode: (v: DateRangeMode) => void
+  setEventType: (v: EventFormat) => void
+  setCustomStart: (v: Date | null) => void
+  setCustomEnd: (v: Date | null) => void
+  updateModeFromCustom: (start: Date | null, end: Date | null) => void
 }
 
-export function usePreferences(initial?: Partial<PreferencesState>) {
-  const defaultState: PreferencesState = {
+export function usePreferences(
+  initial?: Partial<
+    Omit<
+      PreferencesState,
+      | "setRange"
+      | "setSelectedThemes"
+      | "setDateRangeMode"
+      | "setEventType"
+      | "setCustomStart"
+      | "setCustomEnd"
+      | "updateModeFromCustom"
+    >
+  >
+): PreferencesState {
+  const defaultState = {
     range: 50,
     selectedThemes: [],
     dateRangeMode: { daily: true },
-    eventType: "inperson",
+    eventType: "inperson" as EventFormat,
     customStart: null,
     customEnd: null,
     ...initial,
@@ -31,95 +51,14 @@ export function usePreferences(initial?: Partial<PreferencesState>) {
   const [customStart, setCustomStart] = useState<Date | null>(defaultState.customStart)
   const [customEnd, setCustomEnd] = useState<Date | null>(defaultState.customEnd)
 
-  // Always store and return UTC dates
-  const getRangeForMode = useCallback(
-    (mode: DateRangeMode): { start: Date; end: Date } => {
-      const nowLocal = dayjs()
-      if (mode.daily) {
-        return {
-          start: nowLocal.startOf("day").utc().toDate(),
-          end: nowLocal.endOf("day").utc().toDate(),
-        }
-      } else if (mode.weekly) {
-        return {
-          start: nowLocal.startOf("week").utc().toDate(),
-          end: nowLocal.endOf("week").utc().toDate(),
-        }
-      } else if (mode.monthly) {
-        return {
-          start: nowLocal.startOf("month").utc().toDate(),
-          end: nowLocal.endOf("month").utc().toDate(),
-        }
-      } else if (mode.yearly) {
-        return {
-          start: nowLocal.startOf("year").utc().toDate(),
-          end: nowLocal.endOf("year").utc().toDate(),
-        }
-      } else {
-        return {
-          start: customStart
-            ? dayjs(customStart).startOf("day").utc().toDate()
-            : nowLocal.startOf("day").utc().toDate(),
-          end: customEnd ? dayjs(customEnd).endOf("day").utc().toDate() : nowLocal.endOf("day").utc().toDate(),
-        }
-      }
-    },
-    [customStart, customEnd]
-  )
-
   // Set mode and update customStart/customEnd accordingly
-  const setDateRangeModeAndUpdate = useCallback(
-    (mode: DateRangeMode) => {
-      setDateRangeMode(mode)
-      const { start, end } = getRangeForMode(mode)
+  const updateModeFromCustom = useCallback((start: Date | null, end: Date | null) => {
+    if (start && end) {
+      setDateRangeMode({ custom: true })
       setCustomStart(start)
       setCustomEnd(end)
-    },
-    [getRangeForMode]
-  )
-
-  // Set custom start/end (calendar already provides UTC dates)
-  const setCustomStartRaw = useCallback((date: Date | null) => {
-    setCustomStart(date)
-  }, [])
-  const setCustomEndRaw = useCallback((date: Date | null) => {
-    setCustomEnd(date)
-  }, [])
-
-  // When customStart/customEnd change, update mode if needed
-  const updateModeFromCustom = useCallback((start: Date | null, end: Date | null) => {
-    if (!start || !end) return setDateRangeMode({ custom: true })
-    const now = dayjs.utc()
-    if (dayjs.utc(start).isSame(now, "minute") && dayjs.utc(end).isSame(now.endOf("day"), "minute")) {
-      setDateRangeMode({ daily: true })
-    } else if (dayjs.utc(start).isSame(now, "minute") && dayjs.utc(end).isSame(now.endOf("week"), "minute")) {
-      setDateRangeMode({ weekly: true })
-    } else if (dayjs.utc(start).isSame(now, "minute") && dayjs.utc(end).isSame(now.endOf("month"), "minute")) {
-      setDateRangeMode({ monthly: true })
-    } else if (dayjs.utc(start).isSame(now, "minute") && dayjs.utc(end).isSame(now.endOf("year"), "minute")) {
-      setDateRangeMode({ yearly: true })
-    } else {
-      setDateRangeMode({ custom: true })
     }
   }, [])
-
-  const resetPreferences = () => {
-    setRange(defaultState.range)
-    setSelectedThemes(defaultState.selectedThemes)
-    setDateRangeMode(defaultState.dateRangeMode)
-    setEventType(defaultState.eventType)
-    setCustomStart(defaultState.customStart)
-    setCustomEnd(defaultState.customEnd)
-  }
-
-  const isChanged =
-    range !== defaultState.range ||
-    dateRangeMode !== defaultState.dateRangeMode ||
-    eventType !== defaultState.eventType ||
-    selectedThemes.length !== defaultState.selectedThemes.length ||
-    selectedThemes.some((theme) => !defaultState.selectedThemes.some((t) => t.name === theme.name)) ||
-    customStart !== defaultState.customStart ||
-    customEnd !== defaultState.customEnd
 
   return {
     range,
@@ -127,16 +66,13 @@ export function usePreferences(initial?: Partial<PreferencesState>) {
     selectedThemes,
     setSelectedThemes,
     dateRangeMode,
-    setDateRangeMode: setDateRangeModeAndUpdate,
-    getRangeForMode,
+    setDateRangeMode,
     eventType,
     setEventType,
     customStart,
-    setCustomStart: setCustomStartRaw,
+    setCustomStart,
     customEnd,
-    setCustomEnd: setCustomEndRaw,
+    setCustomEnd,
     updateModeFromCustom,
-    resetPreferences,
-    isChanged,
   }
 }

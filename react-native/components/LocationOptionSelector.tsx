@@ -31,15 +31,15 @@ const LocationOptionSelector: React.FC<LocationOptionSelectorProps> = ({ useCurr
               selected={selected}
               onPress={() => onChange(label === "Current")}
               style={{
-                margin: 4,
                 backgroundColor: selected ? theme.colors.brand.red : theme.colors.background,
-                minWidth: 100,
-                justifyContent: "center",
+                margin: 4,
+                minWidth: 80,
                 borderWidth: 0,
+                justifyContent: "center",
+                borderRadius: 10,
               }}
               textStyle={{
                 color: selected ? theme.colors.background : theme.colors.onBackground,
-                fontWeight: "bold",
               }}
               icon={() => (
                 <FontAwesome6

@@ -1,18 +1,28 @@
+import { useCustomTheme } from "@/hooks/useCustomTheme"
 import React, { useState } from "react"
 import { Image, ScrollView, TouchableOpacity, View } from "react-native"
+import { Button, Text } from "react-native-paper"
 
 interface EventImageGalleryProps {
-  event: any
-  theme: any
+  images: string[]
+  onChange?: (images: string[]) => void
+  onAddImage?: () => void
 }
 
-const EventImageGallery: React.FC<EventImageGalleryProps> = ({ event, theme }) => {
+const EventImageGallery: React.FC<EventImageGalleryProps> = ({ images, onChange, onAddImage }) => {
+  const theme = useCustomTheme()
   const [selectedImageIdx, setSelectedImageIdx] = useState(0)
-  const imagesSection = event?.sections?.find((s: any) => s.type === "images") as
-    | { type: "images"; srcs: string[] }
-    | undefined
-  const images = imagesSection?.srcs || []
-  if (images.length === 0) return null
+  if (!images || images.length === 0)
+    return (
+      <View style={{ alignItems: "center", marginVertical: 16 }}>
+        <Text style={{ color: theme.colors.onBackground, marginBottom: 8 }}>No images added yet.</Text>
+        {onAddImage && (
+          <Button mode="outlined" onPress={onAddImage} icon="plus" style={{ borderRadius: 12 }}>
+            Add Image
+          </Button>
+        )}
+      </View>
+    )
   const mainImage = images[selectedImageIdx] || images[0]
 
   return (
@@ -66,6 +76,11 @@ const EventImageGallery: React.FC<EventImageGalleryProps> = ({ event, theme }) =
           </ScrollView>
         </View>
       </View>
+      {onAddImage && (
+        <Button mode="outlined" onPress={onAddImage} icon="plus" style={{ borderRadius: 12, marginTop: 16 }}>
+          Add Image
+        </Button>
+      )}
     </View>
   )
 }
