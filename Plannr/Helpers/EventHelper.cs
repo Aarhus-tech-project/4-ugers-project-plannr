@@ -1,11 +1,11 @@
 ﻿using Plannr.Api.Models;
 using System.Collections.Concurrent;
+using System.Text.Json;
 
 namespace Plannr.Helpers
 {
     public class EventHelper
     {
-        // Seed some initial data - Testing API early - QQX SRA NEEDS TO BE REMOVED.
         public static void Seed(IEventStore store)
         {
             if (store.Any()) return;
@@ -24,6 +24,7 @@ namespace Plannr.Helpers
                 Title = "Fredagsbar i kælderen",
                 Description = "Medbring snacks. Starter kl. 18.",
                 CreatorId = owner.Id,
+                Format = "inperson",
                 StartAt = DateTimeOffset.UtcNow.AddDays(2),
                 EndAt = DateTimeOffset.UtcNow.AddDays(2).AddHours(4),
                 Location = new EventLocation
@@ -32,13 +33,21 @@ namespace Plannr.Helpers
                     City = "Aarhus",
                     Country = "Denmark",
                     Latitude = 56.162939m,
-                    Longitude = 10.203921m
+                    Longitude = 10.203921m,
+                    Venue = "Kælderen"
                 },
+                Access = new EventAccess { Instruction = "Ring på ved kælderdøren", Password = null },
+                Attendance = new EventAttendance { Interested = 12, Going = 8, CheckedIn = 0 },
+                Themes = new List<string> { "Social", "Party" },
+                Sections = JsonDocument.Parse(@"[
+  { ""type"": ""description"", ""content"": ""Husk at tage en ven med."" },
+  { ""type"": ""map"", ""latitude"": 56.162939, ""longitude"": 10.203921 }
+]"),
             };
+
             store.UpsertEvent(ev);
         }
 
-        // Simple in-memory store interfaces/impl
         public interface IEventStore
         {
             IEnumerable<Event> GetEvents();

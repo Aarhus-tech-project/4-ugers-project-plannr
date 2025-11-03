@@ -54,7 +54,6 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 
 app.UseCors("Default");
 
-// Minimal request logging så vi kan se, hvad der foregår
 app.Use(async (ctx, next) =>
 {
     Console.WriteLine($"--> {DateTimeOffset.UtcNow:o} {ctx.Request.Method} {ctx.Request.Path}");
@@ -77,7 +76,6 @@ app.Use(async (ctx, next) =>
 app.MapGet("/", () => Results.Text("Plannr API is running"));
 app.MapGet("/ping", () => Results.Ok(new { ok = true, t = DateTimeOffset.UtcNow }));
 
-// MVC
 app.MapControllers();
 
 // Kør migrationer ved opstart, men lad ikke hele app’en dø hvis DB driller

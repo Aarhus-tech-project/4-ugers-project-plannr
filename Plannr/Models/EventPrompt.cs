@@ -8,8 +8,8 @@ public class EventPrompt
     public Guid Id { get; set; }
     public Guid EventId { get; set; }
 
-    [JsonIgnore]  // <- Important
-    [ValidateNever] //stop model validation from requiring it
+    [JsonIgnore]
+    [ValidateNever]
     public Event? Event { get; set; } = default!;
 
     public string Prompt { get; set; } = default!;

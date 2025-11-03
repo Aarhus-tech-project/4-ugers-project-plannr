@@ -13,10 +13,13 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
+        // Owned types (Location, Access, Attendance) bliver indlæst sammen med Event.
+        // Vi inkluderer bare de eksplicitte relationer.
         List<Event> events = await db.Events
             .Include(e => e.Images)
             .Include(e => e.Prompts)
             .Include(e => e.Creator)
+            .OrderBy(e => e.StartAt)
             .ToListAsync();
 
         return Ok(events);
@@ -42,13 +45,15 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
         if (string.IsNullOrWhiteSpace(input.Title))
             return BadRequest(new { message = "Title is required." });
 
+        if (string.IsNullOrWhiteSpace(input.Format))
+            input.Format = "inperson";
+
         if (input.Id == Guid.Empty)
             input.Id = Guid.NewGuid();
 
-        // Hvis ingen creator er angivet, opret midlertidig bruger (til test)
         if (input.CreatorId == Guid.Empty)
         {
-            Profile profile = new Profile
+            var profile = new Profile
             {
                 Id = Guid.NewGuid(),
                 Email = "test@plannr.local",
@@ -57,6 +62,19 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
             db.Profiles.Add(profile);
             await db.SaveChangesAsync();
             input.CreatorId = profile.Id;
+        }
+
+        //Sørg for at navigationernes FK'er sættes korrekt når vi opretter via Event
+        if (input.Images is { Count: > 0 })
+        {
+            foreach (var img in input.Images)
+                img.EventId = input.Id;
+        }
+
+        if (input.Prompts is { Count: > 0 })
+        {
+            foreach (var pr in input.Prompts)
+                pr.EventId = input.Id;
         }
 
         db.Events.Add(input);
@@ -69,7 +87,11 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] Event update)
     {
-        Event? existing = await db.Events.FindAsync(id);
+        Event? existing = await db.Events
+            .Include(e => e.Images)
+            .Include(e => e.Prompts)
+            .FirstOrDefaultAsync(e => e.Id == id);
+
         if (existing is null)
             return NotFound();
 
@@ -77,18 +99,21 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
         existing.Description = update.Description;
         existing.StartAt = update.StartAt;
         existing.EndAt = update.EndAt;
-        existing.AllDay = update.AllDay;
-        existing.Format = update.Format;
-        existing.InterestedCount = update.InterestedCount;
-        existing.GoingCount = update.GoingCount;
-        existing.CheckedInCount = update.CheckedInCount;
-        existing.Venue = update.Venue;
-        existing.AccessLink = update.AccessLink;
-        existing.RequiredAge = update.RequiredAge;
+
+        // Format som string ("inperson" | "online" | "hybrid")
+        existing.Format = string.IsNullOrWhiteSpace(update.Format) ? existing.Format : update.Format;
+
+        existing.AgeRestriction = update.AgeRestriction;
+
         existing.Location = update.Location;
 
-        // Theme som samlet objekt
-        existing.Theme = update.Theme;
+        existing.Access = update.Access;
+
+        existing.Attendance = update.Attendance;
+
+        existing.Themes = update.Themes;
+
+        existing.Sections = update.Sections;
 
         await db.SaveChangesAsync();
         return Ok(existing);

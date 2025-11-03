@@ -8,9 +8,9 @@ public class EventImage
     public Guid Id { get; set; }
     public Guid EventId { get; set; }
 
-    [JsonIgnore] // <- Important
-    [ValidateNever] //stop model validation from requiring it
-    public Event? Event { get; set; } = default!; //Nullable
+    [JsonIgnore]
+    [ValidateNever]
+    public Event? Event { get; set; } = default!; // Nullable navigation
 
     public string Src { get; set; } = default!;
     public int Likes { get; set; } = 0;

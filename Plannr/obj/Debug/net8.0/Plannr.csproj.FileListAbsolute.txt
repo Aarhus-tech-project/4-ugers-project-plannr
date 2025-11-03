@@ -1,5 +1,4 @@
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\appsettings.Development.json
-C:\Projects\Skole\Plannr\bin\Debug\net8.0\appsettings.json
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Plannr.staticwebassets.endpoints.json
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Plannr.exe
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Plannr.deps.json

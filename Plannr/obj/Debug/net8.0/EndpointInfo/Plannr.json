@@ -209,11 +209,8 @@
             "nullable": true
           },
           "format": {
-            "$ref": "#/components/schemas/EventFormat"
-          },
-          "interestedCount": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "nullable": true
           },
           "startAt": {
             "type": "string",
@@ -224,18 +221,29 @@
             "format": "date-time",
             "nullable": true
           },
-          "allDay": {
-            "type": "boolean"
-          },
-          "themeName": {
-            "$ref": "#/components/schemas/EventThemeName"
-          },
-          "themeIcon": {
-            "type": "string",
-            "nullable": true
-          },
           "location": {
             "$ref": "#/components/schemas/EventLocation"
+          },
+          "access": {
+            "$ref": "#/components/schemas/EventAccess"
+          },
+          "attendance": {
+            "$ref": "#/components/schemas/EventAttendance"
+          },
+          "ageRestriction": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "themes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "sections": {
+            "nullable": true
           },
           "creatorId": {
             "type": "string",
@@ -261,13 +269,40 @@
         },
         "additionalProperties": false
       },
-      "EventFormat": {
-        "enum": [
-          "inPerson",
-          "online",
-          "hybrid"
-        ],
-        "type": "string"
+      "EventAccess": {
+        "type": "object",
+        "properties": {
+          "instruction": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EventAttendance": {
+        "type": "object",
+        "properties": {
+          "interested": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "going": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "checkedIn": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "EventImage": {
         "type": "object",
@@ -294,6 +329,10 @@
       "EventLocation": {
         "type": "object",
         "properties": {
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
           "city": {
             "type": "string",
             "nullable": true
@@ -302,7 +341,7 @@
             "type": "string",
             "nullable": true
           },
-          "address": {
+          "venue": {
             "type": "string",
             "nullable": true
           },
@@ -344,19 +383,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "EventThemeName": {
-        "enum": [
-          "music",
-          "art",
-          "sports",
-          "tech",
-          "food",
-          "networking",
-          "health",
-          "education"
-        ],
-        "type": "string"
       },
       "Profile": {
         "type": "object",

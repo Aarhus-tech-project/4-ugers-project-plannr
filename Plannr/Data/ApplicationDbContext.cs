@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Plannr.Api.Models;
+using System.Text.Json;
 
 namespace Plannr.Api.Data;
 
@@ -31,46 +32,55 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.Property(e => e.Title).HasMaxLength(200).IsRequired();
             b.Property(e => e.Description).HasMaxLength(4000);
 
-            // Enum-konverteringer til string for læsbar DB (Postgres-native enums er overkill her)
+            // format: "inperson" | "online" | "hybrid" (gemmes som lower-case string)
             b.Property(e => e.Format)
-             .HasConversion<string>()        // "InPerson" | "Online" | "Hybrid"
-             .HasMaxLength(16);
+                .HasMaxLength(16)
+                .IsRequired();
 
-            // Theme som owned type
-            b.OwnsOne(e => e.Theme, theme =>
-            {
-                theme.Property(t => t.Name)
-                    .HasConversion<string>()
-                    .HasMaxLength(32);
-                theme.Property(t => t.Icon)
-                    .HasMaxLength(100);
-            });
+            // themes: text[]
+            b.Property(e => e.Themes)
+                .HasColumnType("text[]");
+
+            // sections: jsonb
+            b.Property(e => e.Sections)
+                .HasColumnType("jsonb");
+
+            b.Property(e => e.AgeRestriction);
 
             b.HasOne(e => e.Creator)
-             .WithMany(p => p.EventsCreated)
-             .HasForeignKey(e => e.CreatorId)
-             .OnDelete(DeleteBehavior.Restrict);
+                .WithMany(p => p.EventsCreated)
+                .HasForeignKey(e => e.CreatorId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            //Owned value object → egen tabel for klarhed i EF
+            // Location som owned type i separat tabel
             b.OwnsOne(e => e.Location, loc =>
             {
+                loc.Property(l => l.Address).HasMaxLength(300);
                 loc.Property(l => l.City).HasMaxLength(200);
                 loc.Property(l => l.Country).HasMaxLength(100);
-                loc.Property(l => l.Address).HasMaxLength(300);
-                // Postgres decimal precision
+                loc.Property(l => l.Venue).HasMaxLength(200);
                 loc.Property(l => l.Latitude).HasPrecision(9, 6);
                 loc.Property(l => l.Longitude).HasPrecision(9, 6);
 
-                // Læg den i separat tabel så queries er simple
                 loc.ToTable("EventLocations");
-
-                // Primærnøgle matcher Event Id (1:1)
                 loc.WithOwner().HasForeignKey("EventId");
                 loc.Property<Guid>("EventId");
                 loc.HasKey("EventId");
             });
 
-            // Indeks der ofte er nyttigt
+            // Access som owned type (kolonner på Events)
+            b.OwnsOne(e => e.Access, acc =>
+            {
+                acc.Property(a => a.Instruction).HasMaxLength(2000);
+                acc.Property(a => a.Password).HasMaxLength(200);
+            });
+
+            // Attendance som owned type (kolonner på Events)
+            b.OwnsOne(e => e.Attendance, att =>
+            {
+                // int? felter, ingen ekstra konfiguration nødvendig
+            });
+
             b.HasIndex(e => e.StartAt);
         });
 
@@ -79,9 +89,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         {
             b.Property(i => i.Src).HasMaxLength(1000).IsRequired();
             b.HasOne(i => i.Event)
-             .WithMany(e => e.Images)
-             .HasForeignKey(i => i.EventId)
-             .OnDelete(DeleteBehavior.Cascade);
+                .WithMany(e => e.Images)
+                .HasForeignKey(i => i.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // EVENT PROMPT
@@ -90,28 +100,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.Property(p => p.Prompt).HasMaxLength(500).IsRequired();
             b.Property(p => p.Answer).HasMaxLength(2000).IsRequired();
             b.HasOne(p => p.Event)
-             .WithMany(e => e.Prompts)
-             .HasForeignKey(p => p.EventId)
-             .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        modelBuilder.Entity<EventPageSection>(b =>
-        {
-            b.HasKey(s => s.Id); // Primærnøgle
-
-            b.Property(s => s.Type).HasMaxLength(50).IsRequired();
-
-            b.Property<string>("Content").HasMaxLength(4000);
-
-            b.HasDiscriminator<string>("SectionType")
-             .HasValue<DescriptionSection>("description")
-             .HasValue<LocationSection>("location");
-
-            b.Property<Guid>("EventId");
-            b.HasOne<Event>()
-             .WithMany(e => e.Sections)
-             .HasForeignKey("EventId")
-             .OnDelete(DeleteBehavior.Cascade);
+                .WithMany(e => e.Prompts)
+                .HasForeignKey(p => p.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
