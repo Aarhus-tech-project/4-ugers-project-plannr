@@ -59,12 +59,12 @@ export default function TabLayout() {
                   justifyContent: "center",
                   alignItems: "center",
                   backgroundColor: color,
-                  width: 32,
-                  height: 32,
+                  width: 30,
+                  height: 30,
                   borderRadius: 10,
                 }}
               >
-                <FontAwesome6 name="plus" color={theme.colors.gray[900]} size={size || 28} />
+                <FontAwesome6 name="plus" color={theme.colors.gray[900]} size={size || 24} />
               </View>
             ),
             // Show tab bar for create, but content is context-driven

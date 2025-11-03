@@ -11,6 +11,7 @@ import { router } from "expo-router"
 import React, { useCallback, useState } from "react"
 import { ScrollView, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native-paper"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 const stepMeta = [
   { key: "details", label: "Details", icon: "pen-to-square" },
@@ -124,14 +125,6 @@ function CreateEventScreenInner() {
     setDateTimeValidation,
   } = useEventCreation()
 
-  console.log("🚀 -------------------------------------------------------------------🚀")
-  console.log("🚀 ~ create.tsx:127 ~ CreateEventScreenInner ~ customEnd:", customEnd)
-  console.log("🚀 -------------------------------------------------------------------🚀")
-
-  console.log("🚀 -----------------------------------------------------------------------🚀")
-  console.log("🚀 ~ create.tsx:127 ~ CreateEventScreenInner ~ customStart:", customStart)
-  console.log("🚀 -----------------------------------------------------------------------🚀")
-
   const { visibleThemes } = useLazyEventThemes(10, 600)
 
   const handleSubmit = () => {
@@ -160,6 +153,8 @@ function CreateEventScreenInner() {
     }
   }, [currentStep, handleCancel])
 
+  const insets = useSafeAreaInsets()
+
   const isDetailsStep = stepMeta[currentStep].key === "details"
   const isDetailsValid = !detailsValidation.title && !detailsValidation.themes
   const isDateTimeStep = stepMeta[currentStep].key === "dateTime"
@@ -173,7 +168,7 @@ function CreateEventScreenInner() {
       </View>
       <ScrollView
         style={{ flex: 1, backgroundColor: theme.colors.background }}
-        contentContainerStyle={{ alignItems: "center", paddingBottom: 16, paddingTop: 16 }}
+        contentContainerStyle={{ alignItems: "center", paddingBottom: 54 + insets.bottom, paddingTop: 16 }}
         showsVerticalScrollIndicator={false}
       >
         <StepContent
@@ -191,7 +186,7 @@ function CreateEventScreenInner() {
         />
       </ScrollView>
       <BottomButtonBar
-        containerStyle={{ backgroundColor: theme.colors.gray[800] }}
+        containerStyle={{ backgroundColor: theme.colors.gray[800], paddingVertical: 22 }}
         buttons={[
           {
             label: stepMeta[currentStep].key === "details" ? "Cancel" : "Back",
