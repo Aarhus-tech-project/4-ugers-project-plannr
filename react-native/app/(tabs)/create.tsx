@@ -2,10 +2,15 @@ import BottomButtonBar from "@/components/BottomButtonBar"
 import Stepper from "@/components/Stepper"
 import EventDateTimeStep, { EventDateTimeStepValidation } from "@/components/event-creation/EventDateTimeStep"
 import EventDetailsStep, { EventDetailsStepValidation } from "@/components/event-creation/EventDetailsStep"
+import EventImagesStep from "@/components/event-creation/EventImagesStep"
+import EventLocationStep from "@/components/event-creation/EventLocationStep"
+import EventReviewStep from "@/components/event-creation/EventReviewStep"
+import EventSectionsStep from "@/components/event-creation/EventSectionsStep"
 import { EventCreationProvider, useEventCreation } from "@/context/EventCreationContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
 import { EventTheme, EventThemeName } from "@/interfaces/event"
+import { areAllSectionsFilled } from "@/utils/section-validator"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { router } from "expo-router"
 import React, { useCallback, useState } from "react"
@@ -34,6 +39,10 @@ type StepContentProps = {
   setCustomEnd: (val: Date | null) => void
   dateTimeValidation: EventDateTimeStepValidation
   setDateTimeValidation: (v: EventDateTimeStepValidation) => void
+  selectedLocation: { latitude: number; longitude: number } | null
+  setSelectedLocation: (val: { latitude: number; longitude: number } | null) => void
+  images: import("@/components/event-creation/EventImagesStep").EventImage[]
+  setImages: (images: import("@/components/event-creation/EventImagesStep").EventImage[]) => void
 }
 
 function StepContent({
@@ -47,7 +56,12 @@ function StepContent({
   customEnd,
   setCustomEnd,
   setDateTimeValidation,
+  selectedLocation,
+  setSelectedLocation,
+  images,
+  setImages,
 }: StepContentProps) {
+  // All defaults/initialization are handled in the provider. This component just passes props.
   switch (step) {
     case 0:
       return (
@@ -68,6 +82,14 @@ function StepContent({
           onValidate={setDateTimeValidation}
         />
       )
+    case 2:
+      return <EventLocationStep selectedLocation={selectedLocation} setSelectedLocation={setSelectedLocation} />
+    case 3:
+      return <EventImagesStep images={images} setImages={setImages} />
+    case 4:
+      return <EventSectionsStep />
+    case 5:
+      return <EventReviewStep />
     default:
       return null
   }
@@ -112,6 +134,7 @@ function CreateEventHeader({ theme }: { theme: ReturnType<typeof useCustomTheme>
 function CreateEventScreenInner() {
   const theme = useCustomTheme()
   const [currentStep, setCurrentStep] = useState(0)
+  // All event creation state comes from useEventCreation (provider handles defaults)
   const {
     eventDetails,
     setEventDetails,
@@ -123,6 +146,11 @@ function CreateEventScreenInner() {
     setCustomEnd,
     dateTimeValidation,
     setDateTimeValidation,
+    selectedLocation,
+    setSelectedLocation,
+    images,
+    setImages,
+    sections,
   } = useEventCreation()
 
   const { visibleThemes } = useLazyEventThemes(10, 600)
@@ -155,10 +183,29 @@ function CreateEventScreenInner() {
 
   const insets = useSafeAreaInsets()
 
+  // Step validation logic
   const isDetailsStep = stepMeta[currentStep].key === "details"
   const isDetailsValid = !detailsValidation.title && !detailsValidation.themes
   const isDateTimeStep = stepMeta[currentStep].key === "dateTime"
   const isDateTimeValid = !dateTimeValidation.start && !dateTimeValidation.end
+  const isLocationStep = stepMeta[currentStep].key === "location"
+  const isLocationValid =
+    !!selectedLocation &&
+    typeof selectedLocation.latitude === "number" &&
+    typeof selectedLocation.longitude === "number"
+  const isImagesStep = stepMeta[currentStep].key === "images"
+  const isImagesValid = images && images.length > 0
+
+  const isSectionsStep = stepMeta[currentStep].key === "preferences"
+  const isSectionsValid = areAllSectionsFilled(sections)
+
+  // Only allow next if current step is valid
+  let isStepValid = true
+  if (isDetailsStep) isStepValid = isDetailsValid
+  else if (isDateTimeStep) isStepValid = isDateTimeValid
+  else if (isLocationStep) isStepValid = isLocationValid
+  else if (isImagesStep) isStepValid = isImagesValid
+  else if (isSectionsStep) isStepValid = isSectionsValid
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -168,7 +215,7 @@ function CreateEventScreenInner() {
       </View>
       <ScrollView
         style={{ flex: 1, backgroundColor: theme.colors.background }}
-        contentContainerStyle={{ alignItems: "center", paddingBottom: 54 + insets.bottom, paddingTop: 16 }}
+        contentContainerStyle={{ paddingBottom: 54 + insets.bottom, paddingTop: 16 }}
         showsVerticalScrollIndicator={false}
       >
         <StepContent
@@ -183,6 +230,10 @@ function CreateEventScreenInner() {
           setCustomEnd={setCustomEnd}
           dateTimeValidation={dateTimeValidation}
           setDateTimeValidation={setDateTimeValidation}
+          selectedLocation={selectedLocation}
+          setSelectedLocation={setSelectedLocation}
+          images={images}
+          setImages={setImages}
         />
       </ScrollView>
       <BottomButtonBar
@@ -199,14 +250,10 @@ function CreateEventScreenInner() {
             label: stepMeta[currentStep].key === "review" ? "Submit" : "Next",
             onPress: handleNext,
             mode: "contained",
-            backgroundColor:
-              (isDetailsStep && !isDetailsValid) || (isDateTimeStep && !isDateTimeValid)
-                ? theme.colors.brand.red + "66"
-                : theme.colors.brand.red,
+            backgroundColor: !isStepValid ? theme.colors.brand.red + "66" : theme.colors.brand.red,
             textColor: theme.colors.white,
-            disabled: (isDetailsStep && !isDetailsValid) || (isDateTimeStep && !isDateTimeValid),
-            style:
-              (isDetailsStep && !isDetailsValid) || (isDateTimeStep && !isDateTimeValid) ? { opacity: 0.5 } : undefined,
+            disabled: !isStepValid,
+            style: !isStepValid ? { opacity: 0.5 } : undefined,
           },
         ]}
       />

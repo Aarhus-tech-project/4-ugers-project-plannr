@@ -17,10 +17,6 @@ interface WheelTimePickerProps {
 }
 
 export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChange, disabled, min }) => {
-  console.log("🚀 ------------------------------------------------------------🚀")
-  console.log("🚀 ~ WheelTimePicker.tsx:21 ~ WheelTimePicker ~ value:", value)
-  console.log("🚀 ------------------------------------------------------------🚀")
-
   const theme = useCustomTheme()
   const [visible, setVisible] = useState(false)
   const [hour, setHour] = useState<number>(value ? value.getHours() : 12)

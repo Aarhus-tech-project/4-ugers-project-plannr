@@ -59,8 +59,8 @@ export default function TabLayout() {
                   justifyContent: "center",
                   alignItems: "center",
                   backgroundColor: color,
-                  width: 30,
-                  height: 30,
+                  width: 28,
+                  height: 28,
                   borderRadius: 10,
                 }}
               >

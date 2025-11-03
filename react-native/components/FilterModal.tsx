@@ -25,7 +25,7 @@ interface FilterModalProps {
 
 const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply, initial }) => {
   const theme = useCustomTheme()
-  const { visibleThemes } = useLazyEventThemes(1, 0)
+  const { visibleThemes, loaded } = useLazyEventThemes(1, 600)
   const { location: liveLocation } = useLiveLocation()
   const filters = useFilters(initial)
 
@@ -40,6 +40,26 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply, in
     >
       <View style={styles.overlay}>
         <View style={[styles.modal, { backgroundColor: theme.colors.background }]}>
+          <View
+            style={{
+              backgroundColor: theme.colors.secondary,
+              paddingVertical: 12,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: theme.colors.onBackground,
+                fontWeight: "700",
+                fontSize: 20,
+                marginTop: 16,
+                marginBottom: 8,
+                alignSelf: "center",
+              }}
+            >
+              Filters
+            </Text>
+          </View>
           <ScrollView
             contentContainerStyle={{ alignItems: "center", paddingBottom: 100, paddingTop: 16 }}
             showsVerticalScrollIndicator={false}
@@ -96,8 +116,14 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply, in
                 borderRadius: 16,
                 padding: 20,
                 marginBottom: 16,
+                minHeight: 120,
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
+              {!loaded ? (
+                <Text style={{ color: theme.colors.gray[400], fontSize: 16, marginBottom: 8 }}>Loading themes...</Text>
+              ) : null}
               <EventThemeSelector
                 themes={visibleThemes}
                 selectedThemes={visibleThemes.filter((theme) => filters.selectedThemes.includes(theme.name))}
@@ -161,11 +187,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply, in
               },
               {
                 label: "Apply",
-                onPress: () =>
-                  onApply({
-                    ...filters,
-                    dateRangeMode: filters.mode,
-                  }),
+                onPress: () => onApply(filters),
                 mode: "contained",
                 backgroundColor: theme.colors.brand.red,
                 textColor: theme.colors.white,
