@@ -43,16 +43,14 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Event input)
     {
-        if (!ModelState.IsValid)
-            return ValidationProblem(ModelState);
-
+        // Basal modelvalidering
         if (string.IsNullOrWhiteSpace(input.Title))
             ModelState.AddModelError(nameof(input.Title), "Title is required.");
 
         if (string.IsNullOrWhiteSpace(input.Format))
             input.Format = "inperson";
 
-        // Hvis klienten sender dateRange, så fold det ind i StartAt/EndAt
+        // Understøt evt. DateRange adapter
         if (input.DateRange is not null)
         {
             input.StartAt = input.DateRange.StartAt;
@@ -62,29 +60,60 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
         if (!ModelState.IsValid)
             return ValidationProblem(ModelState);
 
-        if (input.Id == Guid.Empty) input.Id = Guid.NewGuid();
+        if (input.Id == Guid.Empty)
+            input.Id = Guid.NewGuid();
 
+        // CreatorId skal findes eller oprettes
         if (input.CreatorId == Guid.Empty)
         {
-            var profile = new Profile
+            // fallback til seed-bruger
+            var seed = new Profile
             {
                 Id = Guid.NewGuid(),
                 Email = "test@plannr.local",
                 Name = "Seeder"
             };
-            db.Profiles.Add(profile);
+            db.Profiles.Add(seed);
             await db.SaveChangesAsync();
-            input.CreatorId = profile.Id;
+            input.CreatorId = seed.Id;
+        }
+        else
+        {
+            var exists = await db.Profiles.AnyAsync(p => p.Id == input.CreatorId);
+            if (!exists)
+            {
+                ModelState.AddModelError(nameof(input.CreatorId), "CreatorId does not exist.");
+                return ValidationProblem(ModelState);
+            }
         }
 
+        // Sæt FK på under-entities
         if (input.Images is { Count: > 0 })
             foreach (var img in input.Images) img.EventId = input.Id;
 
         if (input.Prompts is { Count: > 0 })
             foreach (var pr in input.Prompts) pr.EventId = input.Id;
 
+        input.Creator = null!;
+
         db.Events.Add(input);
-        await db.SaveChangesAsync();
+
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            // Oversæt kendte DB-fejl til pæn ProblemDetails
+            // Postgres FK: 23503, Unique: 23505, Check: 23514, Invalid json: 22P02 (m.fl.)
+            var problem = new ProblemDetails
+            {
+                Title = "Database update failed",
+                Status = StatusCodes.Status400BadRequest,
+                Detail = ex.InnerException?.Message ?? ex.Message
+            };
+            return StatusCode(problem.Status.Value, problem);
+        }
 
         return CreatedAtAction(nameof(GetById), new { id = input.Id }, input);
     }
