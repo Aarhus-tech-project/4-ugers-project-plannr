@@ -183,7 +183,7 @@ const EventPage: React.FC<EventPageProps> = ({
                                 marginBottom: 0,
                                 width: 110,
                                 height: 170,
-                                padding: 0,
+                                padding: 8,
                                 backgroundColor: theme.colors.background,
                                 borderRadius: 18,
                                 overflow: "hidden",
