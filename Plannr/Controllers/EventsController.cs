@@ -7,6 +7,7 @@ namespace Plannr.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Consumes("application/json")]
 public class EventsController(ApplicationDbContext db) : ControllerBase
 {
     // GET: /api/events
@@ -39,43 +40,48 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     }
 
     // POST: /api/events
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Event input)
+
+    public async Task<IActionResult> Create(
+       [FromBody, Bind(
+            "Title,Description,Format,StartAt,EndAt,AgeRestriction," +
+            "Location,Access,Attendance,Themes,Sections,Images,Prompts,CreatorId"
+        )] Event input)
     {
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+
         if (string.IsNullOrWhiteSpace(input.Title))
-            return BadRequest(new { message = "Title is required." });
+            ModelState.AddModelError(nameof(input.Title), "Title is required.");
 
         if (string.IsNullOrWhiteSpace(input.Format))
-            input.Format = "inperson";
+            input.Format = "inperson"; // fallback
+
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
 
         if (input.Id == Guid.Empty)
             input.Id = Guid.NewGuid();
 
+        // Fallback creator til testmiljø
         if (input.CreatorId == Guid.Empty)
         {
-            var profile = new Profile
+            var seed = new Profile
             {
                 Id = Guid.NewGuid(),
                 Email = "test@plannr.local",
                 Name = "Seeder"
             };
-            db.Profiles.Add(profile);
+            db.Profiles.Add(seed);
             await db.SaveChangesAsync();
-            input.CreatorId = profile.Id;
+            input.CreatorId = seed.Id;
         }
 
-        //Sørg for at navigationernes FK'er sættes korrekt når vi opretter via Event
+        // Sæt FK på child entities
         if (input.Images is { Count: > 0 })
-        {
-            foreach (var img in input.Images)
-                img.EventId = input.Id;
-        }
+            foreach (var img in input.Images) img.EventId = input.Id;
 
         if (input.Prompts is { Count: > 0 })
-        {
-            foreach (var pr in input.Prompts)
-                pr.EventId = input.Id;
-        }
+            foreach (var pr in input.Prompts) pr.EventId = input.Id;
 
         db.Events.Add(input);
         await db.SaveChangesAsync();

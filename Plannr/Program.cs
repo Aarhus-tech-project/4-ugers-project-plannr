@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Plannr.Api.Data;
 
@@ -16,16 +17,25 @@ builder.Services.AddCors(options =>
         .AllowCredentials());
 });
 
-// Controllers + JSON
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = ctx =>
+    {
+        var problem = new ValidationProblemDetails(ctx.ModelState)
+        {
+            Title = "Request validation failed.",
+            Status = StatusCodes.Status400BadRequest
+        };
+        return new BadRequestObjectResult(problem);
+    };
+});
+
 builder.Services
     .AddControllers()
     .AddJsonOptions(o =>
     {
-        // undgå reference-loops
         o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-        // skip null-felter
         o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-        // enums som "inperson"/"online"/"hybrid" osv.
         o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
     });
 
