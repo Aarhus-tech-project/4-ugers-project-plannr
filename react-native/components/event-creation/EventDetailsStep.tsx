@@ -9,12 +9,15 @@ export type EventDetailsStepValidation = {
   themes?: string
 }
 
+import AttendanceModeSelector from "@/components/AttendanceModeSelector"
+
 type EventDetailsStepProps = {
   value: {
     title: string
     themes: EventThemeName[]
+    format: "inperson" | "online" | "hybrid"
   }
-  onChange: (val: { title: string; themes: EventThemeName[] }) => void
+  onChange: (val: { title: string; themes: EventThemeName[]; format: "inperson" | "online" | "hybrid" }) => void
   allThemes?: EventTheme[]
   onValidate?: (errors: EventDetailsStepValidation) => void
 }
@@ -50,6 +53,7 @@ export default function EventDetailsStep({ value, onChange, allThemes = [], onVa
         marginBottom: 16,
         alignSelf: "center",
       }}
+      accessibilityLabel="Event Details Section"
     >
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
         <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>Title</Text>
@@ -74,16 +78,30 @@ export default function EventDetailsStep({ value, onChange, allThemes = [], onVa
           color: theme.colors.onBackground,
         }}
         maxLength={60}
+        accessibilityLabel="Event Title Input"
       />
       {touched.title && titleError ? (
-        <Text style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 12 }}>{titleError}</Text>
+        <Text
+          style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 12 }}
+          accessibilityLabel="Title error"
+        >
+          {titleError}
+        </Text>
       ) : (
         <View style={{ height: 12, marginBottom: 12 }} />
       )}
+      <AttendanceModeSelector
+        formats={[value.format]}
+        onChange={(arr) => onChange({ ...value, format: arr[0] || "inperson" })}
+      />
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
         <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>Themes</Text>
       </View>
-      <TouchableWithoutFeedback onPressOut={() => setTouched((prev) => ({ ...prev, themes: true }))} accessible={false}>
+      <TouchableWithoutFeedback
+        onPressOut={() => setTouched((prev) => ({ ...prev, themes: true }))}
+        accessible={false}
+        accessibilityLabel="Theme Selector"
+      >
         <EventThemeSelector
           themes={allThemes}
           selectedThemes={selectedThemes}
@@ -98,7 +116,12 @@ export default function EventDetailsStep({ value, onChange, allThemes = [], onVa
         />
       </TouchableWithoutFeedback>
       {touched.themes && themesError ? (
-        <Text style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 8 }}>{themesError}</Text>
+        <Text
+          style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 8 }}
+          accessibilityLabel="Themes error"
+        >
+          {themesError}
+        </Text>
       ) : (
         <View style={{ height: 8 }} />
       )}

@@ -27,8 +27,6 @@ const EventSectionsStep: React.FC = () => {
   const { sections, setSections } = useEventCreation()
   const theme = useCustomTheme()
   const [showAddOptions, setShowAddOptions] = useState(false)
-  // const [selectedType, setSelectedType] = useState<string | null>(null)
-
   // Add a new section with default content
   const handleAddSection = (type: string) => {
     let newSection: EventPageSection
@@ -128,25 +126,27 @@ const EventSectionsStep: React.FC = () => {
             Relevant Information
           </Text>
         </View>
-        {sections.length === 0 ? (
+        {sections.filter((item) => item.type !== "images").length === 0 ? (
           <Text style={{ color: theme.colors.gray[500], textAlign: "center", marginVertical: 24 }}>
             No sections added yet.
           </Text>
         ) : (
-          sections.map((item, idx) => {
-            const meta = SECTION_TYPES.find((s) => s.type === item.type)
-            return (
-              <SectionCard
-                key={idx}
-                icon={meta?.icon || "circle-question"}
-                label={meta?.label || item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                accentColor={theme.colors.brand.red}
-                onRemove={() => handleRemoveSection(idx)}
-              >
-                {renderSectionEditor(item, idx)}
-              </SectionCard>
-            )
-          })
+          sections
+            .filter((item) => item.type !== "images")
+            .map((item, idx) => {
+              const meta = SECTION_TYPES.find((s) => s.type === item.type)
+              return (
+                <SectionCard
+                  key={idx}
+                  icon={meta?.icon || "circle-question"}
+                  label={meta?.label || item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                  accentColor={theme.colors.brand.red}
+                  onRemove={() => handleRemoveSection(idx)}
+                >
+                  {renderSectionEditor(item, idx)}
+                </SectionCard>
+              )
+            })
         )}
         <TouchableOpacity
           style={{

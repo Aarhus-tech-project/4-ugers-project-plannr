@@ -1,4 +1,5 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { useLiveLocation } from "@/hooks/useLiveLocation"
 import type { EventLocation } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import * as Location from "expo-location"
@@ -7,8 +8,8 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import MapView, { Circle, MapPressEvent, Marker, Region } from "react-native-maps"
 
 interface MapPickerProps {
-  location: Pick<EventLocation, "latitude" | "longitude"> | null
-  onLocationChange?: (location: Pick<EventLocation, "latitude" | "longitude">) => void
+  location: EventLocation | null
+  onLocationChange?: (location: EventLocation) => void
   range?: number
   disableSelection?: boolean
   onAddressChange?: (address: string) => void
@@ -21,6 +22,7 @@ const MapPicker: React.FC<MapPickerProps> = ({
   disableSelection = false,
   onAddressChange,
 }) => {
+  const { location: liveLocation, address: liveAddress } = useLiveLocation({})
   const [address, setAddress] = useState<string>("")
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null)
   const mapRef = useRef<MapView>(null)
@@ -35,27 +37,49 @@ const MapPicker: React.FC<MapPickerProps> = ({
   }
   // On mount, if no location is provided, get current location
   useEffect(() => {
-    if (!location && !currentLocation) {
-      ;(async () => {
-        try {
-          let { status } = await Location.requestForegroundPermissionsAsync()
-          if (status === "granted") {
-            const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest })
-            setCurrentLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude })
-            if (onLocationChange) {
-              onLocationChange({ latitude: loc.coords.latitude, longitude: loc.coords.longitude })
-            }
-          }
-        } catch {}
-      })()
+    if (!location && !currentLocation && liveLocation) {
+      setCurrentLocation({ latitude: liveLocation.coords.latitude, longitude: liveLocation.coords.longitude })
+      if (onLocationChange && liveAddress) {
+        onLocationChange({
+          address: liveAddress.street || "",
+          city: liveAddress.city || "",
+          country: liveAddress.country || "",
+          venue: liveAddress.name || "",
+          latitude: liveLocation.coords.latitude,
+          longitude: liveLocation.coords.longitude,
+        })
+      }
     }
-  }, [location, currentLocation, onLocationChange])
+  }, [location, currentLocation, liveLocation, liveAddress, onLocationChange])
 
   const handlePress = async (e: MapPressEvent) => {
     if (disableSelection || !onLocationChange) return
     const { latitude, longitude } = e.nativeEvent.coordinate
-    onLocationChange({ latitude, longitude })
-    await fetchAddress(latitude, longitude)
+    // Fetch address and build EventLocation
+    let address = ""
+    let city = ""
+    let country = ""
+    let venue = ""
+    try {
+      const geo = await Location.reverseGeocodeAsync({ latitude, longitude })
+      if (geo && geo.length > 0) {
+        const g = geo[0]
+        address = `${g.street || ""}${g.streetNumber ? " " + g.streetNumber : ""}`.trim()
+        city = g.city || ""
+        country = g.country || ""
+        venue = g.name || ""
+      }
+    } catch {}
+    const eventLocation: EventLocation = {
+      address,
+      city,
+      country,
+      venue,
+      latitude,
+      longitude,
+    }
+    onLocationChange(eventLocation)
+    if (onAddressChange) onAddressChange(address)
   }
 
   const fetchAddress = async (latitude: number, longitude: number) => {
@@ -132,7 +156,22 @@ const MapPicker: React.FC<MapPickerProps> = ({
         Alert.alert("Map Error", "Map reference not found.")
       }
       if (onLocationChange) {
-        onLocationChange({ latitude, longitude })
+        // Build full EventLocation for current location
+        let address = ""
+        let city = ""
+        let country = ""
+        let venue = ""
+        try {
+          const geo = await Location.reverseGeocodeAsync({ latitude, longitude })
+          if (geo && geo.length > 0) {
+            const g = geo[0]
+            address = `${g.street || ""}${g.streetNumber ? " " + g.streetNumber : ""}`.trim()
+            city = g.city || ""
+            country = g.country || ""
+            venue = g.name || ""
+          }
+        } catch {}
+        onLocationChange({ address, city, country, venue, latitude, longitude })
       }
     } catch (err) {
       console.error(err)
@@ -173,9 +212,24 @@ const MapPicker: React.FC<MapPickerProps> = ({
                 onDragEnd={
                   disableSelection || !onLocationChange
                     ? undefined
-                    : (e) => {
+                    : async (e) => {
                         const { latitude, longitude } = e.nativeEvent.coordinate
-                        onLocationChange({ latitude, longitude })
+                        // Build full EventLocation for drag
+                        let address = ""
+                        let city = ""
+                        let country = ""
+                        let venue = ""
+                        try {
+                          const geo = await Location.reverseGeocodeAsync({ latitude, longitude })
+                          if (geo && geo.length > 0) {
+                            const g = geo[0]
+                            address = `${g.street || ""}${g.streetNumber ? " " + g.streetNumber : ""}`.trim()
+                            city = g.city || ""
+                            country = g.country || ""
+                            venue = g.name || ""
+                          }
+                        } catch {}
+                        onLocationChange({ address, city, country, venue, latitude, longitude })
                       }
                 }
               />

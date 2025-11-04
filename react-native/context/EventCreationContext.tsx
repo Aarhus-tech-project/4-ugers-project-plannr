@@ -1,14 +1,14 @@
 import { EventDateTimeStepValidation } from "@/components/event-creation/EventDateTimeStep"
 import { EventDetailsStepValidation } from "@/components/event-creation/EventDetailsStep"
-import type { EventImage } from "@/components/event-creation/EventImagesStep"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
-import { EventPageSection, EventThemeName } from "@/interfaces/event"
+import { EventFormat, EventLocation, EventPageSection, EventThemeName } from "@/interfaces/event"
 import { FilterDateRange } from "@/interfaces/filter"
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react"
 
 export interface EventDetails {
   title: string
   themes: EventThemeName[]
+  format: EventFormat
 }
 
 export interface EventDateTime {
@@ -29,10 +29,8 @@ interface EventCreationContextType {
   setCustomEnd: (date: Date | null) => void
   dateTimeValidation: EventDateTimeStepValidation
   setDateTimeValidation: (v: EventDateTimeStepValidation) => void
-  selectedLocation: { latitude: number; longitude: number } | null
-  setSelectedLocation: (val: { latitude: number; longitude: number } | null) => void
-  images: EventImage[]
-  setImages: (images: EventImage[]) => void
+  selectedLocation: EventLocation | null
+  setSelectedLocation: (val: EventLocation | null) => void
   sections: EventPageSection[]
   setSections: (sections: EventPageSection[]) => void
 }
@@ -40,7 +38,7 @@ interface EventCreationContextType {
 const EventCreationContext = createContext<EventCreationContextType | undefined>(undefined)
 
 export const EventCreationProvider = ({ children }: { children: ReactNode }) => {
-  const [eventDetails, setEventDetails] = useState<EventDetails>({ title: "", themes: [] })
+  const [eventDetails, setEventDetails] = useState<EventDetails>({ title: "", themes: [], format: "inperson" })
   const [detailsValidation, setDetailsValidation] = useState<EventDetailsStepValidation>({})
   // Date range state (like useFilters)
   const [dateRange, setDateRange] = useState<FilterDateRange>({
@@ -50,22 +48,45 @@ export const EventCreationProvider = ({ children }: { children: ReactNode }) => 
   const [customEnd, setCustomEnd] = useState<Date | null>(null)
   const [dateTimeValidation, setDateTimeValidation] = useState<EventDateTimeStepValidation>({})
 
-  // Images state for event creation
-  const [images, setImages] = useState<EventImage[]>([])
-
   // Sections state for event creation
   const [sections, setSections] = useState<EventPageSection[]>([])
 
   // Use live location for default selectedLocation
-  const { location: liveLocation } = useLiveLocation()
-  const [selectedLocation, setSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+  const { location: liveLocation, address: liveAddress } = useLiveLocation()
+  const [selectedLocation, setSelectedLocation] = useState<EventLocation | null>(null)
 
   // Set selectedLocation to live location if not set
   useEffect(() => {
-    if (!selectedLocation && liveLocation?.coords) {
-      setSelectedLocation({ latitude: liveLocation.coords.latitude, longitude: liveLocation.coords.longitude })
+    // If selectedLocation is missing address/city/country, update it when liveAddress is available
+    if (
+      selectedLocation &&
+      (!selectedLocation.address || !selectedLocation.city || !selectedLocation.country) &&
+      liveLocation?.coords &&
+      liveAddress
+    ) {
+      setSelectedLocation({
+        address: liveAddress.street
+          ? `${liveAddress.street}${liveAddress.streetNumber ? " " + liveAddress.streetNumber : ""}`.trim()
+          : "",
+        city: liveAddress.city || "",
+        country: liveAddress.country || "",
+        venue: liveAddress.name || "",
+        latitude: liveLocation.coords.latitude,
+        longitude: liveLocation.coords.longitude,
+      })
+    } else if (!selectedLocation && liveLocation?.coords) {
+      setSelectedLocation({
+        address: liveAddress?.street
+          ? `${liveAddress.street}${liveAddress.streetNumber ? " " + liveAddress.streetNumber : ""}`.trim()
+          : "",
+        city: liveAddress?.city || "",
+        country: liveAddress?.country || "",
+        venue: liveAddress?.name || "",
+        latitude: liveLocation.coords.latitude,
+        longitude: liveLocation.coords.longitude,
+      })
     }
-  }, [selectedLocation, liveLocation])
+  }, [selectedLocation, liveLocation, liveAddress])
 
   return (
     <EventCreationContext.Provider
@@ -84,8 +105,6 @@ export const EventCreationProvider = ({ children }: { children: ReactNode }) => 
         setDateTimeValidation,
         selectedLocation,
         setSelectedLocation,
-        images,
-        setImages,
         sections,
         setSections,
       }}

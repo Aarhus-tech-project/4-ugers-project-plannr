@@ -9,7 +9,8 @@ import EventSectionsStep from "@/components/event-creation/EventSectionsStep"
 import { EventCreationProvider, useEventCreation } from "@/context/EventCreationContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
-import { EventTheme, EventThemeName } from "@/interfaces/event"
+import { Event, EventLocation, EventPageSection, EventTheme, EventThemeName } from "@/interfaces/event"
+import { getEventDateRangeError } from "@/utils/date-range-validator"
 import { areAllSectionsFilled } from "@/utils/section-validator"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { router } from "expo-router"
@@ -29,8 +30,8 @@ const stepMeta = [
 
 type StepContentProps = {
   step: number
-  eventDetails: { title: string; themes: EventThemeName[] }
-  setEventDetails: (val: { title: string; themes: EventThemeName[] }) => void
+  eventDetails: { title: string; themes: EventThemeName[]; format: "inperson" | "online" | "hybrid" }
+  setEventDetails: (val: { title: string; themes: EventThemeName[]; format: "inperson" | "online" | "hybrid" }) => void
   allThemes: EventTheme[]
   setDetailsValidation: (v: EventDetailsStepValidation) => void
   customStart: Date | null
@@ -39,29 +40,29 @@ type StepContentProps = {
   setCustomEnd: (val: Date | null) => void
   dateTimeValidation: EventDateTimeStepValidation
   setDateTimeValidation: (v: EventDateTimeStepValidation) => void
-  selectedLocation: { latitude: number; longitude: number } | null
-  setSelectedLocation: (val: { latitude: number; longitude: number } | null) => void
-  images: import("@/components/event-creation/EventImagesStep").EventImage[]
-  setImages: (images: import("@/components/event-creation/EventImagesStep").EventImage[]) => void
+  selectedLocation: EventLocation | null
+  setSelectedLocation: (val: EventLocation | null) => void
+  sections: EventPageSection[]
+  setSections: (sections: EventPageSection[]) => void
 }
 
-function StepContent({
-  step,
-  eventDetails,
-  setEventDetails,
-  allThemes,
-  setDetailsValidation,
-  customStart,
-  setCustomStart,
-  customEnd,
-  setCustomEnd,
-  setDateTimeValidation,
-  selectedLocation,
-  setSelectedLocation,
-  images,
-  setImages,
-}: StepContentProps) {
-  // All defaults/initialization are handled in the provider. This component just passes props.
+function StepContent(props: StepContentProps) {
+  const {
+    step,
+    eventDetails,
+    setEventDetails,
+    allThemes,
+    setDetailsValidation,
+    customStart,
+    setCustomStart,
+    customEnd,
+    setCustomEnd,
+    setDateTimeValidation,
+    selectedLocation,
+    setSelectedLocation,
+    sections,
+    setSections,
+  } = props
   switch (step) {
     case 0:
       return (
@@ -85,7 +86,7 @@ function StepContent({
     case 2:
       return <EventLocationStep selectedLocation={selectedLocation} setSelectedLocation={setSelectedLocation} />
     case 3:
-      return <EventImagesStep images={images} setImages={setImages} />
+      return <EventImagesStep sections={sections} setSections={setSections} />
     case 4:
       return <EventSectionsStep />
     case 5:
@@ -148,17 +149,29 @@ function CreateEventScreenInner() {
     setDateTimeValidation,
     selectedLocation,
     setSelectedLocation,
-    images,
-    setImages,
     sections,
+    setSections,
   } = useEventCreation()
 
   const { visibleThemes } = useLazyEventThemes(10, 600)
 
   const handleSubmit = () => {
-    // Handle event submission logic here
-    console.log("Event submitted:", eventDetails)
-    router.back()
+    // Build full event object from all creation steps
+    const event: Event = {
+      // GUID CREATOR ID
+      creatorId: "123e4567-e89b-12d3-a456-426614174000",
+      title: eventDetails.title,
+      themes: eventDetails.themes,
+      format: eventDetails.format,
+      dateRange: {
+        startAt: customStart ?? new Date(),
+        endAt: customEnd ?? undefined,
+      },
+      location: selectedLocation ?? undefined,
+      sections: sections,
+    }
+    console.log("Event submitted:", JSON.stringify(event, null, 2))
+    //router.back()
   }
 
   const handleCancel = () => {
@@ -168,6 +181,7 @@ function CreateEventScreenInner() {
 
   const handleNext = useCallback(() => {
     setCurrentStep((s) => Math.min(s + 1, stepMeta.length - 1))
+    console.log("Next step", currentStep, stepMeta.length)
     if (currentStep === stepMeta.length - 1) {
       handleSubmit()
     }
@@ -187,15 +201,21 @@ function CreateEventScreenInner() {
   const isDetailsStep = stepMeta[currentStep].key === "details"
   const isDetailsValid = !detailsValidation.title && !detailsValidation.themes
   const isDateTimeStep = stepMeta[currentStep].key === "dateTime"
-  const isDateTimeValid = !dateTimeValidation.start && !dateTimeValidation.end
+  // Use shared validator for DRYness
+  let isDateTimeValid = false
+  if (customStart) {
+    const dateRange = { startAt: customStart, endAt: customEnd ?? undefined }
+    const dateRangeError = getEventDateRangeError(dateRange)
+    isDateTimeValid = !dateRangeError
+  }
   const isLocationStep = stepMeta[currentStep].key === "location"
   const isLocationValid =
     !!selectedLocation &&
     typeof selectedLocation.latitude === "number" &&
     typeof selectedLocation.longitude === "number"
   const isImagesStep = stepMeta[currentStep].key === "images"
-  const isImagesValid = images && images.length > 0
-
+  const imagesSection = sections.find((s) => s.type === "images")
+  const isImagesValid = !!imagesSection && Array.isArray(imagesSection.srcs) && imagesSection.srcs.length > 0
   const isSectionsStep = stepMeta[currentStep].key === "preferences"
   const isSectionsValid = areAllSectionsFilled(sections)
 
@@ -205,7 +225,7 @@ function CreateEventScreenInner() {
   else if (isDateTimeStep) isStepValid = isDateTimeValid
   else if (isLocationStep) isStepValid = isLocationValid
   else if (isImagesStep) isStepValid = isImagesValid
-  else if (isSectionsStep) isStepValid = isSectionsValid
+  else if (isSectionsStep) isStepValid = !!isSectionsValid
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -232,8 +252,8 @@ function CreateEventScreenInner() {
           setDateTimeValidation={setDateTimeValidation}
           selectedLocation={selectedLocation}
           setSelectedLocation={setSelectedLocation}
-          images={images}
-          setImages={setImages}
+          sections={sections}
+          setSections={setSections}
         />
       </ScrollView>
       <BottomButtonBar

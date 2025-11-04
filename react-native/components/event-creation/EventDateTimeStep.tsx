@@ -1,5 +1,6 @@
 import CustomDateRangeCalendar from "@/components/CustomDateRangeCalendar"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { getEventDateRangeError } from "@/utils/date-range-validator"
 import React, { useEffect, useState } from "react"
 import { Text, View } from "react-native"
 
@@ -26,13 +27,19 @@ export default function EventDateTimeStep({
   const theme = useCustomTheme()
   const [touched, setTouched] = useState<{ start: boolean; end: boolean }>({ start: false, end: false })
 
-  // Simple validation: required and end after start
-  const startError = !customStart ? "Start date/time is required" : ""
-  const endError = !customEnd
-    ? "End date/time is required"
-    : customStart && customEnd && customEnd <= customStart
-    ? "End must be after start"
-    : ""
+  // Use shared validator for DRYness
+  let startError: string | undefined = undefined
+  let endError: string | undefined = undefined
+  if (!customStart) {
+    startError = "Start date/time is required"
+  } else {
+    const dateRange = { startAt: customStart, endAt: customEnd ?? undefined }
+    const errorMsg = getEventDateRangeError(dateRange)
+    if (errorMsg) {
+      if (errorMsg.includes("Start")) startError = errorMsg
+      if (errorMsg.includes("End")) endError = errorMsg
+    }
+  }
 
   useEffect(() => {
     if (typeof onValidate === "function") {
@@ -48,7 +55,9 @@ export default function EventDateTimeStep({
         borderRadius: 16,
         padding: 20,
         marginBottom: 16,
+        alignSelf: "center",
       }}
+      accessibilityLabel="Event Date & Time Section"
     >
       <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18, marginBottom: 8 }}>
         Date & Time
@@ -67,12 +76,22 @@ export default function EventDateTimeStep({
         }}
       />
       {touched.start && startError ? (
-        <Text style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 12 }}>{startError}</Text>
+        <Text
+          style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 12 }}
+          accessibilityLabel="Start date error"
+        >
+          {startError}
+        </Text>
       ) : (
         <View style={{ height: 12, marginBottom: 12 }} />
       )}
       {touched.end && endError ? (
-        <Text style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 12 }}>{endError}</Text>
+        <Text
+          style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 12 }}
+          accessibilityLabel="End date error"
+        >
+          {endError}
+        </Text>
       ) : (
         <View style={{ height: 12, marginBottom: 12 }} />
       )}
