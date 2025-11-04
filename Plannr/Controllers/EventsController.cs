@@ -40,12 +40,8 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     }
 
     // POST: /api/events
-
-    public async Task<IActionResult> Create(
-       [FromBody, Bind(
-            "Title,Description,Format,StartAt,EndAt,AgeRestriction," +
-            "Location,Access,Attendance,Themes,Sections,Images,Prompts,CreatorId"
-        )] Event input)
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] Event input)
     {
         if (!ModelState.IsValid)
             return ValidationProblem(ModelState);
@@ -54,29 +50,33 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
             ModelState.AddModelError(nameof(input.Title), "Title is required.");
 
         if (string.IsNullOrWhiteSpace(input.Format))
-            input.Format = "inperson"; // fallback
+            input.Format = "inperson";
+
+        // Hvis klienten sender dateRange, så fold det ind i StartAt/EndAt
+        if (input.DateRange is not null)
+        {
+            input.StartAt = input.DateRange.StartAt;
+            input.EndAt = input.DateRange.EndAt;
+        }
 
         if (!ModelState.IsValid)
             return ValidationProblem(ModelState);
 
-        if (input.Id == Guid.Empty)
-            input.Id = Guid.NewGuid();
+        if (input.Id == Guid.Empty) input.Id = Guid.NewGuid();
 
-        // Fallback creator til testmiljø
         if (input.CreatorId == Guid.Empty)
         {
-            var seed = new Profile
+            var profile = new Profile
             {
                 Id = Guid.NewGuid(),
                 Email = "test@plannr.local",
                 Name = "Seeder"
             };
-            db.Profiles.Add(seed);
+            db.Profiles.Add(profile);
             await db.SaveChangesAsync();
-            input.CreatorId = seed.Id;
+            input.CreatorId = profile.Id;
         }
 
-        // Sæt FK på child entities
         if (input.Images is { Count: > 0 })
             foreach (var img in input.Images) img.EventId = input.Id;
 
