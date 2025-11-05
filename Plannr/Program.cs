@@ -1,106 +1,74 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.Mvc;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Plannr.Api.Data;
+using Plannr.Api.Models;
+using Plannr.Api.Services;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
-// CORS (justér origins til din frontend)
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("Default", p => p
-        .WithOrigins("http://localhost:3000", "https://plannr.azurewebsites.net")
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials());
-});
+// Db
+builder.Services.AddDbContext<ApplicationDbContext>(o =>
+    o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
-builder.Services.Configure<ApiBehaviorOptions>(options =>
-{
-    options.InvalidModelStateResponseFactory = ctx =>
-    {
-        var problem = new ValidationProblemDetails(ctx.ModelState)
-        {
-            Title = "Request validation failed.",
-            Status = StatusCodes.Status400BadRequest
-        };
-        return new BadRequestObjectResult(problem);
-    };
-});
-
+// Identity
 builder.Services
-    .AddControllers()
-    .AddJsonOptions(o =>
+    .AddIdentityCore<AppUser>(o =>
     {
-        o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-        o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-        o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+        o.User.RequireUniqueEmail = true;
+        o.Password.RequiredLength = 6;
+        o.Password.RequireNonAlphanumeric = false;
+        o.Password.RequireDigit = false;
+        o.Password.RequireUppercase = false;
+        o.Password.RequireLowercase = false;
+    })
+    .AddRoles<IdentityRole<Guid>>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddSignInManager();
+
+// JWT
+var jwt = builder.Configuration.GetSection("Jwt");
+var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(o =>
+    {
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwt["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwt["Audience"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = key,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(2)
+        };
     });
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// DB (PostgreSQL via Npgsql) — læser ConnectionStrings:DefaultConnection
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-WebApplication? app = builder.Build();
-
-// Swagger
-app.UseSwagger();
-app.UseSwaggerUI();
-
-// Respektér proxy-headere fra Azure Front Door/Load Balancer
-app.UseForwardedHeaders(new ForwardedHeadersOptions
+builder.Services.AddAuthorization();
+builder.Services.AddControllers().AddJsonOptions(opts =>
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor,
-    RequireHeaderSymmetry = false
+    // Hvis du bruger JsonDocument: ingen speciel config nødvendig
 });
 
-// Midlertidigt slukket for at undgå redirect-issues bag proxy
-// app.UseHttpsRedirection();
+builder.Services.AddScoped<JwtTokenService>();
 
-app.UseCors("Default");
+var app = builder.Build();
 
-app.Use(async (ctx, next) =>
+// Kør migrationer automatisk ved opstart (praktisk til dev/test)
+using (var scope = app.Services.CreateScope())
 {
-    Console.WriteLine($"--> {DateTimeOffset.UtcNow:o} {ctx.Request.Method} {ctx.Request.Path}");
-    try
-    {
-        await next();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"!!! {ex.GetType().Name}: {ex.Message}");
-        throw;
-    }
-    finally
-    {
-        Console.WriteLine($"<-- {DateTimeOffset.UtcNow:o} {ctx.Response.StatusCode} {ctx.Request.Path}");
-    }
-});
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
-// Små sanity-endpoints
-app.MapGet("/", () => Results.Text("Plannr API is running"));
-app.MapGet("/ping", () => Results.Ok(new { ok = true, t = DateTimeOffset.UtcNow }));
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
-
-// Kør migrationer ved opstart, men lad ikke hele app’en dø hvis DB driller
-using (IServiceScope? scope = app.Services.CreateScope())
-{
-    try
-    {
-        ApplicationDbContext? db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        db.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        // Logger kun – vi vil stadig kunne ramme /ping og /health til debugging
-        app.Logger.LogError(ex, "DB migrate failed at startup");
-    }
-}
 
 app.Run();

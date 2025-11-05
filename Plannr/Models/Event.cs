@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using System.Text.Json;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Plannr.Api.Models;
 
@@ -20,20 +20,22 @@ public class Event
     public EventLocation? Location { get; set; }
     public EventAccess? Access { get; set; }
     public EventAttendance? Attendance { get; set; }
+
     public int? AgeRestriction { get; set; }
     public List<string>? Themes { get; set; }
     public JsonDocument? Sections { get; set; }
 
+    // Creator er en Profile
     public Guid CreatorId { get; set; }
 
     [JsonIgnore]
-    [ValidateNever] // undgå “Creator is required”
+    [ValidateNever]
     public Profile Creator { get; set; } = default!;
 
     public ICollection<EventImage> Images { get; set; } = new List<EventImage>();
     public ICollection<EventPrompt> Prompts { get; set; } = new List<EventPrompt>();
 
-    // Valgfri “adapter” for din klient: accepter "dateRange" i request uden at mappe det til DB
+    // Valgfri adapter hvis din klient sender dateRange
     [NotMapped]
     public EventDateRange? DateRange { get; set; }
 }

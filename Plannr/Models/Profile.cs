@@ -5,6 +5,13 @@ namespace Plannr.Api.Models;
 public class Profile
 {
     public Guid Id { get; set; }
+
+    // Link til Identity-bruger
+    public Guid UserId { get; set; }
+
+    [JsonIgnore]
+    public AppUser User { get; set; } = default!;
+
     public string Email { get; set; } = default!;
     public string Name { get; set; } = default!;
     public string? Bio { get; set; }

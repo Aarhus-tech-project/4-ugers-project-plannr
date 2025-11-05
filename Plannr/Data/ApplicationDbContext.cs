@@ -1,10 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Plannr.Api.Models;
-using System.Text.Json;
 
 namespace Plannr.Api.Data;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options)
 {
     public DbSet<Profile> Profiles => Set<Profile>();
     public DbSet<Event> Events => Set<Event>();
@@ -24,6 +26,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.Property(p => p.Phone).HasMaxLength(50);
             b.Property(p => p.AvatarUrl).HasMaxLength(1000);
             b.HasIndex(p => p.Email).IsUnique();
+
+            // 1:1 AppUser -> Profile
+            b.HasOne(p => p.User)
+             .WithOne(u => u.Profile)
+             .HasForeignKey<Profile>(p => p.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
 
         // EVENT
@@ -32,27 +40,20 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.Property(e => e.Title).HasMaxLength(200).IsRequired();
             b.Property(e => e.Description).HasMaxLength(4000);
 
-            // format: "inperson" | "online" | "hybrid" (gemmes som lower-case string)
             b.Property(e => e.Format)
-                .HasMaxLength(16)
-                .IsRequired();
+             .HasMaxLength(16)
+             .HasDefaultValue("inperson")
+             .IsRequired();
 
-            // themes: text[]
-            b.Property(e => e.Themes)
-                .HasColumnType("text[]");
-
-            // sections: jsonb
-            b.Property(e => e.Sections)
-                .HasColumnType("jsonb");
-
+            b.Property(e => e.Themes).HasColumnType("text[]");
+            b.Property(e => e.Sections).HasColumnType("jsonb");
             b.Property(e => e.AgeRestriction);
 
             b.HasOne(e => e.Creator)
-                .WithMany(p => p.EventsCreated)
-                .HasForeignKey(e => e.CreatorId)
-                .OnDelete(DeleteBehavior.Restrict);
+             .WithMany(p => p.EventsCreated)
+             .HasForeignKey(e => e.CreatorId)
+             .OnDelete(DeleteBehavior.Restrict);
 
-            // Location som owned type i separat tabel
             b.OwnsOne(e => e.Location, loc =>
             {
                 loc.Property(l => l.Address).HasMaxLength(300);
@@ -68,19 +69,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 loc.HasKey("EventId");
             });
 
-            // Access som owned type (kolonner på Events)
             b.OwnsOne(e => e.Access, acc =>
             {
                 acc.Property(a => a.Instruction).HasMaxLength(2000);
                 acc.Property(a => a.Password).HasMaxLength(200);
             });
 
-            // Attendance som owned type (kolonner på Events)
-            b.OwnsOne(e => e.Attendance, att =>
-            {
-                // int? felter, ingen ekstra konfiguration nødvendig
-            });
-
+            b.OwnsOne(e => e.Attendance);
             b.HasIndex(e => e.StartAt);
         });
 
@@ -89,9 +84,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         {
             b.Property(i => i.Src).HasMaxLength(1000).IsRequired();
             b.HasOne(i => i.Event)
-                .WithMany(e => e.Images)
-                .HasForeignKey(i => i.EventId)
-                .OnDelete(DeleteBehavior.Cascade);
+             .WithMany(e => e.Images)
+             .HasForeignKey(i => i.EventId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
 
         // EVENT PROMPT
@@ -100,9 +95,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.Property(p => p.Prompt).HasMaxLength(500).IsRequired();
             b.Property(p => p.Answer).HasMaxLength(2000).IsRequired();
             b.HasOne(p => p.Event)
-                .WithMany(e => e.Prompts)
-                .HasForeignKey(p => p.EventId)
-                .OnDelete(DeleteBehavior.Cascade);
+             .WithMany(e => e.Prompts)
+             .HasForeignKey(p => p.EventId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
