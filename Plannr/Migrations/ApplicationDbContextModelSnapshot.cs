@@ -365,7 +365,8 @@ namespace Plannr.Migrations
                         .IsUnique();
 
                     b.HasIndex("UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"UserId\" IS NOT NULL");
 
                     b.ToTable("Profiles");
                 });
@@ -551,8 +552,7 @@ namespace Plannr.Migrations
                     b.HasOne("Plannr.Api.Models.AppUser", "User")
                         .WithOne("Profile")
                         .HasForeignKey("Plannr.Api.Models.Profile", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });

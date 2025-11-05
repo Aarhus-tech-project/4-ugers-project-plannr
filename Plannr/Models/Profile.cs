@@ -7,10 +7,10 @@ public class Profile
     public Guid Id { get; set; }
 
     // Link til Identity-bruger
-    public Guid UserId { get; set; }
+    public Guid? UserId { get; set; }
 
     [JsonIgnore]
-    public AppUser User { get; set; } = default!;
+    public AppUser? User { get; set; } = default!;
 
     public string Email { get; set; } = default!;
     public string Name { get; set; } = default!;
