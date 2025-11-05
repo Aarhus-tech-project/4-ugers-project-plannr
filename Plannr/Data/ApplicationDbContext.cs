@@ -27,7 +27,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.Property(p => p.AvatarUrl).HasMaxLength(1000);
             b.HasIndex(p => p.Email).IsUnique();
 
-            // 1:1 AppUser -> Profile
             b.HasOne(p => p.User)
              .WithOne(u => u.Profile)
              .HasForeignKey<Profile>(p => p.UserId)
@@ -63,10 +62,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 loc.Property(l => l.Latitude).HasPrecision(9, 6);
                 loc.Property(l => l.Longitude).HasPrecision(9, 6);
 
+                // Læg i separat tabel for klarhed
                 loc.ToTable("EventLocations");
                 loc.WithOwner().HasForeignKey("EventId");
                 loc.Property<Guid>("EventId");
                 loc.HasKey("EventId");
+
+                // Simple B-tree indeks; ikke magisk til kugleafstand, men hjælper på prefilters
+                loc.HasIndex(l => new { l.Latitude, l.Longitude });
             });
 
             b.OwnsOne(e => e.Access, acc =>
