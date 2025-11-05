@@ -4,10 +4,11 @@ import FilterModal from "@/components/FilterModal"
 import { StatsCard } from "@/components/StatsCard"
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
 import mockEvents from "@/data/mockEvents.data"
-import { mockProfile } from "@/data/mockProfile.data"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
 import { useScrollDrivenAnimation } from "@/hooks/useScrollDrivenAnimation"
+import { useSession, useUserProfileFilters } from "@/hooks/useSession"
+import type { Profile } from "@/interfaces/profile"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useFocusEffect } from "@react-navigation/native"
 import dayjs from "dayjs"
@@ -42,7 +43,11 @@ export default function Home() {
     }, [scrollY, setScrollY])
   )
   const theme = useCustomTheme()
-  const { likedEvents = [], filters: initialFilters, subscribedEvents = [] } = mockProfile
+  const { session } = useSession()
+  const userProfile: Profile | undefined = session?.user as Profile | undefined
+  const likedEvents = Array.isArray(userProfile?.likedEvents) ? userProfile.likedEvents : []
+  const subscribedEvents = Array.isArray(userProfile?.subscribedEvents) ? userProfile.subscribedEvents : []
+  const initialFilters = useUserProfileFilters(userProfile)
   const { location: liveLocation, address: liveAddress } = useLiveLocation()
   const eventsNearby = useMemo(() => {
     if (!liveLocation?.coords) return []
@@ -84,31 +89,16 @@ export default function Home() {
       totalInterested,
     }
   }, [liveLocation, eventsNearby])
-  const initialFormats = initialFilters?.formats ?? []
-  const initialSelectedThemes = initialFilters?.eventThemes ?? []
-  const initialRange = initialFilters?.location?.range ?? 50
-  const initialUseCurrentLocation = initialFilters?.location?.useCurrent ?? true
-  const initialCustomLocation = initialFilters?.location?.custom ?? null
-  const initialDateRange = initialFilters?.dateRange ?? undefined
-  const initialCustomStart = initialDateRange?.custom?.startDate ?? null
-  const initialCustomEnd = initialDateRange?.custom?.endDate ?? null
+  const initialFormats = initialFilters.formats
+  const initialSelectedThemes = initialFilters.eventThemes
+  const initialRange = initialFilters.location.range
+  const initialUseCurrentLocation = initialFilters.location.useCurrent
+  const initialCustomLocation = initialFilters.location.custom
+  const initialDateRange = initialFilters.dateRange
+  const initialCustomStart = initialDateRange.custom?.startDate ?? null
+  const initialCustomEnd = initialDateRange.custom?.endDate ?? null
   const [filterModalVisible, setFilterModalVisible] = useState(false)
-  function dateRangeModeToCurrent(mode: any) {
-    return {
-      day: !!mode?.daily,
-      week: !!mode?.weekly,
-      month: !!mode?.monthly,
-      year: !!mode?.yearly,
-    }
-  }
-  function currentToDateRangeMode(current: any) {
-    return {
-      daily: !!current?.day,
-      weekly: !!current?.week,
-      monthly: !!current?.month,
-      yearly: !!current?.year,
-    }
-  }
+
   const [filters, setFilters] = useState({
     formats: initialFormats,
     selectedThemes: initialSelectedThemes,
@@ -117,9 +107,7 @@ export default function Home() {
     selectedLocation: initialCustomLocation,
     customStart: initialCustomStart,
     customEnd: initialCustomEnd,
-    dateRangeMode: initialDateRange?.current
-      ? dateRangeModeToCurrent(currentToDateRangeMode(initialDateRange.current))
-      : dateRangeModeToCurrent(undefined),
+    dateRange: initialDateRange ?? {},
   })
   const now = new Date()
   // Find event objects by id for liked and subscribed events
@@ -156,16 +144,16 @@ export default function Home() {
           eventEnd >= dayjs.utc(filters.customStart).valueOf() && eventStart <= dayjs.utc(filters.customEnd).valueOf()
         )
       })
-    } else if (filters.dateRangeMode) {
+    } else if (filters.dateRange && filters.dateRange.current) {
       let rangeStart = dayjs.utc(now)
       let rangeEnd = null
-      if (filters.dateRangeMode.day) {
+      if (filters.dateRange.current.day) {
         rangeEnd = rangeStart.endOf("day")
-      } else if (filters.dateRangeMode.week) {
+      } else if (filters.dateRange.current.week) {
         rangeEnd = rangeStart.endOf("week")
-      } else if (filters.dateRangeMode.month) {
+      } else if (filters.dateRange.current.month) {
         rangeEnd = rangeStart.endOf("month")
-      } else if (filters.dateRangeMode.year) {
+      } else if (filters.dateRange.current.year) {
         rangeEnd = rangeStart.endOf("year")
       }
       if (rangeEnd) {
@@ -215,13 +203,9 @@ export default function Home() {
         visible={filterModalVisible}
         initial={{
           ...filters,
-          dateRangeMode: currentToDateRangeMode(filters.dateRangeMode),
         }}
         onClose={() => setFilterModalVisible(false)}
         onApply={(newFilters) => {
-          const mode = newFilters.dateRangeMode || {}
-          const dateRangeMode = dateRangeModeToCurrent(mode)
-          const isCustom = !!mode.custom
           setFilters({
             formats: newFilters.formats ?? filters.formats,
             selectedThemes: newFilters.selectedThemes ?? filters.selectedThemes,
@@ -238,17 +222,10 @@ export default function Home() {
                     latitude: newFilters.selectedLocation.latitude,
                     longitude: newFilters.selectedLocation.longitude,
                   }
-                : filters.selectedLocation &&
-                  typeof filters.selectedLocation.latitude === "number" &&
-                  typeof filters.selectedLocation.longitude === "number"
-                ? {
-                    latitude: filters.selectedLocation.latitude,
-                    longitude: filters.selectedLocation.longitude,
-                  }
-                : null,
-            customStart: isCustom ? newFilters.customStart ?? filters.customStart : null,
-            customEnd: isCustom ? newFilters.customEnd ?? filters.customEnd : null,
-            dateRangeMode,
+                : undefined,
+            customStart: newFilters.customStart ?? filters.customStart,
+            customEnd: newFilters.customEnd ?? filters.customEnd,
+            dateRange: newFilters.dateRange ?? filters.dateRange,
           })
           setFilterModalVisible(false)
         }}

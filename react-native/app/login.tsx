@@ -1,115 +1,32 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useSession } from "@/hooks/useSession"
-import { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } from "@env"
-import { FontAwesome } from "@expo/vector-icons"
-import * as AuthSession from "expo-auth-session"
+import { MaterialCommunityIcons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
-import React from "react"
-import { Button, Surface } from "react-native-paper"
+import React, { useState } from "react"
+import { Button, Surface, Text, TextInput } from "react-native-paper"
 
 export default function Login() {
   const router = useRouter()
-  const [loginProvider, setLoginProvider] = React.useState<"google" | "github" | null>(null)
-  const { setSession } = useSession()
-  const [loading, setLoading] = React.useState(false)
   const theme = useCustomTheme()
+  const { login } = useSession()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
-  const handleGoogleLogin = async () => {
-    setLoginProvider("google")
-    setLoginProvider(null)
-    // Implement Google OAuth login flow here
-  }
-  const handleGithubLogin = async () => {
-    setLoginProvider("github")
-    if (loading) return
+  // Manual login
+  const handleManualLogin = async () => {
     setLoading(true)
-    const clientId = GITHUB_CLIENT_ID || ""
-    const redirectUri = AuthSession.makeRedirectUri()
-
-    const discovery = {
-      authorizationEndpoint: "https://github.com/login/oauth/authorize",
-      tokenEndpoint: "https://github.com/login/oauth/access_token",
-    }
-    const request = new AuthSession.AuthRequest({
-      clientId,
-      redirectUri,
-      scopes: ["read:user", "user:email"],
-      responseType: AuthSession.ResponseType.Code,
-    })
-    await request.makeAuthUrlAsync(discovery)
-
+    setError("")
     try {
-      const result = await request.promptAsync(discovery)
-      if (result.type === "success" && result.params?.code) {
-        // Exchange code for access token (demo only, do this on backend in production)
-        const code = result.params.code
-        const clientId = GITHUB_CLIENT_ID || ""
-        const clientSecret = GITHUB_CLIENT_SECRET || ""
-        const codeVerifier = request.codeVerifier // PKCE code_verifier
-        const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            client_id: clientId,
-            client_secret: clientSecret,
-            code,
-            redirect_uri: redirectUri,
-            code_verifier: codeVerifier,
-          }),
-        })
-        const tokenData = await tokenResponse.json()
-        if (tokenData.access_token) {
-          try {
-            const userRes = await fetch("https://api.github.com/user", {
-              headers: {
-                Authorization: `Bearer ${tokenData.access_token}`,
-                Accept: "application/vnd.github+json",
-              },
-            })
-            const userData = await userRes.json()
-            // Fetch emails
-            let email = userData.email
-            if (!email) {
-              try {
-                const emailRes = await fetch("https://api.github.com/user/emails", {
-                  headers: {
-                    Authorization: `Bearer ${tokenData.access_token}`,
-                    Accept: "application/vnd.github+json",
-                  },
-                })
-                const emails = await emailRes.json()
-                if (Array.isArray(emails)) {
-                  const primaryEmail = emails?.find((e) => e.brand.red && e.verified)
-                  email = primaryEmail?.email || emails[0]?.email || null
-                }
-              } catch (emailErr) {
-                console.error("Failed to fetch GitHub emails:", emailErr)
-              }
-            }
-            setSession({
-              user: {
-                name: userData.name,
-                avatarUrl: userData.avatar_url,
-                email,
-                location: userData.location,
-              },
-              provider: "github",
-              token: tokenData.access_token,
-            })
-            router.replace("/(tabs)")
-          } catch (err) {
-            console.error("Failed to fetch GitHub user info:", err)
-          }
-        }
-      }
-    } catch (error) {
-      console.error("GitHub login error (exception):", error)
+      await login(email, password)
+      router.replace("/(tabs)")
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || "Login failed. User not found or credentials incorrect.")
     } finally {
       setLoading(false)
-      setLoginProvider(null)
     }
   }
 
@@ -120,45 +37,69 @@ export default function Login() {
         justifyContent: "center",
         alignItems: "center",
         padding: 24,
+        backgroundColor: theme.colors.background,
       }}
     >
+      <Text style={{ fontSize: 32, fontWeight: "bold", marginBottom: 16, color: theme.colors.onBackground }}>
+        Login
+      </Text>
+      <TextInput
+        label="Email"
+        value={email}
+        onChangeText={setEmail}
+        style={{ width: 260, marginBottom: 8 }}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        mode="outlined"
+        autoComplete="email"
+        textContentType="emailAddress"
+        outlineColor={theme.colors.gray[300]}
+        activeOutlineColor={theme.colors.brand.red}
+        outlineStyle={{ borderRadius: 12 }}
+        left={
+          <TextInput.Icon
+            icon={() => <MaterialCommunityIcons name="email-outline" size={22} color={theme.colors.brand.red} />}
+          />
+        }
+      />
+      <TextInput
+        label="Password"
+        value={password}
+        onChangeText={setPassword}
+        style={{ width: 260, marginBottom: 8 }}
+        secureTextEntry={!showPassword}
+        mode="outlined"
+        autoComplete={"password"}
+        textContentType="password"
+        outlineColor={theme.colors.gray[300]}
+        activeOutlineColor={theme.colors.brand.red}
+        outlineStyle={{ borderRadius: 12 }}
+        left={
+          <TextInput.Icon
+            icon={() => <MaterialCommunityIcons name="lock-outline" size={22} color={theme.colors.brand.red} />}
+          />
+        }
+        right={<TextInput.Icon icon={showPassword ? "eye-off" : "eye"} onPress={() => setShowPassword((v) => !v)} />}
+      />
+
       <Button
-        mode="contained-tonal"
-        onPress={handleGoogleLogin}
-        style={{
-          borderRadius: 24,
-          marginVertical: 8,
-          width: 260,
-          backgroundColor: theme.colors.brand.blue,
-          opacity: loading ? 0.6 : 1,
-        }}
-        labelStyle={{
-          color: theme.colors.white,
-          fontSize: theme.fonts.bodyLarge.fontSize,
-          letterSpacing: 0.2,
-        }}
-        disabled={loading}
-        icon={() => <FontAwesome name="google" size={22} color={theme.colors.white} style={{ marginRight: 8 }} />}
+        mode="contained"
+        onPress={handleManualLogin}
+        style={{ borderRadius: 24, marginTop: 8, width: 260, backgroundColor: theme.colors.brand.red }}
+        loading={loading}
+        disabled={!email || !password}
+        labelStyle={{ color: theme.colors.white }}
       >
-        {loading && loginProvider === "google" ? "Logging in..." : "Login with Google"}
+        Login
       </Button>
+      {error ? <Text style={{ color: theme.colors.error, marginTop: 12 }}>{error}</Text> : null}
       <Button
-        mode="contained-tonal"
-        onPress={handleGithubLogin}
-        style={{
-          borderRadius: 24,
-          marginVertical: 8,
-          width: 260,
-          backgroundColor: theme.colors.brand.black,
-        }}
-        labelStyle={{
-          color: theme.colors.white,
-          fontSize: theme.fonts.bodyLarge.fontSize,
-          letterSpacing: 0.2,
-        }}
-        icon={() => <FontAwesome name="github" size={22} color={theme.colors.white} style={{ marginRight: 8 }} />}
+        mode="text"
+        onPress={() => router.replace("/create-account")}
+        style={{ marginTop: 16 }}
+        labelStyle={{ color: theme.colors.brand.red }}
       >
-        {loading && loginProvider === "github" ? "Logging in..." : "Login with GitHub"}
+        Don't have an account? Sign Up
       </Button>
     </Surface>
   )

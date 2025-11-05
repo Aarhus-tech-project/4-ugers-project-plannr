@@ -1,3 +1,4 @@
+import LogoutButton from "@/components/LogoutButton"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
@@ -9,7 +10,7 @@ import { useSession } from "../../hooks/useSession"
 export default function Settings() {
   const router = useRouter()
   const theme = useCustomTheme()
-  const { session, setSession } = useSession()
+  const { session } = useSession()
   const navigatingPreferences = useRef(false)
   const navigatingAccount = useRef(false)
   // Helper to robustly reset navigation lock after a delay
@@ -171,24 +172,7 @@ export default function Settings() {
           </TouchableOpacity>
         </View>
         {/* Logout Button */}
-        <TouchableOpacity
-          style={{
-            width: "90%",
-            backgroundColor: theme.colors.brand.red,
-            borderRadius: 16,
-            padding: 16,
-            marginTop: 8,
-            marginBottom: 32,
-            alignItems: "center",
-          }}
-          activeOpacity={0.8}
-          onPress={() => {
-            setSession(null)
-            router.replace("/login")
-          }}
-        >
-          <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 18 }}>Log out</Text>
-        </TouchableOpacity>
+        <LogoutButton />
       </ScrollView>
     </>
   )

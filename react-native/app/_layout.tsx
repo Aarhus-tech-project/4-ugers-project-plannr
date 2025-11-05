@@ -1,16 +1,18 @@
+import CreateAccountScreen from "@/app/create-account"
 import LoginScreen from "@/app/login"
 import GestureRoot from "@/components/GestureRoot"
-import KeyboardDismissRoot from "@/components/KeyboardDismissRoot"
+import GlobalKeyboardDismiss from "@/components/GlobalKeyboardDismiss"
 import { SessionProvider, useSession } from "@/hooks/useSession"
 import { darkTheme, lightTheme } from "@/theme"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
-import { Stack } from "expo-router"
+import { Stack, useSegments } from "expo-router"
 import * as React from "react"
 import { ActivityIndicator, ScrollView, useColorScheme, View } from "react-native"
 import { PaperProvider } from "react-native-paper"
 
 function AppContent() {
   const { session, loading } = useSession()
+  const segments = useSegments()
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -18,13 +20,18 @@ function AppContent() {
       </View>
     )
   }
-  if (!session) return <LoginScreen />
-
+  if (!session) {
+    // Show create account page if route is /create-account
+    if (segments[0] === "create-account") {
+      return <CreateAccountScreen />
+    }
+    return <LoginScreen />
+  }
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: "slide_from_right", // enables slide transition
+        animation: "slide_from_right",
       }}
     />
   )
@@ -46,13 +53,13 @@ export default function RootLayout() {
   return (
     <SessionProvider>
       <PaperProvider theme={theme}>
-        <GestureRoot>
-          <KeyboardDismissRoot>
+        <GlobalKeyboardDismiss>
+          <GestureRoot>
             <BottomSheetModalProvider>
               <AppContent />
             </BottomSheetModalProvider>
-          </KeyboardDismissRoot>
-        </GestureRoot>
+          </GestureRoot>
+        </GlobalKeyboardDismiss>
       </PaperProvider>
     </SessionProvider>
   )

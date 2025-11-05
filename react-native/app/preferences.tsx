@@ -36,9 +36,7 @@ export default function Preferences() {
 
   const [useCurrentLocation, setUseCurrentLocation] = React.useState(true)
 
-  const [selectedLocation, setSelectedLocation] = React.useState<Pick<EventLocation, "latitude" | "longitude"> | null>(
-    null
-  )
+  const [selectedLocation, setSelectedLocation] = React.useState<EventLocation | null>(null)
   const { visibleThemes } = useLazyEventThemes(10, 600)
   const { location: liveLocation } = useLiveLocation()
   const locationLoading = !liveLocation
@@ -94,22 +92,7 @@ export default function Preferences() {
           <LocationOptionSelector useCurrentLocation={useCurrentLocation} onChange={setUseCurrentLocation} />
           <View style={{ position: "relative" }}>
             <MapPicker
-              location={
-                useCurrentLocation
-                  ? liveLocation
-                    ? {
-                        latitude: liveLocation.coords.latitude,
-                        longitude: liveLocation.coords.longitude,
-                      }
-                    : null
-                  : selectedLocation ??
-                    (liveLocation
-                      ? {
-                          latitude: liveLocation.coords.latitude,
-                          longitude: liveLocation.coords.longitude,
-                        }
-                      : null)
-              }
+              location={useCurrentLocation ? null : selectedLocation}
               range={range * 1000}
               {...(!useCurrentLocation && { onLocationChange: setSelectedLocation })}
               {...(useCurrentLocation && { disableSelection: true })}

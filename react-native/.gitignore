@@ -50,3 +50,9 @@ app-example
 
 # DS_Store
 *.DS_Store
+
+# expo*
+.expo/
+.expo-shared/
+# EAS
+.eas/

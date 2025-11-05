@@ -13,8 +13,8 @@ import { Event, EventLocation, EventPageSection, EventTheme, EventThemeName } fr
 import { getEventDateRangeError } from "@/utils/date-range-validator"
 import { areAllSectionsFilled } from "@/utils/section-validator"
 import { FontAwesome6 } from "@expo/vector-icons"
-import { router } from "expo-router"
-import React, { useCallback, useState } from "react"
+import { router, useLocalSearchParams } from "expo-router"
+import React, { useCallback, useEffect, useState } from "react"
 import { ScrollView, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native-paper"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -96,7 +96,7 @@ function StepContent(props: StepContentProps) {
   }
 }
 
-function CreateEventHeader({ theme }: { theme: ReturnType<typeof useCustomTheme> }) {
+function CreateEventHeader({ theme, isEditing }: { theme: ReturnType<typeof useCustomTheme>; isEditing?: boolean }) {
   return (
     <View
       style={{
@@ -126,7 +126,7 @@ function CreateEventHeader({ theme }: { theme: ReturnType<typeof useCustomTheme>
           left: 40,
         }}
       >
-        Create Event
+        {isEditing ? "Edit Event" : "Create Event"}
       </Text>
     </View>
   )
@@ -135,6 +135,7 @@ function CreateEventHeader({ theme }: { theme: ReturnType<typeof useCustomTheme>
 function CreateEventScreenInner() {
   const theme = useCustomTheme()
   const [currentStep, setCurrentStep] = useState(0)
+  const params = useLocalSearchParams()
   // All event creation state comes from useEventCreation (provider handles defaults)
   const {
     eventDetails,
@@ -152,6 +153,24 @@ function CreateEventScreenInner() {
     sections,
     setSections,
   } = useEventCreation()
+
+  // Prefill context if editing
+  useEffect(() => {
+    if (params.event) {
+      try {
+        const event = JSON.parse(params.event as string)
+        setEventDetails({
+          title: event.title || "",
+          themes: event.themes || [],
+          format: event.format || "inperson",
+        })
+        setCustomStart(event.dateRange?.startAt ? new Date(event.dateRange.startAt) : null)
+        setCustomEnd(event.dateRange?.endAt ? new Date(event.dateRange.endAt) : null)
+        setSelectedLocation(event.location || null)
+        setSections(event.sections || [])
+      } catch {}
+    }
+  }, [params.event])
 
   const { visibleThemes } = useLazyEventThemes(10, 600)
 
@@ -227,9 +246,20 @@ function CreateEventScreenInner() {
   else if (isImagesStep) isStepValid = isImagesValid
   else if (isSectionsStep) isStepValid = !!isSectionsValid
 
+  const isEditing =
+    !!params.event &&
+    (() => {
+      try {
+        const event = JSON.parse(params.event as string)
+        return !!event && !!event.title
+      } catch {
+        return false
+      }
+    })()
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <CreateEventHeader theme={theme} />
+      <CreateEventHeader theme={theme} isEditing={isEditing} />
       <View style={{ backgroundColor: theme.colors.secondary }}>
         <Stepper steps={stepMeta} currentStep={currentStep} />
       </View>

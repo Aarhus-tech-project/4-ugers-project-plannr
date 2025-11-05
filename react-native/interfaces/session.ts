@@ -1,13 +1,11 @@
-export type ProviderType = "github" | "google"
+export type ProviderType = "github" | "google" | "manual" | "slack"
 
-export interface GithubUser {
+export type SessionUser = {
   name: string | null
-  avatarUrl: string
+  lastName: string | null
   email: string | null
-  location: string | null
+  avatarUrl: string
 }
-
-export type SessionUser = GithubUser
 
 export interface Session {
   user: SessionUser
