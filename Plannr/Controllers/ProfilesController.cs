@@ -53,6 +53,7 @@ public class ProfilesController(ApplicationDbContext db) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = input.Id }, input);
     }
 
+    // PUT: /api/profiles/{id}
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] Profile updated)
     {
@@ -78,7 +79,6 @@ public class ProfilesController(ApplicationDbContext db) : ControllerBase
         profile.Phone = updated.Phone;
         profile.AvatarUrl = updated.AvatarUrl;
 
-        // Event arrays – hvis klienten sender null, behold eksisterende
         if (updated.InterestedEvents is not null)
             profile.InterestedEvents = updated.InterestedEvents.Distinct().ToList();
         if (updated.GoingToEvents is not null)

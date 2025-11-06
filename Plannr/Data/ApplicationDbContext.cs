@@ -13,6 +13,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<AppUser>().ToTable("AspNetUsers");
 
         // PROFILE
         modelBuilder.Entity<Profile>(b =>
