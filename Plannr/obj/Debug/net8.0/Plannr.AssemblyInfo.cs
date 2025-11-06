@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Plannr")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fe0b486877f144d0fd226b0cef14ab82ecfc5b5a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d600208bc356c43024f7062087fa16ea7e754f88")]
 [assembly: System.Reflection.AssemblyProductAttribute("Plannr")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Plannr")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

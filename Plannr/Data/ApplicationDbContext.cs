@@ -28,10 +28,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.HasIndex(p => p.UserId).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
 
             // UUID arrays (Npgsql mapper List<Guid> -> uuid[])
-            b.Property(p => p.InterestedEvents).HasColumnType("uuid[]");
-            b.Property(p => p.GoingToEvents).HasColumnType("uuid[]");
-            b.Property(p => p.CheckedInEvents).HasColumnType("uuid[]");
-            b.Property(p => p.NotInterestedEvents).HasColumnType("uuid[]");
+            b.Property(p => p.InterestedEvents).HasColumnType("uuid[]").HasDefaultValueSql("'{}'::uuid[]");
+            b.Property(p => p.GoingToEvents).HasColumnType("uuid[]").HasDefaultValueSql("'{}'::uuid[]");
+            b.Property(p => p.CheckedInEvents).HasColumnType("uuid[]").HasDefaultValueSql("'{}'::uuid[]");
+            b.Property(p => p.NotInterestedEvents).HasColumnType("uuid[]").HasDefaultValueSql("'{}'::uuid[]");
         });
 
         // EVENT
