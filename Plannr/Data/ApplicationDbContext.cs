@@ -1,12 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Plannr.Api.Models;
 
 namespace Plannr.Api.Data;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-    : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
     public DbSet<Profile> Profiles => Set<Profile>();
     public DbSet<Event> Events => Set<Event>();
@@ -27,12 +24,17 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.Property(p => p.AvatarUrl).HasMaxLength(1000);
             b.HasIndex(p => p.Email).IsUnique();
 
-            b.HasOne(p => p.User)
-             .WithOne(u => u.Profile)
-             .HasForeignKey<Profile>(p => p.UserId)
-             .OnDelete(DeleteBehavior.Cascade);
+            // Optional relation til AppUser via UserId
+            b.HasIndex(p => p.UserId).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
+
+            // UUID arrays (Npgsql mapper List<Guid> -> uuid[])
+            b.Property(p => p.InterestedEvents).HasColumnType("uuid[]");
+            b.Property(p => p.GoingToEvents).HasColumnType("uuid[]");
+            b.Property(p => p.CheckedInEvents).HasColumnType("uuid[]");
+            b.Property(p => p.NotInterestedEvents).HasColumnType("uuid[]");
         });
 
+        // EVENT
         // EVENT
         modelBuilder.Entity<Event>(b =>
         {

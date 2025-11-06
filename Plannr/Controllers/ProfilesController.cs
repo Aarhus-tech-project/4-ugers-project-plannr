@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Plannr.Api.Data;
 using Plannr.Api.Models;
+using System.Security.Claims;
 
 namespace Plannr.Api.Controllers;
 
@@ -11,7 +12,6 @@ namespace Plannr.Api.Controllers;
 public class ProfilesController(ApplicationDbContext db) : ControllerBase
 {
     // POST: /api/profiles
-    // Opret en ny profil. Email er unik.
     [HttpPost]
     public async Task<IActionResult> Create(
         [FromBody, Bind("Email,Name,Bio,Phone,AvatarUrl")] Profile input)
@@ -51,6 +51,45 @@ public class ProfilesController(ApplicationDbContext db) : ControllerBase
         await db.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetById), new { id = input.Id }, input);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] Profile updated)
+    {
+        if (id != updated.Id && updated.Id != Guid.Empty)
+            return BadRequest("Profile ID mismatch.");
+
+        var profile = await db.Profiles.FindAsync(id);
+        if (profile == null)
+            return NotFound();
+
+        // Ejer-check (valgfri men anbefalet)
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        if (userIdStr != null && Guid.TryParse(userIdStr, out var userId))
+        {
+            if (profile.UserId != null && profile.UserId != userId)
+                return Forbid();
+        }
+
+        // Basale felter
+        profile.Name = string.IsNullOrWhiteSpace(updated.Name) ? profile.Name : updated.Name.Trim();
+        profile.Email = string.IsNullOrWhiteSpace(updated.Email) ? profile.Email : updated.Email.Trim();
+        profile.Bio = updated.Bio;
+        profile.Phone = updated.Phone;
+        profile.AvatarUrl = updated.AvatarUrl;
+
+        // Event arrays – hvis klienten sender null, behold eksisterende
+        if (updated.InterestedEvents is not null)
+            profile.InterestedEvents = updated.InterestedEvents.Distinct().ToList();
+        if (updated.GoingToEvents is not null)
+            profile.GoingToEvents = updated.GoingToEvents.Distinct().ToList();
+        if (updated.CheckedInEvents is not null)
+            profile.CheckedInEvents = updated.CheckedInEvents.Distinct().ToList();
+        if (updated.NotInterestedEvents is not null)
+            profile.NotInterestedEvents = updated.NotInterestedEvents.Distinct().ToList();
+
+        await db.SaveChangesAsync();
+        return Ok(profile);
     }
 
     // GET: /api/profiles/{id}
