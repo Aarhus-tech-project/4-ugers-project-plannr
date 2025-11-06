@@ -13,13 +13,17 @@ type EventDetailsStepProps = {
   value: {
     title: string
     themes: EventThemeName[]
+    format: "inperson" | "online" | "hybrid"
   }
-  onChange: (val: { title: string; themes: EventThemeName[] }) => void
+  onChange: (val: { title: string; themes: EventThemeName[]; format: "inperson" | "online" | "hybrid" }) => void
   allThemes?: EventTheme[]
   onValidate?: (errors: EventDetailsStepValidation) => void
 }
 
 export default function EventDetailsStep({ value, onChange, allThemes = [], onValidate }: EventDetailsStepProps) {
+  // Add context for extra fields
+  const { access, setAccess, ageRestriction, setAgeRestriction } =
+    require("@/context/EventCreationContext").useEventCreation()
   const theme = useCustomTheme()
   const darkMode = theme.dark
   const selectedThemes = allThemes.filter((t) => value.themes.includes(t.name))
@@ -50,6 +54,7 @@ export default function EventDetailsStep({ value, onChange, allThemes = [], onVa
         marginBottom: 16,
         alignSelf: "center",
       }}
+      accessibilityLabel="Event Details Section"
     >
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
         <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>Title</Text>
@@ -74,16 +79,95 @@ export default function EventDetailsStep({ value, onChange, allThemes = [], onVa
           color: theme.colors.onBackground,
         }}
         maxLength={60}
+        accessibilityLabel="Event Title Input"
       />
       {touched.title && titleError ? (
-        <Text style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 12 }}>{titleError}</Text>
+        <Text
+          style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 12 }}
+          accessibilityLabel="Title error"
+        >
+          {titleError}
+        </Text>
       ) : (
         <View style={{ height: 12, marginBottom: 12 }} />
       )}
+
+      {/* Age Restriction */}
+      <View style={{ marginBottom: 16 }}>
+        <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>Age Restriction</Text>
+        <TextInput
+          value={ageRestriction !== null ? String(ageRestriction) : ""}
+          onChangeText={(t) => setAgeRestriction(t ? Number(t) : null)}
+          placeholder="Minimum age (optional)"
+          keyboardType="numeric"
+          placeholderTextColor={darkMode ? theme.colors.gray[400] : theme.colors.gray[600]}
+          style={{
+            borderRadius: 8,
+            padding: 12,
+            height: 48,
+            fontSize: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: theme.colors.background,
+            marginBottom: 8,
+            borderWidth: touched.title && titleError ? 1 : 0,
+            borderColor: touched.title && titleError ? theme.colors.brand.red : undefined,
+            color: theme.colors.onBackground,
+          }}
+        />
+      </View>
+
+      {/* Access */}
+      <View style={{ marginBottom: 16 }}>
+        <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>Access Instructions</Text>
+        <TextInput
+          value={access?.instruction ?? ""}
+          onChangeText={(t) => setAccess({ ...access, instruction: t })}
+          placeholder="Instructions (e.g. 'Check in at reception')"
+          placeholderTextColor={darkMode ? theme.colors.gray[400] : theme.colors.gray[600]}
+          style={{
+            borderRadius: 8,
+            padding: 12,
+            height: 48,
+            fontSize: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: theme.colors.background,
+            marginBottom: 8,
+            borderWidth: touched.title && titleError ? 1 : 0,
+            borderColor: touched.title && titleError ? theme.colors.brand.red : undefined,
+            color: theme.colors.onBackground,
+          }}
+        />
+        <TextInput
+          value={access?.password ?? ""}
+          onChangeText={(t) => setAccess({ ...access, password: t })}
+          placeholder="Code (optional)"
+          placeholderTextColor={darkMode ? theme.colors.gray[400] : theme.colors.gray[600]}
+          style={{
+            borderRadius: 8,
+            padding: 12,
+            height: 48,
+            fontSize: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: theme.colors.background,
+            marginBottom: 8,
+            borderWidth: touched.title && titleError ? 1 : 0,
+            borderColor: touched.title && titleError ? theme.colors.brand.red : undefined,
+            color: theme.colors.onBackground,
+          }}
+        />
+      </View>
+
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
         <Text style={{ color: theme.colors.onBackground, fontWeight: "600", fontSize: 18 }}>Themes</Text>
       </View>
-      <TouchableWithoutFeedback onPressOut={() => setTouched((prev) => ({ ...prev, themes: true }))} accessible={false}>
+      <TouchableWithoutFeedback
+        onPressOut={() => setTouched((prev) => ({ ...prev, themes: true }))}
+        accessible={false}
+        accessibilityLabel="Theme Selector"
+      >
         <EventThemeSelector
           themes={allThemes}
           selectedThemes={selectedThemes}
@@ -98,7 +182,12 @@ export default function EventDetailsStep({ value, onChange, allThemes = [], onVa
         />
       </TouchableWithoutFeedback>
       {touched.themes && themesError ? (
-        <Text style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 8 }}>{themesError}</Text>
+        <Text
+          style={{ color: theme.colors.brand.red, fontSize: 13, marginBottom: 8 }}
+          accessibilityLabel="Themes error"
+        >
+          {themesError}
+        </Text>
       ) : (
         <View style={{ height: 8 }} />
       )}

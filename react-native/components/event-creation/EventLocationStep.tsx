@@ -1,11 +1,12 @@
 import MapPicker from "@/components/MapPicker"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { EventLocation } from "@/interfaces/event"
 import React from "react"
 import { Text, View } from "react-native"
 
 interface EventLocationStepProps {
-  selectedLocation: { latitude: number; longitude: number } | null
-  setSelectedLocation: (val: { latitude: number; longitude: number } | null) => void
+  selectedLocation: EventLocation | null
+  setSelectedLocation: (val: EventLocation | null) => void
 }
 
 const EventLocationStep: React.FC<EventLocationStepProps> = ({ selectedLocation, setSelectedLocation }) => {
@@ -27,9 +28,7 @@ const EventLocationStep: React.FC<EventLocationStepProps> = ({ selectedLocation,
       <MapPicker
         location={selectedLocation}
         onLocationChange={(loc) => {
-          if (typeof loc.latitude === "number" && typeof loc.longitude === "number") {
-            setSelectedLocation({ latitude: loc.latitude, longitude: loc.longitude })
-          }
+          setSelectedLocation(loc)
         }}
         disableSelection={false}
       />

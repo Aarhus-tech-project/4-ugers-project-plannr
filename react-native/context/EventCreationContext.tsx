@@ -1,14 +1,15 @@
 import { EventDateTimeStepValidation } from "@/components/event-creation/EventDateTimeStep"
 import { EventDetailsStepValidation } from "@/components/event-creation/EventDetailsStep"
-import type { EventImage } from "@/components/event-creation/EventImagesStep"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
-import { EventPageSection, EventThemeName } from "@/interfaces/event"
+import { useSession } from "@/hooks/useSession"
+import { EventFormat, EventLocation, EventPageSection, EventThemeName } from "@/interfaces/event"
 import { FilterDateRange } from "@/interfaces/filter"
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react"
 
 export interface EventDetails {
   title: string
   themes: EventThemeName[]
+  format: EventFormat
 }
 
 export interface EventDateTime {
@@ -29,18 +30,67 @@ interface EventCreationContextType {
   setCustomEnd: (date: Date | null) => void
   dateTimeValidation: EventDateTimeStepValidation
   setDateTimeValidation: (v: EventDateTimeStepValidation) => void
-  selectedLocation: { latitude: number; longitude: number } | null
-  setSelectedLocation: (val: { latitude: number; longitude: number } | null) => void
-  images: EventImage[]
-  setImages: (images: EventImage[]) => void
+  selectedLocation: EventLocation | null
+  setSelectedLocation: (val: EventLocation | null) => void
   sections: EventPageSection[]
   setSections: (sections: EventPageSection[]) => void
+  buildEventFields: () => any
+  access: any
+  setAccess: (val: any) => void
+  ageRestriction: number | null
+  setAgeRestriction: (val: number | null) => void
+}
+
+interface EventCreationContextType {
+  eventDetails: EventDetails
+  setEventDetails: (val: EventDetails) => void
+  detailsValidation: EventDetailsStepValidation
+  setDetailsValidation: (v: EventDetailsStepValidation) => void
+  dateRange: FilterDateRange
+  setDateRange: (range: FilterDateRange) => void
+  customStart: Date | null
+  setCustomStart: (date: Date | null) => void
+  customEnd: Date | null
+  setCustomEnd: (date: Date | null) => void
+  dateTimeValidation: EventDateTimeStepValidation
+  setDateTimeValidation: (v: EventDateTimeStepValidation) => void
+  selectedLocation: EventLocation | null
+  setSelectedLocation: (val: EventLocation | null) => void
+  sections: EventPageSection[]
+  setSections: (sections: EventPageSection[]) => void
+  buildEventFields: () => any
 }
 
 const EventCreationContext = createContext<EventCreationContextType | undefined>(undefined)
 
 export const EventCreationProvider = ({ children }: { children: ReactNode }) => {
-  const [eventDetails, setEventDetails] = useState<EventDetails>({ title: "", themes: [] })
+  // New state for access, attendance, ageRestriction
+  const [access, setAccess] = useState<any>(null)
+  const [ageRestriction, setAgeRestriction] = useState<number | null>(null)
+  const { session } = useSession()
+  // Submit event logic
+  // Only build event fields, do not post
+  const buildEventFields = () => {
+    if (!session?.profile?.id) {
+      console.error("No session or profile id found!")
+      return null
+    }
+    return {
+      creatorId: session.profile.id,
+      title: eventDetails.title,
+      themes: eventDetails.themes,
+      format: eventDetails.format,
+      dateRange: {
+        startAt: customStart ?? new Date(),
+        endAt: customEnd ?? undefined,
+      },
+      location: selectedLocation ?? undefined,
+      sections: sections,
+      access,
+      ageRestriction,
+    }
+  }
+  const [eventDetails, setEventDetails] = useState<EventDetails>({ title: "", themes: [], format: "inperson" })
   const [detailsValidation, setDetailsValidation] = useState<EventDetailsStepValidation>({})
   // Date range state (like useFilters)
   const [dateRange, setDateRange] = useState<FilterDateRange>({
@@ -50,22 +100,44 @@ export const EventCreationProvider = ({ children }: { children: ReactNode }) => 
   const [customEnd, setCustomEnd] = useState<Date | null>(null)
   const [dateTimeValidation, setDateTimeValidation] = useState<EventDateTimeStepValidation>({})
 
-  // Images state for event creation
-  const [images, setImages] = useState<EventImage[]>([])
-
   // Sections state for event creation
   const [sections, setSections] = useState<EventPageSection[]>([])
 
   // Use live location for default selectedLocation
-  const { location: liveLocation } = useLiveLocation()
-  const [selectedLocation, setSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+  const { location: liveLocation, address: liveAddress } = useLiveLocation()
+  const [selectedLocation, setSelectedLocation] = useState<EventLocation | null>(null)
 
   // Set selectedLocation to live location if not set
   useEffect(() => {
-    if (!selectedLocation && liveLocation?.coords) {
-      setSelectedLocation({ latitude: liveLocation.coords.latitude, longitude: liveLocation.coords.longitude })
+    // If selectedLocation is missing address/city/country, update it when liveAddress is available
+    if (
+      selectedLocation &&
+      (!selectedLocation.address || !selectedLocation.city || !selectedLocation.country) &&
+      liveLocation?.coords &&
+      liveAddress
+    ) {
+      setSelectedLocation({
+        address: liveAddress.street
+          ? `${liveAddress.street}${liveAddress.streetNumber ? " " + liveAddress.streetNumber : ""}`.trim()
+          : "",
+        city: liveAddress.city || "",
+        country: liveAddress.country || "",
+        venue: liveAddress.name || "",
+        latitude: liveLocation.coords.latitude,
+        longitude: liveLocation.coords.longitude,
+      })
+      setSelectedLocation({
+        address: liveAddress?.street
+          ? `${liveAddress.street}${liveAddress.streetNumber ? " " + liveAddress.streetNumber : ""}`.trim()
+          : "",
+        city: liveAddress?.city || "",
+        country: liveAddress?.country || "",
+        venue: liveAddress?.name || "",
+        latitude: liveLocation.coords.latitude,
+        longitude: liveLocation.coords.longitude,
+      })
     }
-  }, [selectedLocation, liveLocation])
+  }, [selectedLocation, liveLocation, liveAddress])
 
   return (
     <EventCreationContext.Provider
@@ -84,10 +156,13 @@ export const EventCreationProvider = ({ children }: { children: ReactNode }) => 
         setDateTimeValidation,
         selectedLocation,
         setSelectedLocation,
-        images,
-        setImages,
         sections,
         setSections,
+        buildEventFields,
+        access,
+        setAccess,
+        ageRestriction,
+        setAgeRestriction,
       }}
     >
       {children}

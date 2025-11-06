@@ -23,11 +23,11 @@ interface FilterModalProps {
   initial?: Partial<FiltersState>
 }
 
-const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply, initial }) => {
+const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) => {
   const theme = useCustomTheme()
   const { visibleThemes, loaded } = useLazyEventThemes(1, 600)
   const { location: liveLocation } = useLiveLocation()
-  const filters = useFilters(initial)
+  const filters = useFilters()
 
   return (
     <Modal
@@ -80,22 +80,39 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply, in
                 onChange={filters.setUseCurrentLocation}
               />
               <MapPicker
-                location={
-                  filters.useCurrentLocation
-                    ? liveLocation
-                      ? {
-                          latitude: liveLocation.coords.latitude,
-                          longitude: liveLocation.coords.longitude,
-                        }
-                      : null
-                    : filters.selectedLocation ??
-                      (liveLocation
-                        ? {
-                            latitude: liveLocation.coords.latitude,
-                            longitude: liveLocation.coords.longitude,
-                          }
-                        : null)
-                }
+                location={(() => {
+                  const emptyLocation = {
+                    address: "",
+                    city: "",
+                    country: "",
+                    latitude: undefined,
+                    longitude: undefined,
+                  }
+                  if (filters.useCurrentLocation) {
+                    if (liveLocation && liveLocation.coords) {
+                      return {
+                        ...emptyLocation,
+                        latitude: liveLocation.coords.latitude,
+                        longitude: liveLocation.coords.longitude,
+                      }
+                    }
+                    return null
+                  }
+                  if (filters.selectedLocation) {
+                    return {
+                      ...emptyLocation,
+                      ...filters.selectedLocation,
+                    }
+                  }
+                  if (liveLocation && liveLocation.coords) {
+                    return {
+                      ...emptyLocation,
+                      latitude: liveLocation.coords.latitude,
+                      longitude: liveLocation.coords.longitude,
+                    }
+                  }
+                  return null
+                })()}
                 range={(filters.range ?? 50) * 1000}
                 onLocationChange={filters.setSelectedLocation}
                 disableSelection={false}

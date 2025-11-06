@@ -1,3 +1,4 @@
+import LogoutButton from "@/components/LogoutButton"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
@@ -9,7 +10,7 @@ import { useSession } from "../../hooks/useSession"
 export default function Settings() {
   const router = useRouter()
   const theme = useCustomTheme()
-  const { session, setSession } = useSession()
+  const { session } = useSession()
   const navigatingPreferences = useRef(false)
   const navigatingAccount = useRef(false)
   // Helper to robustly reset navigation lock after a delay
@@ -28,7 +29,6 @@ export default function Settings() {
           width: "100%",
           paddingTop: 80,
           paddingBottom: 16,
-          paddingLeft: 20,
           backgroundColor: theme.colors.secondary,
         }}
       >
@@ -88,14 +88,18 @@ export default function Settings() {
                   alignItems: "center",
                 }}
               >
-                <Image
-                  source={{ uri: session?.user?.avatarUrl || "" }}
-                  style={{ width: 100, height: 100, borderRadius: 50, marginBottom: 0 }}
-                />
+                {session?.profile?.avatarUrl ? (
+                  <Image
+                    source={{ uri: session?.profile?.avatarUrl }}
+                    style={{ width: 80, height: 80, borderRadius: 12 }}
+                  />
+                ) : (
+                  <FontAwesome6 name="user" size={32} color={theme.colors.gray[400]} />
+                )}
               </View>
             </View>
             <Text style={{ color: theme.colors.onBackground, fontWeight: "bold", fontSize: 22 }}>
-              {session?.user?.name || "Daniel"}
+              {session?.profile?.name}
             </Text>
             <Text style={{ color: theme.colors.onBackground, fontSize: 16 }}>{"Plannr member"}</Text>
           </View>
@@ -171,24 +175,7 @@ export default function Settings() {
           </TouchableOpacity>
         </View>
         {/* Logout Button */}
-        <TouchableOpacity
-          style={{
-            width: "90%",
-            backgroundColor: theme.colors.brand.red,
-            borderRadius: 16,
-            padding: 16,
-            marginTop: 8,
-            marginBottom: 32,
-            alignItems: "center",
-          }}
-          activeOpacity={0.8}
-          onPress={() => {
-            setSession(null)
-            router.replace("/login")
-          }}
-        >
-          <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 18 }}>Log out</Text>
-        </TouchableOpacity>
+        <LogoutButton />
       </ScrollView>
     </>
   )

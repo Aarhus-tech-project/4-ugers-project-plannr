@@ -72,10 +72,10 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="groups"
+          name="ownevents"
           options={{
             tabBarLabel: "",
-            tabBarIcon: ({ color, size }) => <FontAwesome6 name="users" color={color} size={size || 24} />,
+            tabBarIcon: ({ color, size }) => <FontAwesome6 name="calendar" color={color} size={size || 24} />,
           }}
         />
         <Tabs.Screen

@@ -340,27 +340,38 @@ const EventPage: React.FC<EventPageProps> = ({
                       >
                         Schedule
                       </Text>
-                      {section.items.map((item: any, i: number) => (
-                        <View
-                          key={i}
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            marginBottom: 10,
-                          }}
-                        >
-                          <Text
+                      {section.items.map((item: any, i: number) => {
+                        let timeStr = "--:--"
+                        if (item.time instanceof Date) {
+                          timeStr = item.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                        } else if (typeof item.time === "string" || typeof item.time === "number") {
+                          const d = new Date(item.time)
+                          if (!isNaN(d.getTime())) {
+                            timeStr = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                          }
+                        }
+                        return (
+                          <View
+                            key={i}
                             style={{
-                              color: theme.colors.brand.red,
-                              fontWeight: "bold",
-                              width: 100,
+                              flexDirection: "row",
+                              alignItems: "center",
+                              marginBottom: 10,
                             }}
                           >
-                            {item.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                          </Text>
-                          <Text style={{ color: theme.colors.onBackground }}>{item.activity}</Text>
-                        </View>
-                      ))}
+                            <Text
+                              style={{
+                                color: theme.colors.brand.red,
+                                fontWeight: "bold",
+                                width: 100,
+                              }}
+                            >
+                              {timeStr}
+                            </Text>
+                            <Text style={{ color: theme.colors.onBackground }}>{item.activity}</Text>
+                          </View>
+                        )
+                      })}
                     </View>
                   )
                 }

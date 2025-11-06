@@ -38,7 +38,6 @@ export const DateRangeModeSelector: React.FC<DateRangeModeSelectorProps> = ({
   setMode,
 }) => {
   const theme = useCustomTheme()
-
   return (
     <View style={{ width: "100%" }}>
       <Text style={{ color: theme.colors.gray[400], fontSize: 13, marginBottom: 8 }}>
@@ -46,7 +45,14 @@ export const DateRangeModeSelector: React.FC<DateRangeModeSelectorProps> = ({
       </Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start" }}>
         {MODES.map(({ key, label, icon }) => {
-          const isSelected = mode[key as keyof typeof mode]
+          const isSelected = Boolean(mode[key as keyof DateRangeMode])
+          const modeObj: DateRangeMode = {
+            daily: key === "daily",
+            weekly: key === "weekly",
+            monthly: key === "monthly",
+            yearly: key === "yearly",
+            custom: key === "custom",
+          }
           return (
             <Chip
               key={key}
@@ -61,12 +67,14 @@ export const DateRangeModeSelector: React.FC<DateRangeModeSelectorProps> = ({
               }
               selected={isSelected}
               onPress={() => {
-                if (key === "custom") {
-                  setMode({ custom: true })
-                } else {
-                  setMode({ [key]: true } as DateRangeMode)
+                if (key !== "custom") {
                   setCustomStart(null)
                   setCustomEnd(null)
+                  setTimeout(() => {
+                    setMode(modeObj)
+                  }, 0)
+                } else {
+                  setMode(modeObj)
                 }
               }}
               style={[

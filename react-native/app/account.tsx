@@ -1,11 +1,12 @@
 import BottomButtonBar from "@/components/BottomButtonBar"
 import Flag from "@/components/Flag"
+import KeyboardAwareScreen from "@/components/KeyboardAwareScreen"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useSession } from "@/hooks/useSession"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
-import { useState } from "react"
-import { FlatList, ScrollView, TextInput, TouchableOpacity, View } from "react-native"
+import { useMemo, useState } from "react"
+import { FlatList, TextInput, TouchableOpacity, View } from "react-native"
 import Modal from "react-native-modal"
 import { Text } from "react-native-paper"
 import type { Country } from "world-countries"
@@ -16,14 +17,18 @@ export default function Account() {
   const router = useRouter()
   const { session } = useSession()
   const [bio, setBio] = useState("")
-  const [editMode, setEditMode] = useState(false)
   const [countryCode, setCountryCode] = useState<string>("DK")
   const [country, setCountry] = useState<Country | undefined>(countries.find((c) => c.cca2 === "DK"))
   const [phone, setPhone] = useState("")
+  const [name, setName] = useState(session?.profile?.name || "")
+  const [email, setEmail] = useState(session?.profile?.email || "")
   const [showCountryModal, setShowCountryModal] = useState(false)
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.secondary }}>
+    <KeyboardAwareScreen
+      style={{ flex: 1, backgroundColor: theme.colors.secondary }}
+      contentContainerStyle={{ alignItems: "center", paddingBottom: 100, paddingTop: 16 }}
+    >
       <View
         style={{
           flexDirection: "row",
@@ -55,285 +60,198 @@ export default function Account() {
           Account
         </Text>
       </View>
-      <ScrollView
-        style={{ flex: 1, backgroundColor: theme.colors.background }}
-        contentContainerStyle={{ alignItems: "center", paddingBottom: 100, paddingTop: 16 }}
-        showsVerticalScrollIndicator={false}
+      {/* Name & Email Card */}
+      <View
+        style={{
+          width: "90%",
+          backgroundColor: theme.colors.secondary,
+          borderRadius: 16,
+          padding: 20,
+          marginBottom: 16,
+        }}
       >
-        {/* Name & Email Card */}
-        <View
+        <Text
           style={{
-            width: "90%",
-            backgroundColor: theme.colors.secondary,
-            borderRadius: 16,
-            padding: 20,
-            marginBottom: 16,
+            color: theme.colors.onBackground,
+            fontWeight: "600",
+            fontSize: 16,
+            marginBottom: 4,
           }}
         >
-          <Text
-            style={{
-              color: theme.colors.onBackground,
-              fontWeight: "600",
-              fontSize: 16,
-              marginBottom: 4,
-            }}
-          >
-            Name
-          </Text>
-          {editMode ? (
-            <TextInput
-              style={{
-                color: theme.colors.onBackground,
-                fontSize: 16,
-                flex: 1,
-                padding: 12,
-                backgroundColor: theme.colors.surface,
-                borderRadius: 8,
-                opacity: 0.7,
-              }}
-              placeholderTextColor={theme.colors.onSurface}
-              value={session?.user?.name || ""}
-              editable={editMode}
-            />
-          ) : (
-            <Text
-              style={{
-                color: theme.colors.onSurface,
-                fontSize: 16,
-                flex: 1,
-                padding: 12,
-                backgroundColor: theme.colors.background,
-                borderRadius: 8,
-                opacity: 0.7,
-              }}
-            >
-              {session?.user?.name}
-            </Text>
-          )}
-          <Text
-            style={{
-              color: theme.colors.onBackground,
-              fontWeight: "600",
-              fontSize: 16,
-              marginBottom: 4,
-              marginTop: 12,
-            }}
-          >
-            Email
-          </Text>
-          {editMode ? (
-            <TextInput
-              style={{
-                color: theme.colors.onBackground,
-                fontSize: 16,
-                flex: 1,
-                padding: 12,
-                backgroundColor: theme.colors.surface,
-                borderRadius: 8,
-                opacity: 0.7,
-              }}
-              placeholderTextColor={theme.colors.onSurface}
-              value={session?.user?.email || ""}
-              editable={editMode}
-            />
-          ) : (
-            <Text
-              style={{
-                color: theme.colors.onSurface,
-                fontSize: 16,
-                flex: 1,
-                padding: 12,
-                backgroundColor: theme.colors.background,
-                borderRadius: 8,
-                opacity: 0.7,
-              }}
-            >
-              {session?.user?.email}
-            </Text>
-          )}
-        </View>
-        {/* Bio Card */}
-        <View
+          Name
+        </Text>
+        <TextInput
           style={{
-            width: "90%",
-            backgroundColor: theme.colors.secondary,
-            borderRadius: 16,
-            padding: 20,
-            marginBottom: 16,
+            color: theme.colors.onBackground,
+            fontSize: 16,
+            flex: 1,
+            padding: 12,
+            backgroundColor: theme.colors.surface,
+            borderRadius: 8,
+            opacity: 0.7,
+          }}
+          placeholderTextColor={theme.colors.onSurface}
+          value={name}
+          onChangeText={setName}
+          editable={true}
+        />
+        <Text
+          style={{
+            color: theme.colors.onBackground,
+            fontWeight: "600",
+            fontSize: 16,
+            marginBottom: 4,
+            marginTop: 12,
           }}
         >
-          <Text
-            style={{
-              color: theme.colors.onBackground,
-              fontWeight: "600",
-              fontSize: 16,
-              marginBottom: 4,
-            }}
-          >
-            Bio
-          </Text>
-          {editMode ? (
-            <TextInput
-              style={{
-                color: theme.colors.onBackground,
-                fontSize: 16,
-                flex: 1,
-                padding: 12,
-                backgroundColor: theme.colors.surface,
-                borderRadius: 8,
-                opacity: 0.7,
-              }}
-              placeholderTextColor={theme.colors.onSurface}
-              value={bio}
-              onChangeText={setBio}
-              placeholder="Add your bio"
-              editable={editMode}
-            />
-          ) : (
-            <Text
-              style={{
-                color: theme.colors.onSurface,
-                fontSize: 16,
-                flex: 1,
-                padding: 12,
-                backgroundColor: theme.colors.background,
-                borderRadius: 8,
-                opacity: 0.7,
-              }}
-            >
-              {bio || "-"}
-            </Text>
-          )}
-        </View>
-        {/* Phone & Country Card */}
-        <View
+          Email
+        </Text>
+        <TextInput
           style={{
-            width: "90%",
-            backgroundColor: theme.colors.secondary,
-            borderRadius: 16,
-            padding: 20,
-            marginBottom: 16,
+            color: theme.colors.onBackground,
+            fontSize: 16,
+            flex: 1,
+            padding: 12,
+            backgroundColor: theme.colors.surface,
+            borderRadius: 8,
+            opacity: 0.7,
+          }}
+          placeholderTextColor={theme.colors.onSurface}
+          value={email}
+          onChangeText={setEmail}
+          editable={true}
+        />
+      </View>
+      {/* Bio Card */}
+      <View
+        style={{
+          width: "90%",
+          backgroundColor: theme.colors.secondary,
+          borderRadius: 16,
+          padding: 20,
+          marginBottom: 16,
+        }}
+      >
+        <Text
+          style={{
+            color: theme.colors.onBackground,
+            fontWeight: "600",
+            fontSize: 16,
+            marginBottom: 4,
           }}
         >
-          <Text
+          Bio
+        </Text>
+        <TextInput
+          style={{
+            color: theme.colors.onBackground,
+            fontSize: 16,
+            flex: 1,
+            padding: 12,
+            backgroundColor: theme.colors.surface,
+            borderRadius: 8,
+            opacity: 0.7,
+          }}
+          placeholderTextColor={theme.colors.onSurface}
+          value={bio}
+          onChangeText={setBio}
+          placeholder="Add your bio"
+          editable={true}
+        />
+      </View>
+      {/* Phone & Country Card */}
+      <View
+        style={{
+          width: "90%",
+          backgroundColor: theme.colors.secondary,
+          borderRadius: 16,
+          padding: 20,
+          marginBottom: 16,
+        }}
+      >
+        <Text
+          style={{
+            color: theme.colors.onBackground,
+            fontWeight: "600",
+            fontSize: 16,
+            marginBottom: 4,
+          }}
+        >
+          Country
+        </Text>
+        <TouchableOpacity
+          style={{
+            borderRadius: 8,
+            padding: 12,
+            backgroundColor: theme.colors.surface,
+            marginBottom: 8,
+            flexDirection: "row",
+            alignItems: "center",
+            opacity: 1,
+          }}
+          activeOpacity={0.7}
+          onPress={() => setShowCountryModal(true)}
+        >
+          <Flag cca2={country?.cca2 || countryCode || "DK"} style={{ marginRight: 12 }} />
+          <Text style={{ color: theme.colors.onSurface, fontSize: 16 }}>
+            {country ? (typeof country.name === "string" ? country.name : country.name.common) : "Select country"}
+          </Text>
+        </TouchableOpacity>
+        {/* Phone Section */}
+        <Text
+          style={{
+            color: theme.colors.onBackground,
+            fontWeight: "600",
+            fontSize: 16,
+            marginBottom: 4,
+            marginTop: 12,
+          }}
+        >
+          Phone
+        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
             style={{
-              color: theme.colors.onBackground,
-              fontWeight: "600",
-              fontSize: 16,
-              marginBottom: 4,
+              minWidth: 60,
+              padding: 12,
+              backgroundColor: theme.colors.surface,
+              borderRadius: 8,
+              marginRight: 8,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: 0.5,
             }}
           >
-            Country
-          </Text>
-          {editMode ? (
-            <TouchableOpacity
-              style={{
-                borderRadius: 8,
-                padding: 12,
-                backgroundColor: theme.colors.surface,
-                marginBottom: 8,
-                flexDirection: "row",
-                alignItems: "center",
-                opacity: 1,
-              }}
-              activeOpacity={0.7}
-              onPress={() => setShowCountryModal(true)}
-            >
-              <Flag cca2={country?.cca2 || countryCode || "DK"} style={{ marginRight: 12 }} />
-              <Text style={{ color: theme.colors.onSurface, fontSize: 16 }}>
-                {country ? (typeof country.name === "string" ? country.name : country.name.common) : "Select country"}
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: theme.colors.background,
-                borderRadius: 8,
-                padding: 12,
-                marginBottom: 8,
-                opacity: 0.7,
-              }}
-            >
-              <Flag cca2={country?.cca2 || countryCode || "DK"} style={{ marginRight: 12 }} />
-              <Text style={{ color: theme.colors.onSurface, fontSize: 16 }}>
-                {country ? (typeof country.name === "string" ? country.name : country.name.common) : "Select country"}
-              </Text>
-            </View>
-          )}
-          {/* Phone Section */}
-          <Text
-            style={{
-              color: theme.colors.onBackground,
-              fontWeight: "600",
-              fontSize: 16,
-              marginBottom: 4,
-              marginTop: 12,
-            }}
-          >
-            Phone
-          </Text>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View
-              style={{
-                minWidth: 60,
-                padding: 12,
-                backgroundColor: theme.colors.surface,
-                borderRadius: 8,
-                marginRight: 8,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: 0.5,
-              }}
-            >
-              <Text style={{ color: theme.colors.onSurface, fontSize: 16 }}>
-                {(() => {
-                  const fallback = countries.find((c) => c.cca2 === "DK")
-                  const c = country || fallback
-                  if (!c || !c.idd) return "+"
-                  const root = c.idd.root || "+"
-                  const suffix = c.idd.suffixes && c.idd.suffixes.length > 0 ? c.idd.suffixes[0] : ""
-                  return `${root}${suffix}`
-                })()}
-              </Text>
-            </View>
-            {editMode ? (
-              <TextInput
-                style={{
-                  color: theme.colors.onBackground,
-                  fontSize: 16,
-                  flex: 1,
-                  padding: 12,
-                  backgroundColor: theme.colors.surface,
-                  borderRadius: 8,
-                  opacity: 0.7,
-                }}
-                placeholderTextColor={theme.colors.onSurface}
-                placeholder="Phone number"
-                keyboardType="phone-pad"
-                editable={editMode}
-                value={phone}
-                onChangeText={setPhone}
-              />
-            ) : (
-              <Text
-                style={{
-                  color: theme.colors.onSurface,
-                  fontSize: 16,
-                  flex: 1,
-                  padding: 12,
-                  backgroundColor: theme.colors.background,
-                  borderRadius: 8,
-                  opacity: 0.7,
-                }}
-              >
-                {phone || "Phone number"}
-              </Text>
-            )}
+            <Text style={{ color: theme.colors.onSurface, fontSize: 16 }}>
+              {(() => {
+                const fallback = countries.find((c) => c.cca2 === "DK")
+                const c = country || fallback
+                if (!c || !c.idd) return "+"
+                const root = c.idd.root || "+"
+                const suffix = c.idd.suffixes && c.idd.suffixes.length > 0 ? c.idd.suffixes[0] : ""
+                return `${root}${suffix}`
+              })()}
+            </Text>
           </View>
+          <TextInput
+            style={{
+              color: theme.colors.onBackground,
+              fontSize: 16,
+              flex: 1,
+              padding: 12,
+              backgroundColor: theme.colors.surface,
+              borderRadius: 8,
+              opacity: 0.7,
+            }}
+            placeholderTextColor={theme.colors.onSurface}
+            placeholder="Phone number"
+            keyboardType="phone-pad"
+            editable={true}
+            value={phone}
+            onChangeText={setPhone}
+          />
         </View>
-      </ScrollView>
+      </View>
       {/* Country Picker Modal */}
       <Modal
         isVisible={showCountryModal}
@@ -397,31 +315,38 @@ export default function Account() {
           </TouchableOpacity>
         </View>
       </Modal>
-      {/* Bottom Navbar for Edit, Reset & Save Buttons */}
-      <BottomButtonBar
-        containerStyle={{ backgroundColor: theme.colors.gray[900], padding: 21.5 }}
-        buttons={[
-          {
-            label: "Reset",
-            onPress: () => {
-              setBio("")
-              setEditMode(false)
-            },
-            backgroundColor: theme.colors.gray[700],
-            textColor: theme.colors.white,
-            mode: "contained",
-            style: { marginRight: 8 },
-          },
-          {
-            label: editMode ? "Save" : "Edit",
-            onPress: () => setEditMode((e) => !e),
-            backgroundColor: theme.colors.brand.red,
-            textColor: theme.colors.white,
-            mode: "contained",
-            style: { marginLeft: 8 },
-          },
-        ]}
-      />
-    </View>
+      {/* Bottom Navbar for Save Button only, shown if changes were made */}
+      {useMemo(() => {
+        const initialName = session?.profile?.name || ""
+        const initialEmail = session?.profile?.email || ""
+        const initialCountryCode = "DK"
+        const initialCountry = countries.find((c) => c.cca2 === "DK")
+        const initialPhone = ""
+        const initialBio = ""
+        const changed =
+          name !== initialName ||
+          email !== initialEmail ||
+          countryCode !== initialCountryCode ||
+          country?.cca2 !== initialCountry?.cca2 ||
+          phone !== initialPhone ||
+          bio !== initialBio
+        return changed ? (
+          <BottomButtonBar
+            containerStyle={{ backgroundColor: theme.colors.gray[800], paddingVertical: 22 }}
+            buttons={[
+              {
+                label: "Save",
+                onPress: () => {
+                  // TODO: Implement save logic here
+                },
+                backgroundColor: theme.colors.brand.red,
+                textColor: theme.colors.white,
+                mode: "contained",
+              },
+            ]}
+          />
+        ) : null
+      }, [name, email, countryCode, country, phone, bio, session])}
+    </KeyboardAwareScreen>
   )
 }

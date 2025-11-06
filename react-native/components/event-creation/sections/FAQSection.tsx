@@ -10,9 +10,10 @@ interface FAQItem {
 interface FAQSectionProps {
   items: FAQItem[]
   onChange: (items: FAQItem[]) => void
+  error?: string
 }
 
-const FAQSection: React.FC<FAQSectionProps> = ({ items, onChange }) => {
+const FAQSection: React.FC<FAQSectionProps> = ({ items, onChange, error }) => {
   const theme = useCustomTheme()
   const addItem = () => onChange([...items, { question: "", answer: "" }])
   const updateItem = (idx: number, key: "question" | "answer", value: string) => {
@@ -74,6 +75,9 @@ const FAQSection: React.FC<FAQSectionProps> = ({ items, onChange }) => {
       <TouchableOpacity onPress={addItem} style={{ marginTop: 6 }}>
         <Text style={{ color: theme.colors.brand.blue, fontWeight: "bold" }}>+ Add FAQ</Text>
       </TouchableOpacity>
+      {typeof error === "string" && error.length > 0 && (
+        <Text style={{ color: theme.colors.brand.red, marginTop: 4, fontSize: 13 }}>{error}</Text>
+      )}
     </View>
   )
 }

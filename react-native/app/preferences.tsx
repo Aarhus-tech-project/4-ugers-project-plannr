@@ -25,22 +25,58 @@ export default function Preferences() {
     setSelectedThemes,
     dateRangeMode,
     setDateRangeMode,
-    eventType,
-    setEventType,
+    eventTypes,
+    setEventTypes,
     customStart,
     setCustomStart,
     customEnd,
     setCustomEnd,
+    customLocation,
+    setCustomLocation,
     updateModeFromCustom,
   } = usePreferences()
 
-  const [useCurrentLocation, setUseCurrentLocation] = React.useState(true)
-
-  const [selectedLocation, setSelectedLocation] = React.useState<Pick<EventLocation, "latitude" | "longitude"> | null>(
-    null
+  // Initialize location state from preferences
+  const [useCurrentLocation, setUseCurrentLocation] = React.useState(!customLocation)
+  const [selectedLocation, setSelectedLocation] = React.useState<EventLocation | null>(
+    customLocation
+      ? {
+          latitude: customLocation.latitude,
+          longitude: customLocation.longitude,
+          address: "",
+          city: "",
+          country: "",
+          venue: "",
+        }
+      : null
   )
+
+  // Sync local state with preferences when customLocation changes
+  React.useEffect(() => {
+    if (customLocation) {
+      setSelectedLocation({
+        latitude: customLocation.latitude,
+        longitude: customLocation.longitude,
+        address: "",
+        city: "",
+        country: "",
+        venue: "",
+      })
+      setUseCurrentLocation(false)
+    } else {
+      setSelectedLocation(null)
+      setUseCurrentLocation(true)
+    }
+  }, [customLocation])
+
+  // Sync custom location to preferences
+  const handleCustomLocationChange = (loc: EventLocation) => {
+    setSelectedLocation(loc)
+    setCustomLocation({ latitude: loc.latitude ?? 0, longitude: loc.longitude ?? 0 })
+    setUseCurrentLocation(false)
+  }
   const { visibleThemes } = useLazyEventThemes(10, 600)
-  const { location: liveLocation } = useLiveLocation()
+  const { location: liveLocation, address: liveAddress } = useLiveLocation()
   const locationLoading = !liveLocation
 
   return (
@@ -95,23 +131,21 @@ export default function Preferences() {
           <View style={{ position: "relative" }}>
             <MapPicker
               location={
-                useCurrentLocation
-                  ? liveLocation
-                    ? {
-                        latitude: liveLocation.coords.latitude,
-                        longitude: liveLocation.coords.longitude,
-                      }
-                    : null
-                  : selectedLocation ??
-                    (liveLocation
-                      ? {
-                          latitude: liveLocation.coords.latitude,
-                          longitude: liveLocation.coords.longitude,
-                        }
-                      : null)
+                useCurrentLocation && liveLocation && liveAddress
+                  ? {
+                      address: liveAddress.street || "",
+                      city: liveAddress.city || "",
+                      country: liveAddress.country || "",
+                      venue: liveAddress.name || "",
+                      latitude: liveLocation.coords.latitude,
+                      longitude: liveLocation.coords.longitude,
+                    }
+                  : !useCurrentLocation
+                  ? selectedLocation
+                  : null
               }
               range={range * 1000}
-              {...(!useCurrentLocation && { onLocationChange: setSelectedLocation })}
+              {...(!useCurrentLocation && { onLocationChange: handleCustomLocationChange })}
               {...(useCurrentLocation && { disableSelection: true })}
             />
             {locationLoading && (
@@ -187,11 +221,15 @@ export default function Preferences() {
               customEnd={customEnd}
               onStartChange={(date) => {
                 setCustomStart(date)
-                updateModeFromCustom(date, customEnd)
+                if (dateRangeMode.custom) {
+                  updateModeFromCustom(date, customEnd)
+                }
               }}
               onEndChange={(date) => {
                 setCustomEnd(date)
-                updateModeFromCustom(customStart, date)
+                if (dateRangeMode.custom) {
+                  updateModeFromCustom(customStart, date)
+                }
               }}
             />
           )}
@@ -205,7 +243,7 @@ export default function Preferences() {
             marginBottom: 16,
           }}
         >
-          <AttendanceModeSelector formats={[eventType]} onChange={(arr) => setEventType(arr[0] || "inperson")} />
+          <AttendanceModeSelector formats={eventTypes ?? []} onChange={setEventTypes} />
         </View>
       </ScrollView>
     </View>

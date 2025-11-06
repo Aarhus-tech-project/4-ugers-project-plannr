@@ -150,7 +150,7 @@ export type EventPageSection =
   | { type: "resources"; files: Array<{ name: string; url: string }> }
   | { type: "dresscode"; content: string }
   | { type: "schedule"; items: Array<{ time: Date; activity: string }> }
-  | { type: "images"; srcs: Uint8Array[] | string[] } //string[] is for my mock data.
+  | { type: "images"; srcs: string[] } //string[] is for my mock data.
 
 export interface EventDateRange {
   startAt: Date
@@ -169,8 +169,8 @@ export interface EventAttendance {
 }
 
 export interface Event {
-  creatorId?: string
-  id: string
+  creatorId: string
+  id?: string
   title: string
   format: EventFormat
   dateRange: EventDateRange

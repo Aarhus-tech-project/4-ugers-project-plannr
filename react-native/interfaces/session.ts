@@ -1,16 +1,9 @@
-export type ProviderType = "github" | "google"
+import { Profile } from "./profile"
 
-export interface GithubUser {
-  name: string | null
-  avatarUrl: string
-  email: string | null
-  location: string | null
-}
-
-export type SessionUser = GithubUser
+export type ProviderType = "github" | "google" | "manual" | "slack"
 
 export interface Session {
-  user: SessionUser
+  profile: Profile
   provider: ProviderType
   token: string
 }
