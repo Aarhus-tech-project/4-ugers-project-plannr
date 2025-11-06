@@ -9,17 +9,24 @@ import { Text } from "react-native-paper"
 
 import type { Profile } from "@/interfaces/profile"
 
+interface EventDetailsButton {
+  label: string
+  onPress: () => void
+  backgroundColor?: string
+  textColor?: string
+  icon?: string
+  mode?: "contained" | "outlined"
+}
+
 interface Props {
   event: Event
   profile?: Profile
-  onSubscribe?: (event: Event) => void
-  onSeeMore?: (event: Event) => void
-  actionButtons?: boolean
+  buttons?: EventDetailsButton[]
 }
 
 import React from "react"
 
-export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMore, actionButtons }: Props) {
+export default function EventDetailsCard({ event, buttons }: Props) {
   const theme = useCustomTheme()
 
   const iconColor = theme.colors.brand.red
@@ -29,7 +36,6 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
     alignItems: "center" as const,
     paddingVertical: 8,
   }
-  const isSubscribed = profile?.subscribedEvents?.some((e) => e === event.id)
   return (
     <>
       <View
@@ -40,8 +46,8 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
           width: "100%",
           borderTopRightRadius: 16,
           borderTopLeftRadius: 16,
-          borderBottomLeftRadius: actionButtons ? 0 : 16,
-          borderBottomRightRadius: actionButtons ? 0 : 16,
+          borderBottomLeftRadius: buttons && buttons.length > 0 ? 0 : 16,
+          borderBottomRightRadius: buttons && buttons.length > 0 ? 0 : 16,
           backgroundColor: theme.colors.secondary,
           paddingHorizontal: 24,
           paddingVertical: 8,
@@ -166,7 +172,7 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
             </>
           )}
           {/* Venue */}
-          {event.location?.venue && (
+          {event?.location?.venue && (
             <>
               <View style={{ ...rowStyle, flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <FontAwesome6 name="building" size={20} color={iconColor} style={{ marginRight: 12 }} />
@@ -177,7 +183,7 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
             </>
           )}
           {/* Age Restriction */}
-          {event.ageRestriction && (
+          {event?.ageRestriction && (
             <>
               <View style={rowStyle}>
                 <FontAwesome6 name="user-shield" size={20} color={iconColor} style={{ marginRight: 12 }} />
@@ -186,7 +192,7 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
             </>
           )}
           {/* Start Time */}
-          {event.dateRange?.startAt && (
+          {event?.dateRange?.startAt && (
             <>
               <View style={rowStyle}>
                 <FontAwesome6 name="calendar" size={20} color={iconColor} style={{ marginRight: 12 }} />
@@ -197,107 +203,81 @@ export default function EventDetailsCard({ event, profile, onSubscribe, onSeeMor
             </>
           )}
           {/* Start hour */}
-          {event.dateRange?.startAt && (
+          {event?.dateRange?.startAt && (
             <>
               <View style={rowStyle}>
                 <FontAwesome6 name="clock" size={20} color={iconColor} style={{ marginRight: 12 }} />
                 <Text style={{ color: textColor, fontSize: 16 }}>
                   {dayjs.utc(event.dateRange.startAt).local().format("HH:mm")}
                 </Text>
+                {event.dateRange?.endAt && <Text style={{ color: textColor, fontSize: 16 }}> - </Text>}
+                {event.dateRange?.endAt && (
+                  <Text style={{ color: textColor, fontSize: 16 }}>
+                    {dayjs.utc(event.dateRange.endAt).local().format("HH:mm")}
+                  </Text>
+                )}
               </View>
             </>
           )}
         </View>
       </View>
 
-      {actionButtons && (
+      {buttons && buttons.length > 0 && (
         <View style={{ flexDirection: "row", width: "100%", height: 42, margin: 0, padding: 0 }}>
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "row",
-              backgroundColor: theme.colors.brand.red,
-              borderBottomLeftRadius: 16,
-              borderBottomRightRadius: 0,
-              borderTopLeftRadius: 0,
-              borderTopRightRadius: 0,
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
-              margin: 0,
-              padding: 0,
-            }}
-            onPress={() => onSubscribe?.(event)}
-          >
-            <View
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: theme.colors.brand.white,
-                width: 24,
-                height: 24,
-                borderRadius: 8,
-                justifyContent: "center",
-                marginRight: 8,
-              }}
-            >
-              {isSubscribed ? (
-                <FontAwesome6 name="check" size={16} color={theme.colors.brand.red} />
-              ) : (
-                <FontAwesome6 name="plus" size={16} color={theme.colors.brand.red} />
+          {buttons.map((btn, idx) => (
+            <React.Fragment key={btn.label + idx}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "row",
+                  backgroundColor: btn.backgroundColor || theme.colors.brand.red,
+                  borderBottomLeftRadius: idx === 0 ? 16 : 0,
+                  borderBottomRightRadius: idx === buttons.length - 1 ? 16 : 0,
+                  borderTopLeftRadius: 0,
+                  borderTopRightRadius: 0,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100%",
+                  margin: 0,
+                  padding: 0,
+                }}
+                onPress={btn.onPress}
+              >
+                {btn.icon && (
+                  <View
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      width: 24,
+                      height: 24,
+                      borderRadius: 8,
+                      justifyContent: "center",
+                      marginRight: 8,
+                    }}
+                  >
+                    <FontAwesome6 name={btn.icon} size={16} color={btn.textColor || theme.colors.brand.red} />
+                  </View>
+                )}
+                <Text style={{ color: btn.textColor || theme.colors.white, fontWeight: "bold", fontSize: 16 }}>
+                  {btn.label}
+                </Text>
+              </TouchableOpacity>
+              {idx < buttons.length - 1 && (
+                <View
+                  style={{
+                    width: 1,
+                    height: "100%",
+                    backgroundColor: theme.colors.brand.red,
+                    opacity: 0.7,
+                    margin: 0,
+                    padding: 1,
+                  }}
+                />
               )}
-            </View>
-            <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 16 }}>
-              {isSubscribed ? "Going" : "Confirm"}
-            </Text>
-          </TouchableOpacity>
-          <View
-            style={{
-              width: 1,
-              height: "100%",
-              backgroundColor: theme.colors.brand.red,
-              opacity: 0.7,
-              margin: 0,
-              padding: 1,
-            }}
-          />
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "row",
-              backgroundColor: theme.colors.brand.red,
-              borderBottomLeftRadius: 0,
-              borderBottomRightRadius: 16,
-              borderTopLeftRadius: 0,
-              borderTopRightRadius: 0,
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
-              margin: 0,
-              padding: 0,
-            }}
-            onPress={() => onSeeMore?.(event)}
-          >
-            <View
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: theme.colors.brand.white,
-                width: 24,
-                height: 24,
-                borderRadius: 8,
-                justifyContent: "center",
-                marginRight: 8,
-              }}
-            >
-              <FontAwesome6 name="info" size={16} color={theme.colors.brand.red} />
-            </View>
-            <Text style={{ color: theme.colors.white, fontWeight: "bold", fontSize: 16 }}>See More</Text>
-          </TouchableOpacity>
+            </React.Fragment>
+          ))}
         </View>
       )}
     </>

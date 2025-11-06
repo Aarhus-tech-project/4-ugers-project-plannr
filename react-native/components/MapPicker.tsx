@@ -25,6 +25,7 @@ const MapPicker: React.FC<MapPickerProps> = ({
   const { location: liveLocation, address: liveAddress } = useLiveLocation({})
   const [address, setAddress] = useState<string>("")
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [isLocating, setIsLocating] = useState(false)
   const mapRef = useRef<MapView>(null)
   const theme = useCustomTheme()
   // Calculate initial delta based on range (in meters), or use a default if no range
@@ -133,13 +134,15 @@ const MapPicker: React.FC<MapPickerProps> = ({
   }, [range, location])
 
   const moveToCurrentLocation = async () => {
+    setIsLocating(true)
     try {
       let { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== "granted") {
         Alert.alert("Location Error", "Permission to access location was denied.")
+        setIsLocating(false)
         return
       }
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest })
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
       const { latitude, longitude } = loc.coords
       setCurrentLocation({ latitude, longitude })
       // Calculate latitudeDelta/longitudeDelta to fit the range
@@ -176,6 +179,8 @@ const MapPicker: React.FC<MapPickerProps> = ({
     } catch (err) {
       console.error(err)
       Alert.alert("Location Error", "Could not get current location. Please check permissions and try again.")
+    } finally {
+      setIsLocating(false)
     }
   }
 
@@ -269,13 +274,20 @@ const MapPicker: React.FC<MapPickerProps> = ({
           </>
         )}
       </View>
-      <TouchableOpacity
-        style={{ ...styles.fab, backgroundColor: theme.colors.brand.red }}
-        onPress={moveToCurrentLocation}
-        activeOpacity={0.8}
-      >
-        <FontAwesome6 name="crosshairs" size={22} color={"#FFFFFF"} />
-      </TouchableOpacity>
+      {!disableSelection && (
+        <TouchableOpacity
+          style={{ ...styles.fab, backgroundColor: theme.colors.brand.red, opacity: isLocating ? 0.5 : 1 }}
+          onPress={isLocating ? undefined : moveToCurrentLocation}
+          activeOpacity={0.8}
+          disabled={isLocating}
+        >
+          {isLocating ? (
+            <FontAwesome6 name="spinner" size={22} color={"#FFFFFF"} style={{}} />
+          ) : (
+            <FontAwesome6 name="crosshairs" size={22} color={"#FFFFFF"} />
+          )}
+        </TouchableOpacity>
+      )}
     </View>
   )
 }

@@ -47,7 +47,8 @@ export default function Login() {
         label="Email"
         value={email}
         onChangeText={setEmail}
-        style={{ width: 260, marginBottom: 8 }}
+        style={{ width: 260, marginBottom: 8, height: 50 }}
+        contentStyle={{ overflow: "hidden" }}
         keyboardType="email-address"
         autoCapitalize="none"
         mode="outlined"
@@ -66,7 +67,8 @@ export default function Login() {
         label="Password"
         value={password}
         onChangeText={setPassword}
-        style={{ width: 260, marginBottom: 8 }}
+        style={{ width: 260, marginBottom: 8, height: 50 }}
+        contentStyle={{ overflow: "hidden" }}
         secureTextEntry={!showPassword}
         mode="outlined"
         autoComplete={"password"}
@@ -85,10 +87,17 @@ export default function Login() {
       <Button
         mode="contained"
         onPress={handleManualLogin}
-        style={{ borderRadius: 24, marginTop: 8, width: 260, backgroundColor: theme.colors.brand.red }}
+        style={{
+          borderRadius: 24,
+          marginTop: 8,
+          width: 260,
+          backgroundColor: !email || !password || loading ? theme.colors.gray[300] : theme.colors.brand.red,
+        }}
         loading={loading}
-        disabled={!email || !password}
-        labelStyle={{ color: theme.colors.white }}
+        disabled={!email || !password || loading}
+        labelStyle={{
+          color: !email || !password || loading ? theme.colors.gray[500] : theme.colors.white,
+        }}
       >
         Login
       </Button>

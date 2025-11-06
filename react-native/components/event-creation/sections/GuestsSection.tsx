@@ -12,9 +12,10 @@ interface Guest {
 interface GuestsSectionProps {
   guests: Guest[]
   onChange: (guests: Guest[]) => void
+  error?: string
 }
 
-const GuestsSection: React.FC<GuestsSectionProps> = ({ guests, onChange }) => {
+const GuestsSection: React.FC<GuestsSectionProps> = ({ guests, onChange, error }) => {
   const theme = useCustomTheme()
   const addGuest = () => onChange([...guests, { name: "" }])
   const updateGuest = (idx: number, key: keyof Guest, value: string) => {
@@ -108,6 +109,9 @@ const GuestsSection: React.FC<GuestsSectionProps> = ({ guests, onChange }) => {
       <TouchableOpacity onPress={addGuest} style={{ marginTop: 6 }}>
         <Text style={{ color: theme.colors.brand.blue, fontWeight: "bold" }}>+ Add Guest</Text>
       </TouchableOpacity>
+      {typeof error === "string" && error.length > 0 && (
+        <Text style={{ color: theme.colors.brand.red, marginTop: 4, fontSize: 13 }}>{error}</Text>
+      )}
     </View>
   )
 }

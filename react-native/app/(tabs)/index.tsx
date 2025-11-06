@@ -3,12 +3,14 @@ import { EventsCarousel } from "@/components/EventsCarousel"
 import FilterModal from "@/components/FilterModal"
 import { StatsCard } from "@/components/StatsCard"
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
-import mockEvents from "@/data/mockEvents.data"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { useEvents } from "@/hooks/useEvents"
+import { useFilters } from "@/hooks/useFilters"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
 import { useScrollDrivenAnimation } from "@/hooks/useScrollDrivenAnimation"
 import { useSession, useUserProfileFilters } from "@/hooks/useSession"
 import type { Profile } from "@/interfaces/profile"
+import { filterEvents, filterEventsNearby, getDistance } from "@/utils/eventFilterUtils"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useFocusEffect } from "@react-navigation/native"
 import dayjs from "dayjs"
@@ -19,23 +21,9 @@ import { Text } from "react-native-paper"
 
 dayjs.extend(utc)
 
-// Haversine formula to calculate distance between two lat/lng points in km
-function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371 // Radius of the earth in km
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLon = ((lon2 - lon1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  const d = R * c // Distance in km
-  return d
-}
-
 export default function Home() {
   const { setScrollY } = useTabBarVisibility()
   const { scrollY, onScroll } = useScrollDrivenAnimation({ hideDistance: 80, fade: true })
-  // Set scrollY in context and reset to 0 when page is focused
   useFocusEffect(
     React.useCallback(() => {
       setScrollY(scrollY)
@@ -44,25 +32,21 @@ export default function Home() {
   )
   const theme = useCustomTheme()
   const { session } = useSession()
-  const userProfile: Profile | undefined = session?.user as Profile | undefined
+  const userProfile: Profile | undefined = session?.profile
   const likedEvents = Array.isArray(userProfile?.likedEvents) ? userProfile.likedEvents : []
   const subscribedEvents = Array.isArray(userProfile?.subscribedEvents) ? userProfile.subscribedEvents : []
   const initialFilters = useUserProfileFilters(userProfile)
   const { location: liveLocation, address: liveAddress } = useLiveLocation()
+  const { events: apiEvents, fetchEvents } = useEvents()
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchEvents()
+    }, [fetchEvents])
+  )
   const eventsNearby = useMemo(() => {
-    if (!liveLocation?.coords) return []
-    return mockEvents.filter((e) => {
-      if (!e.location || typeof e.location.latitude !== "number" || typeof e.location.longitude !== "number")
-        return false
-      const dist = getDistanceFromLatLonInKm(
-        liveLocation.coords.latitude,
-        liveLocation.coords.longitude,
-        e.location.latitude,
-        e.location.longitude
-      )
-      return dist <= 100
-    })
-  }, [liveLocation])
+    return filterEventsNearby(apiEvents, liveLocation, 100)
+  }, [liveLocation, apiEvents])
   const statsNearby = useMemo(() => {
     if (!liveLocation?.coords || eventsNearby.length === 0) return null
     let closestEvent = undefined
@@ -70,12 +54,13 @@ export default function Home() {
     let totalInterested = 0
     for (const e of eventsNearby) {
       if (!e.location) continue
-      const dist = getDistanceFromLatLonInKm(
-        liveLocation.coords.latitude,
-        liveLocation.coords.longitude,
-        e.location.latitude ?? 0,
-        e.location.longitude ?? 0
-      )
+      const dist =
+        getDistance(
+          liveLocation.coords.latitude,
+          liveLocation.coords.longitude,
+          e.location.latitude ?? 0,
+          e.location.longitude ?? 0
+        ) / 1000 // convert meters to km
       if (dist < minDist) {
         minDist = dist
         closestEvent = e
@@ -89,144 +74,97 @@ export default function Home() {
       totalInterested,
     }
   }, [liveLocation, eventsNearby])
-  const initialFormats = initialFilters.formats
-  const initialSelectedThemes = initialFilters.eventThemes
-  const initialRange = initialFilters.location.range
-  const initialUseCurrentLocation = initialFilters.location.useCurrent
-  const initialCustomLocation = initialFilters.location.custom
-  const initialDateRange = initialFilters.dateRange
-  const initialCustomStart = initialDateRange.custom?.startDate ?? null
-  const initialCustomEnd = initialDateRange.custom?.endDate ?? null
   const [filterModalVisible, setFilterModalVisible] = useState(false)
-
-  const [filters, setFilters] = useState({
-    formats: initialFormats,
-    selectedThemes: initialSelectedThemes,
-    range: initialRange,
-    useCurrentLocation: initialUseCurrentLocation,
-    selectedLocation: initialCustomLocation,
-    customStart: initialCustomStart,
-    customEnd: initialCustomEnd,
-    dateRange: initialDateRange ?? {},
-  })
+  const filters = useFilters(initialFilters)
   const now = new Date()
   // Find event objects by id for liked and subscribed events
   const allEvents = useMemo(() => {
     const map = new Map()
     // Subscribed events first
     for (const id of subscribedEvents) {
-      const event = mockEvents.find((e) => e.id === id)
+      const event = apiEvents.find((e) => e.id === id)
       if (event) map.set(event.id, { ...event, _subscribed: true })
     }
     // Liked events, but don't overwrite subscribed
     for (const id of likedEvents) {
       if (!map.has(id)) {
-        const event = mockEvents.find((e) => e.id === id)
+        const event = apiEvents.find((e) => e.id === id)
         if (event) map.set(event.id, { ...event, _subscribed: false })
       }
     }
     return Array.from(map.values())
-  }, [likedEvents, subscribedEvents])
+  }, [likedEvents, subscribedEvents, apiEvents])
+
   const _filteredEvents = useMemo(() => {
-    let events = allEvents
-    if (filters.formats && filters.formats.length > 0) events = events.filter((e) => filters.formats.includes(e.format))
-    if (filters.selectedThemes && filters.selectedThemes.length > 0)
-      events = events.filter(
-        (e) =>
-          Array.isArray(e.themes) &&
-          e.themes.some((t: import("@/interfaces/event").EventThemeName) => filters.selectedThemes.includes(t))
-      )
-    if (filters.customStart && filters.customEnd) {
-      events = events.filter((e) => {
-        const eventStart = dayjs.utc(e.dateRange.startAt).valueOf()
-        const eventEnd = e.dateRange.endAt ? dayjs.utc(e.dateRange.endAt).valueOf() : eventStart
-        return (
-          eventEnd >= dayjs.utc(filters.customStart).valueOf() && eventStart <= dayjs.utc(filters.customEnd).valueOf()
-        )
-      })
-    } else if (filters.dateRange && filters.dateRange.current) {
-      let rangeStart = dayjs.utc(now)
-      let rangeEnd = null
-      if (filters.dateRange.current.day) {
-        rangeEnd = rangeStart.endOf("day")
-      } else if (filters.dateRange.current.week) {
-        rangeEnd = rangeStart.endOf("week")
-      } else if (filters.dateRange.current.month) {
-        rangeEnd = rangeStart.endOf("month")
-      } else if (filters.dateRange.current.year) {
-        rangeEnd = rangeStart.endOf("year")
-      }
-      if (rangeEnd) {
-        events = events.filter((e) => {
-          const eventStart = dayjs.utc(e.dateRange.startAt)
-          const eventEnd = e.dateRange.endAt ? dayjs.utc(e.dateRange.endAt) : eventStart
-          return eventEnd.isAfter(rangeStart) && eventStart.isBefore(rangeEnd)
-        })
+    // Map selectedThemes (EventThemeName[]) to EventTheme[] for filterEvents
+    const selectedThemes = (filters.selectedThemes ?? []).map((name) => ({ name, icon: "other" as const }))
+    // Ensure customLocation always has latitude/longitude as numbers
+    let customLocation = null
+    if (
+      filters.selectedLocation &&
+      typeof filters.selectedLocation.latitude === "number" &&
+      typeof filters.selectedLocation.longitude === "number"
+    ) {
+      customLocation = {
+        latitude: filters.selectedLocation.latitude,
+        longitude: filters.selectedLocation.longitude,
       }
     }
-    let loc = null
-    if (filters.useCurrentLocation) {
-      loc = {
-        latitude: typeof liveLocation?.coords.latitude === "number" ? liveLocation.coords.latitude : 0,
-        longitude: typeof liveLocation?.coords.longitude === "number" ? liveLocation.coords.longitude : 0,
-      }
-    } else {
-      loc =
-        filters.selectedLocation &&
-        typeof filters.selectedLocation.latitude === "number" &&
-        typeof filters.selectedLocation.longitude === "number"
-          ? { latitude: filters.selectedLocation.latitude, longitude: filters.selectedLocation.longitude }
-          : null
-    }
-    if (loc) {
-      events = events.filter((e) => {
-        const lat = typeof e.location?.latitude === "number" ? e.location.latitude : 0
-        const lng = typeof e.location?.longitude === "number" ? e.location.longitude : 0
-        const dist = getDistanceFromLatLonInKm(loc.latitude, loc.longitude, lat, lng)
-        return dist <= (filters.range ?? 50)
-      })
-    }
-    return events
+    const filtered = filterEvents(allEvents, {
+      eventTypes: filters.formats ?? [],
+      selectedThemes,
+      dateRangeMode: filters.mode ?? { daily: true },
+      customStart: filters.customStart ?? null,
+      customEnd: filters.customEnd ?? null,
+      customLocation,
+      liveLocation,
+      range: filters.range ?? 50,
+    })
+    return filtered
       .filter((e) => dayjs.utc(e.dateRange.startAt).isAfter(dayjs.utc(now)))
       .sort((a, b) => {
         const aStart = a?.dateRange?.startAt ? dayjs.utc(a.dateRange.startAt).valueOf() : 0
         const bStart = b?.dateRange?.startAt ? dayjs.utc(b.dateRange.startAt).valueOf() : 0
         return aStart - bStart
       })
-  }, [allEvents, filters, now])
+  }, [allEvents, filters, liveLocation, now])
 
   // Collapsible header logic
   const [headerHeight, setHeaderHeight] = useState(0)
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <FilterModal
         visible={filterModalVisible}
-        initial={{
-          ...filters,
-        }}
         onClose={() => setFilterModalVisible(false)}
         onApply={(newFilters) => {
-          setFilters({
-            formats: newFilters.formats ?? filters.formats,
-            selectedThemes: newFilters.selectedThemes ?? filters.selectedThemes,
-            range: typeof newFilters.range === "number" ? newFilters.range : filters.range ?? 50,
-            useCurrentLocation:
+          if (typeof filters.setFormats === "function") filters.setFormats(newFilters.formats ?? filters.formats)
+          if (typeof filters.setSelectedThemes === "function")
+            filters.setSelectedThemes(newFilters.selectedThemes ?? filters.selectedThemes)
+          if (typeof filters.setRange === "function")
+            filters.setRange(typeof newFilters.range === "number" ? newFilters.range : filters.range ?? 50)
+          if (typeof filters.setUseCurrentLocation === "function")
+            filters.setUseCurrentLocation(
               typeof newFilters.useCurrentLocation === "boolean"
                 ? newFilters.useCurrentLocation
-                : filters.useCurrentLocation,
-            selectedLocation:
+                : filters.useCurrentLocation
+            )
+          if (typeof filters.setSelectedLocation === "function")
+            filters.setSelectedLocation(
               newFilters.selectedLocation &&
-              typeof newFilters.selectedLocation.latitude === "number" &&
-              typeof newFilters.selectedLocation.longitude === "number"
+                typeof newFilters.selectedLocation.latitude === "number" &&
+                typeof newFilters.selectedLocation.longitude === "number"
                 ? {
                     latitude: newFilters.selectedLocation.latitude,
                     longitude: newFilters.selectedLocation.longitude,
                   }
-                : undefined,
-            customStart: newFilters.customStart ?? filters.customStart,
-            customEnd: newFilters.customEnd ?? filters.customEnd,
-            dateRange: newFilters.dateRange ?? filters.dateRange,
-          })
+                : null
+            )
+          if (typeof filters.setCustomStart === "function")
+            filters.setCustomStart(newFilters.customStart ?? filters.customStart)
+          if (typeof filters.setCustomEnd === "function")
+            filters.setCustomEnd(newFilters.customEnd ?? filters.customEnd)
+          if (typeof filters.setDateRange === "function")
+            filters.setDateRange(newFilters.dateRange ?? filters.dateRange)
           setFilterModalVisible(false)
         }}
       />
@@ -262,7 +200,7 @@ export default function Home() {
       </View>
       <Animated.ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ alignItems: "center", paddingBottom: 40, backgroundColor: theme.colors.background }}
+        contentContainerStyle={{ alignItems: "center", paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={8}
         bounces={false}
@@ -308,11 +246,52 @@ export default function Home() {
             Your Upcoming & Liked Events
           </Text>
         </View>
-        {_filteredEvents.map((event) => (
-          <View key={event.id} style={{ width: "90%", marginBottom: 18 }}>
-            <EventDetailsCard event={event} actionButtons={true} />
+        {_filteredEvents.length === 0 ? (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              marginTop: 32,
+            }}
+          >
+            <FontAwesome6 name="face-sad-tear" size={64} color={theme.colors.brand.red} style={{ marginBottom: 16 }} />
+            <Text style={{ fontSize: 22, fontWeight: "bold", color: theme.colors.onBackground, marginBottom: 8 }}>
+              No events found!
+            </Text>
+            <Text style={{ fontSize: 16, color: theme.colors.gray[500], textAlign: "center", maxWidth: 280 }}>
+              There are no upcoming or liked events. Try subscribing to events or check back later!
+            </Text>
           </View>
-        ))}
+        ) : (
+          _filteredEvents.map((event) => (
+            <View key={event.id} style={{ width: "90%", marginBottom: 18 }}>
+              <EventDetailsCard
+                event={event}
+                buttons={[
+                  {
+                    label: "Edit",
+                    icon: "pen-to-square",
+                    backgroundColor: theme.colors.brand.red,
+                    textColor: theme.colors.white,
+                    onPress: () => {
+                      /* TODO: Implement edit logic, e.g. open edit modal or navigate */
+                    },
+                  },
+                  {
+                    label: "Delete",
+                    icon: "trash",
+                    backgroundColor: theme.colors.gray[700],
+                    textColor: theme.colors.white,
+                    onPress: () => {
+                      /* TODO: Implement delete logic, e.g. show confirm dialog */
+                    },
+                  },
+                ]}
+              />
+            </View>
+          ))
+        )}
       </Animated.ScrollView>
     </View>
   )

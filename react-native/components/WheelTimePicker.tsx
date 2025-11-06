@@ -1,4 +1,5 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { vibrateWheelChange } from "@/utils/vibrate"
 import { FontAwesome6 } from "@expo/vector-icons"
 import React, { useState } from "react"
 import { Modal, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native"
@@ -17,6 +18,8 @@ interface WheelTimePickerProps {
 }
 
 export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChange, disabled, min }) => {
+  const prevHourRef = React.useRef<number | undefined>(undefined)
+  const prevMinuteRef = React.useRef<number | undefined>(undefined)
   const theme = useCustomTheme()
   const [visible, setVisible] = useState(false)
   const [hour, setHour] = useState<number>(value ? value.getHours() : 12)
@@ -27,6 +30,8 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
     if (value) {
       setHour(value.getHours())
       setMinute(value.getMinutes())
+      prevHourRef.current = value.getHours()
+      prevMinuteRef.current = value.getMinutes()
     }
   }, [value])
   const hourScrollRef = React.useRef<ScrollView>(null)
@@ -142,11 +147,23 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
                   snapToInterval={ITEM_HEIGHT}
                   decelerationRate="fast"
                   contentContainerStyle={{ paddingVertical: ITEM_HEIGHT * 2 }}
+                  onScroll={(e) => {
+                    const y = e.nativeEvent.contentOffset.y
+                    const idx = Math.round(y / ITEM_HEIGHT)
+                    // Allow vibration and sound at edges
+                    const h = HOUR_LIST[idx % HOUR_LIST.length]
+                    if (h !== prevHourRef.current) {
+                      vibrateWheelChange()
+                      prevHourRef.current = h
+                    }
+                  }}
+                  scrollEventThrottle={16}
                   onMomentumScrollEnd={(e) => {
                     const y = e.nativeEvent.contentOffset.y
                     const idx = Math.round(y / ITEM_HEIGHT)
                     const h = HOUR_LIST[idx % HOUR_LIST.length]
                     setHour(h)
+                    prevHourRef.current = h
                   }}
                 >
                   {HOUR_LIST.map((h, i) => {
@@ -158,7 +175,14 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
                         style={styles.wheelItem}
                         onPress={() => {
                           if (!validMinuteExists) return
-                          setHour(h)
+                          if (h !== prevHourRef.current) {
+                            setHour(h)
+                            vibrateWheelChange()
+
+                            prevHourRef.current = h
+                          } else {
+                            setHour(h)
+                          }
                           hourScrollRef.current?.scrollTo({ y: i * ITEM_HEIGHT, animated: true })
                         }}
                         disabled={!validMinuteExists}
@@ -194,11 +218,23 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
                   snapToInterval={ITEM_HEIGHT}
                   decelerationRate="fast"
                   contentContainerStyle={{ paddingVertical: ITEM_HEIGHT * 2 }}
+                  onScroll={(e) => {
+                    const y = e.nativeEvent.contentOffset.y
+                    const idx = Math.round(y / ITEM_HEIGHT)
+                    // Allow vibration and sound at edges
+                    const m = MINUTE_LIST[idx % MINUTE_LIST.length]
+                    if (m !== prevMinuteRef.current) {
+                      vibrateWheelChange()
+                      prevMinuteRef.current = m
+                    }
+                  }}
+                  scrollEventThrottle={16}
                   onMomentumScrollEnd={(e) => {
                     const y = e.nativeEvent.contentOffset.y
                     const idx = Math.round(y / ITEM_HEIGHT)
                     const m = MINUTE_LIST[idx % MINUTE_LIST.length]
                     setMinute(m)
+                    prevMinuteRef.current = m
                   }}
                 >
                   {MINUTE_LIST.map((m, i) => {
@@ -209,7 +245,13 @@ export const WheelTimePicker: React.FC<WheelTimePickerProps> = ({ value, onChang
                         style={styles.wheelItem}
                         onPress={() => {
                           if (!valid) return
-                          setMinute(m)
+                          if (m !== prevMinuteRef.current) {
+                            setMinute(m)
+                            vibrateWheelChange()
+                            prevMinuteRef.current = m
+                          } else {
+                            setMinute(m)
+                          }
                           minuteScrollRef.current?.scrollTo({ y: i * ITEM_HEIGHT, animated: true })
                         }}
                         disabled={!valid}

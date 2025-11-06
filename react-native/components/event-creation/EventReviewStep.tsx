@@ -3,7 +3,7 @@ import { useEventCreation } from "@/context/EventCreationContext"
 import React from "react"
 
 const EventReviewStep: React.FC = () => {
-  const { eventDetails, customStart, customEnd, images, sections, selectedLocation } = useEventCreation()
+  const { eventDetails, customStart, customEnd, sections, selectedLocation } = useEventCreation()
 
   // Compose a mock event object for preview
   const previewEvent = {
@@ -24,10 +24,7 @@ const EventReviewStep: React.FC = () => {
         }
       : undefined,
     themes: eventDetails.themes || [],
-    sections: [
-      ...(images && images.length > 0 ? [{ type: "images", srcs: images.map((img: { uri: string }) => img.uri) }] : []),
-      ...(sections || []),
-    ],
+    sections: sections,
   }
 
   return <EventPage event={previewEvent} showHeader={false} />

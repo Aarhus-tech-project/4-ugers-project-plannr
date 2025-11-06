@@ -1,13 +1,15 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import React from "react"
 import { TextInput, View } from "react-native"
+import { Text } from "react-native-paper"
 
 interface DresscodeSectionProps {
   value: string
   onChange: (val: string) => void
+  error?: string
 }
 
-const DresscodeSection: React.FC<DresscodeSectionProps> = ({ value, onChange }) => {
+const DresscodeSection: React.FC<DresscodeSectionProps> = ({ value, onChange, error }) => {
   const theme = useCustomTheme()
   return (
     <View style={{ marginVertical: 8 }}>
@@ -28,6 +30,9 @@ const DresscodeSection: React.FC<DresscodeSectionProps> = ({ value, onChange }) 
           fontSize: 15,
         }}
       />
+      {typeof error === "string" && error.length > 0 && (
+        <Text style={{ color: theme.colors.brand.red, marginTop: 4, fontSize: 13 }}>{error}</Text>
+      )}
     </View>
   )
 }

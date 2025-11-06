@@ -8,14 +8,14 @@ import EventReviewStep from "@/components/event-creation/EventReviewStep"
 import EventSectionsStep from "@/components/event-creation/EventSectionsStep"
 import { EventCreationProvider, useEventCreation } from "@/context/EventCreationContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { useEvents } from "@/hooks/useEvents"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
-import { Event, EventLocation, EventPageSection, EventTheme, EventThemeName } from "@/interfaces/event"
+import { EventLocation, EventPageSection, EventTheme, EventThemeName } from "@/interfaces/event"
 import { getEventDateRangeError } from "@/utils/date-range-validator"
 import { areAllSectionsFilled } from "@/utils/section-validator"
-import { FontAwesome6 } from "@expo/vector-icons"
 import { router, useLocalSearchParams } from "expo-router"
 import React, { useCallback, useEffect, useState } from "react"
-import { ScrollView, TouchableOpacity, View } from "react-native"
+import { ScrollView, View } from "react-native"
 import { Text } from "react-native-paper"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
@@ -106,17 +106,9 @@ function CreateEventHeader({ theme, isEditing }: { theme: ReturnType<typeof useC
         width: "100%",
         paddingTop: 80,
         paddingBottom: 16,
-        paddingLeft: 20,
         backgroundColor: theme.colors.secondary,
       }}
     >
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={{ padding: 4, borderRadius: 16, position: "absolute", left: 20, top: 82 }}
-        activeOpacity={0.6}
-      >
-        <FontAwesome6 name="chevron-left" size={24} color={theme.colors.onBackground} />
-      </TouchableOpacity>
       <Text
         style={{
           color: theme.colors.onBackground,
@@ -152,7 +144,9 @@ function CreateEventScreenInner() {
     setSelectedLocation,
     sections,
     setSections,
+    buildEventFields,
   } = useEventCreation()
+  const { createEvent } = useEvents()
 
   // Prefill context if editing
   useEffect(() => {
@@ -174,23 +168,15 @@ function CreateEventScreenInner() {
 
   const { visibleThemes } = useLazyEventThemes(10, 600)
 
-  const handleSubmit = () => {
-    // Build full event object from all creation steps
-    const event: Event = {
-      // GUID CREATOR ID
-      creatorId: "123e4567-e89b-12d3-a456-426614174000",
-      title: eventDetails.title,
-      themes: eventDetails.themes,
-      format: eventDetails.format,
-      dateRange: {
-        startAt: customStart ?? new Date(),
-        endAt: customEnd ?? undefined,
-      },
-      location: selectedLocation ?? undefined,
-      sections: sections,
+  const handleSubmit = async () => {
+    try {
+      const fields = buildEventFields()
+      if (!fields) return
+      await createEvent(fields)
+      router.replace("/tabs/ownevents")
+    } catch {
+      // error already logged in createEvent
     }
-    console.log("Event submitted:", JSON.stringify(event, null, 2))
-    //router.back()
   }
 
   const handleCancel = () => {
@@ -200,7 +186,6 @@ function CreateEventScreenInner() {
 
   const handleNext = useCallback(() => {
     setCurrentStep((s) => Math.min(s + 1, stepMeta.length - 1))
-    console.log("Next step", currentStep, stepMeta.length)
     if (currentStep === stepMeta.length - 1) {
       handleSubmit()
     }
@@ -257,56 +242,62 @@ function CreateEventScreenInner() {
       }
     })()
 
+  // Height of BottomButtonBar (paddingVertical: 22 + button height ~48)
+  const bottomBarHeight = 22 * 2 + 48 + insets.bottom
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background, position: "relative" }}>
       <CreateEventHeader theme={theme} isEditing={isEditing} />
       <View style={{ backgroundColor: theme.colors.secondary }}>
         <Stepper steps={stepMeta} currentStep={currentStep} />
       </View>
-      <ScrollView
-        style={{ flex: 1, backgroundColor: theme.colors.background }}
-        contentContainerStyle={{ paddingBottom: 54 + insets.bottom, paddingTop: 16 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <StepContent
-          step={currentStep}
-          eventDetails={eventDetails}
-          setEventDetails={setEventDetails}
-          allThemes={visibleThemes}
-          setDetailsValidation={setDetailsValidation}
-          customStart={customStart}
-          setCustomStart={setCustomStart}
-          customEnd={customEnd}
-          setCustomEnd={setCustomEnd}
-          dateTimeValidation={dateTimeValidation}
-          setDateTimeValidation={setDateTimeValidation}
-          selectedLocation={selectedLocation}
-          setSelectedLocation={setSelectedLocation}
-          sections={sections}
-          setSections={setSections}
-        />
-      </ScrollView>
-      <BottomButtonBar
-        containerStyle={{ backgroundColor: theme.colors.gray[800], paddingVertical: 22 }}
-        buttons={[
-          {
-            label: stepMeta[currentStep].key === "details" ? "Cancel" : "Back",
-            onPress: handleBack,
-            mode: "outlined",
-            backgroundColor: theme.colors.gray[900],
-            textColor: theme.colors.white,
-          },
-          {
-            label: stepMeta[currentStep].key === "review" ? "Submit" : "Next",
-            onPress: handleNext,
-            mode: "contained",
-            backgroundColor: !isStepValid ? theme.colors.brand.red + "66" : theme.colors.brand.red,
-            textColor: theme.colors.white,
-            disabled: !isStepValid,
-            style: !isStepValid ? { opacity: 0.5 } : undefined,
-          },
-        ]}
-      />
+      <View style={{ flex: 1, position: "relative" }}>
+        <ScrollView
+          style={{ flex: 1, backgroundColor: theme.colors.background }}
+          contentContainerStyle={{ minHeight: "100%", paddingBottom: bottomBarHeight, paddingTop: 16 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <StepContent
+            step={currentStep}
+            eventDetails={eventDetails}
+            setEventDetails={setEventDetails}
+            allThemes={visibleThemes}
+            setDetailsValidation={setDetailsValidation}
+            customStart={customStart}
+            setCustomStart={setCustomStart}
+            customEnd={customEnd}
+            setCustomEnd={setCustomEnd}
+            dateTimeValidation={dateTimeValidation}
+            setDateTimeValidation={setDateTimeValidation}
+            selectedLocation={selectedLocation}
+            setSelectedLocation={setSelectedLocation}
+            sections={sections}
+            setSections={setSections}
+          />
+        </ScrollView>
+        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }} pointerEvents="box-none">
+          <BottomButtonBar
+            containerStyle={{ backgroundColor: theme.colors.gray[800], paddingVertical: 22 }}
+            buttons={[
+              {
+                label: stepMeta[currentStep].key === "details" ? "Cancel" : "Back",
+                onPress: handleBack,
+                mode: "outlined",
+                backgroundColor: theme.colors.gray[900],
+                textColor: theme.colors.white,
+              },
+              {
+                label: stepMeta[currentStep].key === "review" ? "Submit" : "Next",
+                onPress: handleNext,
+                mode: "contained",
+                backgroundColor: !isStepValid ? theme.colors.brand.red + "66" : theme.colors.brand.red,
+                textColor: theme.colors.white,
+                disabled: !isStepValid,
+                style: !isStepValid ? { opacity: 0.5 } : undefined,
+              },
+            ]}
+          />
+        </View>
+      </View>
     </View>
   )
 }

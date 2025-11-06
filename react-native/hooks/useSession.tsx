@@ -83,8 +83,18 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       })
       if (!res.ok) throw new Error("Login failed")
       const data = await res.json()
-      await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(data))
-      setSession(data)
+
+      // Fetch profile using token and email
+      const profileRes = await fetch(`https://plannr.azurewebsites.net/api/profiles/by-email/${email}`, {
+        headers: { Authorization: `Bearer ${data.token}` },
+      })
+      if (!profileRes.ok) throw new Error("Failed to fetch profile")
+      const profile = await profileRes.json()
+
+      // Add profile to session object
+      const sessionWithProfile = { ...data, profile }
+      await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(sessionWithProfile))
+      setSession(sessionWithProfile)
     } catch (err: any) {
       setError(err.message || "Login error")
       setSession(null)
@@ -104,8 +114,18 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       })
       if (!res.ok) throw new Error("Signup failed")
       const data = await res.json()
-      await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(data))
-      setSession(data)
+
+      // Fetch profile using token and email
+      const profileRes = await fetch(`https://plannr.azurewebsites.net/api/profiles/by-email/${email}`, {
+        headers: { Authorization: `Bearer ${data.token}` },
+      })
+      if (!profileRes.ok) throw new Error("Failed to fetch profile")
+      const profile = await profileRes.json()
+
+      // Add profile to session object
+      const sessionWithProfile = { ...data, profile }
+      await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(sessionWithProfile))
+      setSession(sessionWithProfile)
     } catch (err: any) {
       setError(err.message || "Signup error")
       setSession(null)

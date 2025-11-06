@@ -11,7 +11,6 @@ interface EventLocationStepProps {
 
 const EventLocationStep: React.FC<EventLocationStepProps> = ({ selectedLocation, setSelectedLocation }) => {
   const theme = useCustomTheme()
-  console.log("Rendering EventLocationStep with selectedLocation:", selectedLocation)
   return (
     <View
       style={{

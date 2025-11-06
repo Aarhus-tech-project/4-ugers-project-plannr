@@ -29,7 +29,6 @@ export default function Settings() {
           width: "100%",
           paddingTop: 80,
           paddingBottom: 16,
-          paddingLeft: 20,
           backgroundColor: theme.colors.secondary,
         }}
       >
@@ -89,14 +88,18 @@ export default function Settings() {
                   alignItems: "center",
                 }}
               >
-                <Image
-                  source={{ uri: session?.user?.avatarUrl || "" }}
-                  style={{ width: 100, height: 100, borderRadius: 50, marginBottom: 0 }}
-                />
+                {session?.profile?.avatarUrl ? (
+                  <Image
+                    source={{ uri: session?.profile?.avatarUrl }}
+                    style={{ width: 80, height: 80, borderRadius: 12 }}
+                  />
+                ) : (
+                  <FontAwesome6 name="user" size={32} color={theme.colors.gray[400]} />
+                )}
               </View>
             </View>
             <Text style={{ color: theme.colors.onBackground, fontWeight: "bold", fontSize: 22 }}>
-              {session?.user?.name || "Daniel"}
+              {session?.profile?.name}
             </Text>
             <Text style={{ color: theme.colors.onBackground, fontSize: 16 }}>{"Plannr member"}</Text>
           </View>

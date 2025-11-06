@@ -135,7 +135,11 @@ const EventThemeSelector: React.FC<EventThemeSelectorProps> = React.memo(
           <ScrollView
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled
-            contentContainerStyle={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start" }}
+            contentContainerStyle={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              alignItems: "flex-start",
+            }}
           >
             {allChips}
           </ScrollView>

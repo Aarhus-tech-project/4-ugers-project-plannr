@@ -1,7 +1,6 @@
 import CreateAccountScreen from "@/app/create-account"
 import LoginScreen from "@/app/login"
 import GestureRoot from "@/components/GestureRoot"
-import GlobalKeyboardDismiss from "@/components/GlobalKeyboardDismiss"
 import { SessionProvider, useSession } from "@/hooks/useSession"
 import { darkTheme, lightTheme } from "@/theme"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
@@ -53,13 +52,11 @@ export default function RootLayout() {
   return (
     <SessionProvider>
       <PaperProvider theme={theme}>
-        <GlobalKeyboardDismiss>
-          <GestureRoot>
-            <BottomSheetModalProvider>
-              <AppContent />
-            </BottomSheetModalProvider>
-          </GestureRoot>
-        </GlobalKeyboardDismiss>
+        <GestureRoot>
+          <BottomSheetModalProvider>
+            <AppContent />
+          </BottomSheetModalProvider>
+        </GestureRoot>
       </PaperProvider>
     </SessionProvider>
   )

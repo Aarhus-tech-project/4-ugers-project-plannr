@@ -9,7 +9,7 @@ interface EventImageGalleryProps {
   onAddImage?: () => void
 }
 
-const EventImageGallery: React.FC<EventImageGalleryProps> = ({ images, onChange, onAddImage }) => {
+const EventImageGallery: React.FC<EventImageGalleryProps> = ({ images, onAddImage }) => {
   const theme = useCustomTheme()
   const [selectedImageIdx, setSelectedImageIdx] = useState(0)
   if (!images || images.length === 0)

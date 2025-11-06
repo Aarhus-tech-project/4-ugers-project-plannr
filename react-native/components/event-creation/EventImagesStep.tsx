@@ -171,7 +171,11 @@ const EventImagesStep: React.FC<EventImagesStepProps> = ({ sections, setSections
                 }}
                 accessibilityLabel={`Event image: ${item.uri}`}
               >
-                <Image source={{ uri: item.uri }} style={{ width: 80, height: 80, borderRadius: 12 }} />
+                {item.uri ? (
+                  <Image source={{ uri: item.uri }} style={{ width: 80, height: 80, borderRadius: 12 }} />
+                ) : (
+                  <FontAwesome6 name="user" size={32} color={theme.colors.gray[400]} />
+                )}
                 <TouchableOpacity
                   onPress={() => removeImage(item.uri)}
                   style={{

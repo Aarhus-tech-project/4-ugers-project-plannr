@@ -24,11 +24,15 @@ const SECTION_TYPES = [
 ]
 
 const EventSectionsStep: React.FC = () => {
-  const { sections, setSections } = useEventCreation()
+  const { sections, setSections, customStart, customEnd } = useEventCreation()
   const theme = useCustomTheme()
   const [showAddOptions, setShowAddOptions] = useState(false)
   // Add a new section with default content
   const handleAddSection = (type: string) => {
+    if (sections.some((s) => s.type === type)) {
+      // Section already exists, do not add again
+      return
+    }
     let newSection: EventPageSection
     switch (type) {
       case "description":
@@ -57,8 +61,6 @@ const EventSectionsStep: React.FC = () => {
         return
     }
     setSections([...sections, newSection])
-    // setAddModalVisible(false)
-    // setSelectedType(null)
   }
 
   const handleRemoveSection = (idx: number) => {
@@ -103,7 +105,14 @@ const EventSectionsStep: React.FC = () => {
           />
         )
       case "schedule":
-        return <ScheduleSection items={item.items} onChange={(items) => handleSectionChange(idx, { ...item, items })} />
+        return (
+          <ScheduleSection
+            items={item.items}
+            onChange={(items) => handleSectionChange(idx, { ...item, items })}
+            minDate={customStart ?? undefined}
+            maxDate={customEnd ?? undefined}
+          />
+        )
       default:
         return null
     }
@@ -131,22 +140,24 @@ const EventSectionsStep: React.FC = () => {
             No sections added yet.
           </Text>
         ) : (
-          sections
-            .filter((item) => item.type !== "images")
-            .map((item, idx) => {
-              const meta = SECTION_TYPES.find((s) => s.type === item.type)
-              return (
-                <SectionCard
-                  key={idx}
-                  icon={meta?.icon || "circle-question"}
-                  label={meta?.label || item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                  accentColor={theme.colors.brand.red}
-                  onRemove={() => handleRemoveSection(idx)}
-                >
-                  {renderSectionEditor(item, idx)}
-                </SectionCard>
-              )
-            })
+          // Only render the first instance of each section type
+          SECTION_TYPES.map(({ type }) => {
+            const idx = sections.findIndex((item) => item.type === type)
+            if (idx === -1) return null
+            const item = sections[idx]
+            const meta = SECTION_TYPES.find((s) => s.type === item.type)
+            return (
+              <SectionCard
+                key={type}
+                icon={meta?.icon || "circle-question"}
+                label={meta?.label || item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                accentColor={theme.colors.brand.red}
+                onRemove={() => handleRemoveSection(idx)}
+              >
+                {renderSectionEditor(item, idx)}
+              </SectionCard>
+            )
+          })
         )}
         <TouchableOpacity
           style={{
@@ -180,10 +191,9 @@ const EventSectionsStep: React.FC = () => {
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor: alreadyAdded ? theme.colors.gray[100] : theme.colors.gray[50],
+                    backgroundColor: alreadyAdded ? theme.colors.gray[100] : theme.colors.background,
                     borderRadius: 12,
-                    borderWidth: 1,
-                    borderColor: alreadyAdded ? theme.colors.gray[300] : theme.colors.gray[200],
+                    borderWidth: 0,
                     margin: 6,
                     paddingVertical: 16,
                     paddingHorizontal: 18,

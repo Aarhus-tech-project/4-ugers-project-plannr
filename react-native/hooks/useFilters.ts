@@ -1,6 +1,19 @@
-import { EventFormat, EventLocation, EventThemeName } from "@/interfaces/event"
-import { DateRangeMode, FilterDateRange, FilterLocation } from "@/interfaces/filter"
-import { useCallback, useState } from "react"
+import { useCallback } from "react"
+import { EventFormat, EventLocation, EventThemeName } from "../interfaces/event"
+import { DateRangeMode, FilterDateRange, FilterLocation } from "../interfaces/filter"
+import { useAsyncStorage } from "./useAsyncStorage"
+
+type FiltersData = {
+  dateRange: FilterDateRange
+  customStart: Date | null
+  customEnd: Date | null
+  mode: DateRangeMode
+  range: FilterLocation["range"]
+  selectedThemes: EventThemeName[]
+  formats: EventFormat[]
+  useCurrentLocation: boolean
+  selectedLocation: Pick<EventLocation, "latitude" | "longitude"> | null
+}
 
 export interface FiltersState {
   dateRange: FilterDateRange
@@ -24,48 +37,92 @@ export interface FiltersState {
 }
 
 export function useFilters(initial?: Partial<FiltersState>): FiltersState {
-  const [dateRange, setDateRange] = useState<FilterDateRange>(
-    initial?.dateRange ?? { current: { day: true, week: false, month: false, year: false } }
+  const [filters, setFilters] = useAsyncStorage<FiltersData>("eventFilters", {
+    dateRange: initial?.dateRange ?? { current: { day: true, week: false, month: false, year: false } },
+    customStart: initial?.customStart ?? null,
+    customEnd: initial?.customEnd ?? null,
+    mode: initial?.mode ?? { daily: true },
+    range: initial?.range ?? 50,
+    selectedThemes: initial?.selectedThemes ?? [],
+    formats: initial?.formats ?? [],
+    useCurrentLocation: initial?.useCurrentLocation ?? true,
+    selectedLocation: initial?.selectedLocation ?? null,
+  })
+
+  const setDateRange = useCallback(
+    (range: FilterDateRange) => setFilters({ ...filters, dateRange: range }),
+    [filters, setFilters]
   )
-  const [customStart, setCustomStart] = useState<Date | null>(initial?.customStart ?? null)
-  const [customEnd, setCustomEnd] = useState<Date | null>(initial?.customEnd ?? null)
-  const getModeFromDateRange = useCallback((dateRange: FilterDateRange): DateRangeMode => {
-    if (dateRange.current?.day) return { daily: true }
-    if (dateRange.current?.week) return { weekly: true }
-    if (dateRange.current?.month) return { monthly: true }
-    if (dateRange.current?.year) return { yearly: true }
-    if (dateRange.custom !== undefined) return { custom: true }
-    return { daily: true }
-  }, [])
-  const [mode, setMode] = useState<DateRangeMode>(
-    getModeFromDateRange(initial?.dateRange ?? { current: { day: true, week: false, month: false, year: false } })
+  const setCustomStart = useCallback(
+    (date: Date | null) => setFilters({ ...filters, customStart: date }),
+    [filters, setFilters]
   )
-  const [range, setRange] = useState<FilterLocation["range"]>(initial?.range ?? 50)
-  const [selectedThemes, setSelectedThemes] = useState<EventThemeName[]>(initial?.selectedThemes ?? [])
-  const [formats, setFormats] = useState<EventFormat[]>(initial?.formats ?? [])
-  const [useCurrentLocation, setUseCurrentLocation] = useState<boolean>(initial?.useCurrentLocation ?? true)
-  const [selectedLocation, setSelectedLocation] = useState<Pick<EventLocation, "latitude" | "longitude"> | null>(
-    initial?.selectedLocation ?? null
+  const setCustomEnd = useCallback(
+    (date: Date | null) => setFilters({ ...filters, customEnd: date }),
+    [filters, setFilters]
+  )
+  const { normalizeDateRangeMode } = require("../utils/eventFilterUtils")
+  const setMode = useCallback(
+    (mode: DateRangeMode) => {
+      const newMode = normalizeDateRangeMode(mode)
+      let newDateRange: FilterDateRange
+      if (newMode.custom) {
+        newDateRange = { custom: { startDate: filters.customStart, endDate: filters.customEnd } }
+      } else if (newMode.daily) {
+        newDateRange = { current: { day: true, week: false, month: false, year: false } }
+      } else if (newMode.weekly) {
+        newDateRange = { current: { day: false, week: true, month: false, year: false } }
+      } else if (newMode.monthly) {
+        newDateRange = { current: { day: false, week: false, month: true, year: false } }
+      } else if (newMode.yearly) {
+        newDateRange = { current: { day: false, week: false, month: false, year: true } }
+      } else {
+        newDateRange = { current: { day: true, week: false, month: false, year: false } }
+      }
+      setFilters((prev: FiltersData) => ({
+        ...prev,
+        mode: newMode,
+        dateRange: newDateRange,
+      }))
+    },
+    [setFilters, filters.customStart, filters.customEnd]
+  )
+  const setRange = useCallback(
+    (value: FilterLocation["range"]) => setFilters({ ...filters, range: value }),
+    [filters, setFilters]
+  )
+  const setSelectedThemes = useCallback(
+    (themes: EventThemeName[]) => setFilters({ ...filters, selectedThemes: themes }),
+    [filters, setFilters]
+  )
+  const setFormats = useCallback((formats: EventFormat[]) => setFilters({ ...filters, formats }), [filters, setFilters])
+  const setUseCurrentLocation = useCallback(
+    (value: boolean) => setFilters({ ...filters, useCurrentLocation: value }),
+    [filters, setFilters]
+  )
+  const setSelectedLocation = useCallback(
+    (loc: Pick<EventLocation, "latitude" | "longitude"> | null) => setFilters({ ...filters, selectedLocation: loc }),
+    [filters, setFilters]
   )
 
   return {
-    dateRange,
-    customStart,
-    customEnd,
-    mode,
-    range,
-    selectedThemes,
-    formats,
-    useCurrentLocation,
-    selectedLocation,
+    dateRange: filters.dateRange,
     setDateRange,
+    customStart: filters.customStart,
     setCustomStart,
+    customEnd: filters.customEnd,
     setCustomEnd,
+    mode: filters.mode,
     setMode,
+    range: filters.range,
     setRange,
+    selectedThemes: filters.selectedThemes,
     setSelectedThemes,
+    formats: filters.formats,
     setFormats,
+    useCurrentLocation: filters.useCurrentLocation,
     setUseCurrentLocation,
+    selectedLocation: filters.selectedLocation,
     setSelectedLocation,
   }
 }
