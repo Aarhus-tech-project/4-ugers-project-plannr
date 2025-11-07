@@ -72,67 +72,67 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setLoading(false))
   }, [])
 
-  const login = useCallback(async (email: string, password: string) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch("https://plannr.azurewebsites.net/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      })
-      if (!res.ok) throw new Error("Login failed")
-      const data = await res.json()
+  const login = useCallback(
+    async (email: string, password: string, onSessionReady?: (session: SessionType) => void) => {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch("https://plannr.azurewebsites.net/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        })
+        if (!res.ok) throw new Error("Login failed")
+        const data = await res.json()
+        const profileRes = await fetch(`https://plannr.azurewebsites.net/api/profiles/by-email/${email}`, {
+          headers: { Authorization: `Bearer ${data.token}` },
+        })
+        if (!profileRes.ok) throw new Error("Failed to fetch profile")
+        const profile = await profileRes.json()
+        const sessionWithProfile = { ...data, profile }
+        await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(sessionWithProfile))
+        setSession(sessionWithProfile)
+        if (onSessionReady) onSessionReady(sessionWithProfile)
+      } catch (err: any) {
+        setError(err.message || "Login error")
+        setSession(null)
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
 
-      // Fetch profile using token and email
-      const profileRes = await fetch(`https://plannr.azurewebsites.net/api/profiles/by-email/${email}`, {
-        headers: { Authorization: `Bearer ${data.token}` },
-      })
-      if (!profileRes.ok) throw new Error("Failed to fetch profile")
-      const profile = await profileRes.json()
-
-      // Add profile to session object
-      const sessionWithProfile = { ...data, profile }
-      await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(sessionWithProfile))
-      setSession(sessionWithProfile)
-    } catch (err: any) {
-      setError(err.message || "Login error")
-      setSession(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  const signup = useCallback(async (name: string, email: string, password: string) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch("https://plannr.azurewebsites.net/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      })
-      if (!res.ok) throw new Error("Signup failed")
-      const data = await res.json()
-
-      // Fetch profile using token and email
-      const profileRes = await fetch(`https://plannr.azurewebsites.net/api/profiles/by-email/${email}`, {
-        headers: { Authorization: `Bearer ${data.token}` },
-      })
-      if (!profileRes.ok) throw new Error("Failed to fetch profile")
-      const profile = await profileRes.json()
-
-      // Add profile to session object
-      const sessionWithProfile = { ...data, profile }
-      await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(sessionWithProfile))
-      setSession(sessionWithProfile)
-    } catch (err: any) {
-      setError(err.message || "Signup error")
-      setSession(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const signup = useCallback(
+    async (name: string, email: string, password: string, onSessionReady?: (session: SessionType) => void) => {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch("https://plannr.azurewebsites.net/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password }),
+        })
+        if (!res.ok) throw new Error("Signup failed")
+        const data = await res.json()
+        const profileRes = await fetch(`https://plannr.azurewebsites.net/api/profiles/by-email/${email}`, {
+          headers: { Authorization: `Bearer ${data.token}` },
+        })
+        if (!profileRes.ok) throw new Error("Failed to fetch profile")
+        const profile = await profileRes.json()
+        const sessionWithProfile = { ...data, profile }
+        await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(sessionWithProfile))
+        setSession(sessionWithProfile)
+        if (onSessionReady) onSessionReady(sessionWithProfile)
+      } catch (err: any) {
+        setError(err.message || "Signup error")
+        setSession(null)
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
 
   const logout = useCallback(async () => {
     setLoading(true)

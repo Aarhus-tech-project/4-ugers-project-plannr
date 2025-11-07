@@ -80,14 +80,25 @@ export function usePreferences(
     (v: EventTheme[]) => setPrefs({ ...prefs, selectedThemes: v }),
     [prefs, setPrefs]
   )
-  const { normalizeDateRangeMode } = require("../utils/eventFilterUtils")
   const setDateRangeMode = useCallback(
     (v: DateRangeMode) => {
-      const newMode = normalizeDateRangeMode(v)
-      setPrefs((prev: PreferencesData) => ({
-        ...prev,
-        dateRangeMode: newMode,
-      }))
+      let newMode: DateRangeMode
+      if (v.daily) {
+        newMode = { daily: true, weekly: false, monthly: false, yearly: false, custom: false }
+      } else if (v.weekly) {
+        newMode = { daily: false, weekly: true, monthly: false, yearly: false, custom: false }
+      } else if (v.monthly) {
+        newMode = { daily: false, weekly: false, monthly: true, yearly: false, custom: false }
+      } else if (v.yearly) {
+        newMode = { daily: false, weekly: false, monthly: false, yearly: true, custom: false }
+      } else if (v.custom) {
+        newMode = { daily: false, weekly: false, monthly: false, yearly: false, custom: true }
+      } else {
+        newMode = { daily: true, weekly: false, monthly: false, yearly: false, custom: false }
+      }
+      setPrefs((prev: PreferencesData) => {
+        return { ...prev, dateRangeMode: newMode }
+      })
     },
     [setPrefs]
   )

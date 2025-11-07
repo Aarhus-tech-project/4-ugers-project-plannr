@@ -1,7 +1,7 @@
 import EventPage from "@/components/EventPage"
+import { useAppData } from "@/context/AppDataContext"
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
-import { useEvents } from "@/hooks/useEvents"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
 import { usePreferences } from "@/hooks/usePreferences"
 import { useScrollDrivenAnimation } from "@/hooks/useScrollDrivenAnimation"
@@ -15,7 +15,7 @@ import { Text } from "react-native-paper"
 export default function Finder() {
   const theme = useCustomTheme()
   const { setScrollY } = useTabBarVisibility()
-  const { events, fetchEvents, likeEvent } = useEvents()
+  const { session, likeEvent, dislikeEvent, fetchProfiles, events, fetchEvents } = useAppData()
   const {
     range,
     selectedThemes,
@@ -29,15 +29,26 @@ export default function Finder() {
   const { location: liveLocation } = useLiveLocation()
   useFocusEffect(
     React.useCallback(() => {
-      fetchEvents()
-      reloadPreferences()
+      const fetchAndFilter = async () => {
+        await fetchEvents()
+        await reloadPreferences()
+        setCurrent(0)
+      }
+      fetchAndFilter()
     }, [fetchEvents, reloadPreferences])
   )
 
   // Track current event index
   const [current, setCurrent] = useState(0)
-
-  // Filter events using centralized utility (no memoization, always recalculates)
+  if (!session) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading user session...</Text>
+      </View>
+    )
+  }
+  const userProfile = session?.profile
+  const likedEventIds = userProfile?.interestedEvents ?? []
   const filteredEvents = filterEvents(events, {
     eventTypes,
     selectedThemes,
@@ -47,19 +58,32 @@ export default function Finder() {
     customLocation,
     liveLocation,
     range,
-  })
+  }).filter((event) => !likedEventIds.includes(event.id))
+
   // Current event from filtered list
   const event = filteredEvents[current] || null
 
   // Accept/deny event handlers
-  const denyEvent = () => {
+  const denyEvent = async () => {
+    if (userProfile?.id && event?.id) {
+      await dislikeEvent(event.id, userProfile.id)
+      await fetchEvents()
+      await fetchProfiles()
+    }
     setCurrent((prev) => Math.min(prev + 1, filteredEvents.length))
   }
-  const acceptEvent = () => {
-    if (event) {
-      likeEvent(event.id)
+  const acceptEvent = async () => {
+    if (!userProfile) {
+      console.warn("No user profile found, cannot like event.")
       setCurrent((prev) => Math.min(prev + 1, filteredEvents.length))
+      return
     }
+    if (event && userProfile.id) {
+      await likeEvent(event.id, userProfile.id)
+      await fetchEvents()
+      await fetchProfiles()
+    }
+    setCurrent(0)
   }
 
   // Use scroll-driven animation hook

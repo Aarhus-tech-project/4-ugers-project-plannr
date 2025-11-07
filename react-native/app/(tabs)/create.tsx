@@ -6,9 +6,9 @@ import EventImagesStep from "@/components/event-creation/EventImagesStep"
 import EventLocationStep from "@/components/event-creation/EventLocationStep"
 import EventReviewStep from "@/components/event-creation/EventReviewStep"
 import EventSectionsStep from "@/components/event-creation/EventSectionsStep"
+import { useAppData } from "@/context/AppDataContext"
 import { EventCreationProvider, useEventCreation } from "@/context/EventCreationContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
-import { useEvents } from "@/hooks/useEvents"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
 import { EventLocation, EventPageSection, EventTheme, EventThemeName } from "@/interfaces/event"
 import { getEventDateRangeError } from "@/utils/date-range-validator"
@@ -146,7 +146,7 @@ function CreateEventScreenInner() {
     setSections,
     buildEventFields,
   } = useEventCreation()
-  const { createEvent } = useEvents()
+  const { createEvent } = useAppData()
 
   // Prefill context if editing
   useEffect(() => {
@@ -173,7 +173,15 @@ function CreateEventScreenInner() {
       const fields = buildEventFields()
       if (!fields) return
       await createEvent(fields)
-      router.replace("/tabs/ownevents")
+      // Reset all event creation states after submit
+      setEventDetails({ title: "", themes: [], format: "inperson" })
+      setDetailsValidation({})
+      setCustomStart(null)
+      setCustomEnd(null)
+      setDateTimeValidation({})
+      setSelectedLocation(null)
+      setSections([])
+      router.replace("/(tabs)/ownevents")
     } catch {
       // error already logged in createEvent
     }

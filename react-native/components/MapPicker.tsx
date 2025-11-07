@@ -2,6 +2,7 @@ import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
 import type { EventLocation } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import * as Location from "expo-location"
 import React, { useEffect, useRef, useState } from "react"
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native"
@@ -28,6 +29,10 @@ const MapPicker: React.FC<MapPickerProps> = ({
   const [isLocating, setIsLocating] = useState(false)
   const mapRef = useRef<MapView>(null)
   const theme = useCustomTheme()
+  // Geocode cache and debounce
+  const geocodeCache = useRef<{ [key: string]: Location.LocationGeocodedAddress[] }>({})
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
+
   // Calculate initial delta based on range (in meters), or use a default if no range
   const initialDelta = range ? (range / 1000 / 111) * 2.2 : 0.05
   const initialRegion: Region = {
@@ -53,55 +58,89 @@ const MapPicker: React.FC<MapPickerProps> = ({
     }
   }, [location, currentLocation, liveLocation, liveAddress, onLocationChange])
 
-  const handlePress = async (e: MapPressEvent) => {
-    if (disableSelection || !onLocationChange) return
-    const { latitude, longitude } = e.nativeEvent.coordinate
-    // Fetch address and build EventLocation
-    let address = ""
-    let city = ""
-    let country = ""
-    let venue = ""
+  const getCacheKey = (lat: number, lng: number) => `${lat.toFixed(5)},${lng.toFixed(5)}`
+
+  const geocodeWithCache = async (latitude: number, longitude: number) => {
+    const key = getCacheKey(latitude, longitude)
+    // Check in-memory cache first
+    if (geocodeCache.current[key]) {
+      return geocodeCache.current[key]
+    }
+    // Check persistent cache
     try {
-      const geo = await Location.reverseGeocodeAsync({ latitude, longitude })
-      if (geo && geo.length > 0) {
-        const g = geo[0]
-        address = `${g.street || ""}${g.streetNumber ? " " + g.streetNumber : ""}`.trim()
-        city = g.city || ""
-        country = g.country || ""
-        venue = g.name || ""
+      const cached = await AsyncStorage.getItem(`geocode:${key}`)
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        geocodeCache.current[key] = parsed
+        return parsed
       }
     } catch {}
-    const eventLocation: EventLocation = {
-      address,
-      city,
-      country,
-      venue,
-      latitude,
-      longitude,
-    }
-    onLocationChange(eventLocation)
-    if (onAddressChange) onAddressChange(address)
+    // If not cached, fetch and store
+    const geo = await Location.reverseGeocodeAsync({ latitude, longitude })
+    geocodeCache.current[key] = geo
+    try {
+      await AsyncStorage.setItem(`geocode:${key}`, JSON.stringify(geo))
+    } catch {}
+    return geo
   }
 
-  const fetchAddress = async (latitude: number, longitude: number) => {
-    try {
-      const geo = await Location.reverseGeocodeAsync({ latitude, longitude })
-      let addr = ""
-      if (geo && geo.length > 0) {
-        const g = geo[0]
-        const hasStreet = g.street || g.streetNumber
-        addr = `${g.street || ""}${g.streetNumber ? " " + g.streetNumber : ""}${
-          g.city ? (hasStreet ? ", " : "") + g.city : ""
-        }`.trim()
-        setAddress(addr)
-      } else {
-        setAddress("")
+  const handlePress = (e: MapPressEvent) => {
+    if (disableSelection || !onLocationChange) return
+    const { latitude, longitude } = e.nativeEvent.coordinate
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
+    debounceTimeout.current = setTimeout(async () => {
+      let address = ""
+      let city = ""
+      let country = ""
+      let venue = ""
+      try {
+        const geo = await geocodeWithCache(latitude, longitude)
+        if (geo && geo.length > 0) {
+          const g = geo[0]
+          address = `${g.street || ""}${g.streetNumber ? " " + g.streetNumber : ""}`.trim()
+          city = g.city || ""
+          country = g.country || ""
+          venue = g.name || ""
+        }
+      } catch {}
+      const eventLocation: EventLocation = {
+        address,
+        city,
+        country,
+        venue,
+        latitude,
+        longitude,
       }
-      if (onAddressChange) onAddressChange(addr)
-    } catch {
-      setAddress("")
-      if (onAddressChange) onAddressChange("")
-    }
+      onLocationChange(eventLocation)
+      if (onAddressChange) onAddressChange(address)
+    }, 500)
+  }
+
+  const fetchAddress = (latitude: number, longitude: number) => {
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
+    debounceTimeout.current = setTimeout(async () => {
+      try {
+        const geo = await geocodeWithCache(latitude, longitude)
+        let addr = ""
+        if (geo && geo.length > 0) {
+          const g = geo[0]
+          const hasStreet = g.street || g.streetNumber
+          addr = `${g.street || ""}${g.streetNumber ? " " + g.streetNumber : ""}${
+            g.city ? (hasStreet ? ", " : "") + g.city : ""
+          }`.trim()
+          setAddress(addr)
+        } else {
+          setAddress("")
+        }
+        if (onAddressChange) onAddressChange(addr)
+      } catch (err) {
+        setAddress("")
+        if (onAddressChange) onAddressChange("")
+        if ((err as Error)?.message?.includes("Geocoding rate limit exceeded")) {
+          Alert.alert("Geocoding Error", "Rate limit exceeded. Please wait before trying again.")
+        }
+      }
+    }, 2000)
   }
 
   useEffect(() => {
@@ -159,22 +198,24 @@ const MapPicker: React.FC<MapPickerProps> = ({
         Alert.alert("Map Error", "Map reference not found.")
       }
       if (onLocationChange) {
-        // Build full EventLocation for current location
-        let address = ""
-        let city = ""
-        let country = ""
-        let venue = ""
-        try {
-          const geo = await Location.reverseGeocodeAsync({ latitude, longitude })
-          if (geo && geo.length > 0) {
-            const g = geo[0]
-            address = `${g.street || ""}${g.streetNumber ? " " + g.streetNumber : ""}`.trim()
-            city = g.city || ""
-            country = g.country || ""
-            venue = g.name || ""
-          }
-        } catch {}
-        onLocationChange({ address, city, country, venue, latitude, longitude })
+        if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
+        debounceTimeout.current = setTimeout(async () => {
+          let address = ""
+          let city = ""
+          let country = ""
+          let venue = ""
+          try {
+            const geo = await geocodeWithCache(latitude, longitude)
+            if (geo && geo.length > 0) {
+              const g = geo[0]
+              address = `${g.street || ""}${g.streetNumber ? " " + g.streetNumber : ""}`.trim()
+              city = g.city || ""
+              country = g.country || ""
+              venue = g.name || ""
+            }
+          } catch {}
+          onLocationChange({ address, city, country, venue, latitude, longitude })
+        }, 2000)
       }
     } catch (err) {
       console.error(err)
@@ -217,24 +258,26 @@ const MapPicker: React.FC<MapPickerProps> = ({
                 onDragEnd={
                   disableSelection || !onLocationChange
                     ? undefined
-                    : async (e) => {
+                    : (e) => {
                         const { latitude, longitude } = e.nativeEvent.coordinate
-                        // Build full EventLocation for drag
-                        let address = ""
-                        let city = ""
-                        let country = ""
-                        let venue = ""
-                        try {
-                          const geo = await Location.reverseGeocodeAsync({ latitude, longitude })
-                          if (geo && geo.length > 0) {
-                            const g = geo[0]
-                            address = `${g.street || ""}${g.streetNumber ? " " + g.streetNumber : ""}`.trim()
-                            city = g.city || ""
-                            country = g.country || ""
-                            venue = g.name || ""
-                          }
-                        } catch {}
-                        onLocationChange({ address, city, country, venue, latitude, longitude })
+                        if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
+                        debounceTimeout.current = setTimeout(async () => {
+                          let address = ""
+                          let city = ""
+                          let country = ""
+                          let venue = ""
+                          try {
+                            const geo = await geocodeWithCache(latitude, longitude)
+                            if (geo && geo.length > 0) {
+                              const g = geo[0]
+                              address = `${g.street || ""}${g.streetNumber ? " " + g.streetNumber : ""}`.trim()
+                              city = g.city || ""
+                              country = g.country || ""
+                              venue = g.name || ""
+                            }
+                          } catch {}
+                          onLocationChange({ address, city, country, venue, latitude, longitude })
+                        }, 500)
                       }
                 }
               />

@@ -11,7 +11,17 @@ interface DescriptionSectionProps {
 const DescriptionSection: React.FC<DescriptionSectionProps> = ({ value, onChange, error }) => {
   const theme = useCustomTheme()
   return (
-    <View style={{ marginVertical: 8 }}>
+    <View
+      style={{
+        marginVertical: 12,
+        backgroundColor: theme.colors.background,
+        borderRadius: 16,
+        padding: 20,
+      }}
+    >
+      <Text style={{ color: theme.colors.gray[500], fontSize: 14, marginBottom: 8 }}>
+        Give attendees a clear idea of what your event is about. Be creative and engaging!
+      </Text>
       <TextInput
         value={value}
         onChangeText={onChange}
@@ -19,18 +29,17 @@ const DescriptionSection: React.FC<DescriptionSectionProps> = ({ value, onChange
         placeholderTextColor={theme.colors.gray[400]}
         multiline
         style={{
-          borderWidth: 1,
-          borderColor: theme.colors.gray[200],
+          borderWidth: 0,
           borderRadius: 10,
-          padding: 12,
-          minHeight: 60,
-          backgroundColor: theme.colors.gray[50],
+          padding: 14,
+          minHeight: 80,
+          backgroundColor: theme.colors.secondary,
           color: theme.colors.onBackground,
-          fontSize: 15,
+          fontSize: 16,
         }}
       />
       {typeof error === "string" && error.length > 0 && (
-        <Text style={{ color: theme.colors.brand.red, marginTop: 4, fontSize: 13 }}>{error}</Text>
+        <Text style={{ color: theme.colors.brand.red, marginTop: 6, fontSize: 13 }}>{error}</Text>
       )}
     </View>
   )

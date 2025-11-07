@@ -38,7 +38,7 @@ function AppContent() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme()
-  const theme = colorScheme === "dark" ? darkTheme : lightTheme
+  const theme = colorScheme !== "dark" ? darkTheme : lightTheme
 
   // Patch ScrollView defaults to disable overscroll globally
   React.useEffect(() => {
@@ -49,15 +49,18 @@ export default function RootLayout() {
     SV.defaultProps.overScrollMode = "never"
   }, [])
 
+  const { AppDataProvider } = require("@/context/AppDataContext")
   return (
     <SessionProvider>
-      <PaperProvider theme={theme}>
-        <GestureRoot>
-          <BottomSheetModalProvider>
-            <AppContent />
-          </BottomSheetModalProvider>
-        </GestureRoot>
-      </PaperProvider>
+      <AppDataProvider>
+        <PaperProvider theme={theme}>
+          <GestureRoot>
+            <BottomSheetModalProvider>
+              <AppContent />
+            </BottomSheetModalProvider>
+          </GestureRoot>
+        </PaperProvider>
+      </AppDataProvider>
     </SessionProvider>
   )
 }

@@ -5,7 +5,8 @@ import EventThemeSelector from "@/components/EventThemeSelector"
 import LocationOptionSelector from "@/components/LocationOptionSelector"
 import MapPicker from "@/components/MapPicker"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
-import { useFilters } from "@/hooks/useFilters"
+// import { useFilters } from "@/hooks/useFilters"
+import { FiltersState } from "@/hooks/useFilters"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
 import React from "react"
@@ -13,21 +14,17 @@ import { Modal, ScrollView, StyleSheet, View } from "react-native"
 import { Text } from "react-native-paper"
 import BottomButtonBar from "./BottomButtonBar"
 import { DateRangeModeSelector } from "./DateRangeModeSelector"
-
-import type { FiltersState } from "@/hooks/useFilters"
-
 interface FilterModalProps {
   visible: boolean
   onClose: () => void
-  onApply: (filters: ReturnType<typeof useFilters>) => void
-  initial?: Partial<FiltersState>
+  filters: FiltersState
+  onApply: () => void
 }
 
-const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) => {
+const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, filters, onApply }) => {
   const theme = useCustomTheme()
   const { visibleThemes, loaded } = useLazyEventThemes(1, 600)
   const { location: liveLocation } = useLiveLocation()
-  const filters = useFilters()
 
   return (
     <Modal
@@ -204,7 +201,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose, onApply }) 
               },
               {
                 label: "Apply",
-                onPress: () => onApply(filters),
+                onPress: onApply,
                 mode: "contained",
                 backgroundColor: theme.colors.brand.red,
                 textColor: theme.colors.white,

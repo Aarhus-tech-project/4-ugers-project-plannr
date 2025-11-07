@@ -191,7 +191,7 @@ const EventSectionsStep: React.FC = () => {
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor: alreadyAdded ? theme.colors.gray[100] : theme.colors.background,
+                    backgroundColor: theme.colors.background,
                     borderRadius: 12,
                     borderWidth: 0,
                     margin: 6,

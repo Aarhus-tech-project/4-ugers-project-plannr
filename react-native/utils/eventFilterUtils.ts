@@ -58,9 +58,19 @@ export function filterByDateRange(
   eventEnd: Date | null
 ): boolean {
   if (!eventStart) return false
-  if (mode.custom && customStart && customEnd) {
+  if (mode.custom && customStart) {
     if (!eventEnd) return false
-    return eventStart >= customStart && eventEnd <= customEnd
+    // Convert all to Date objects if needed
+    const customStartDate = typeof customStart === "string" ? new Date(customStart) : customStart
+    const customEndDate = customEnd ? (typeof customEnd === "string" ? new Date(customEnd) : customEnd) : null
+    const eventStartDate = typeof eventStart === "string" ? new Date(eventStart) : eventStart
+    const eventEndDate = typeof eventEnd === "string" ? new Date(eventEnd) : eventEnd
+    // If customEnd is null, treat as open-ended
+    if (!customEndDate) {
+      return eventEndDate >= customStartDate
+    }
+    // Overlap logic: event overlaps custom range
+    return eventStartDate <= customEndDate && eventEndDate >= customStartDate
   }
   const now = new Date()
   if (mode.daily) return eventStart.toDateString() === now.toDateString()
@@ -122,12 +132,23 @@ export function filterEvents(
     userLon = liveLocation.coords.longitude
   }
   return events.filter((event) => {
-    if (!filterByType(eventTypes, event.format)) return false
-    if (!filterByTheme(selectedThemes, event.themes || [])) return false
-    const start = event.dateRange?.startAt ? new Date(event.dateRange.startAt) : null
-    const end = event.dateRange?.endAt ? new Date(event.dateRange.endAt) : null
-    if (!filterByDateRange(dateRangeMode, customStart, customEnd, start, end)) return false
-    if (!filterByLocation(userLat, userLon, event.location, range)) return false
+    const typePass = filterByType(eventTypes, event.format)
+    const themePass = filterByTheme(selectedThemes, event.themes || [])
+    let start = null
+    let end = null
+    if (event.dateRange?.startAt && event.dateRange?.endAt) {
+      start = new Date(event.dateRange.startAt)
+      end = new Date(event.dateRange.endAt)
+    } else if (event.startAt && event.endAt) {
+      start = new Date(event.startAt)
+      end = new Date(event.endAt)
+    }
+    const datePass = filterByDateRange(dateRangeMode, customStart, customEnd, start, end)
+    const locationPass = filterByLocation(userLat, userLon, event.location, range)
+    if (!typePass) return false
+    if (!themePass) return false
+    if (!datePass) return false
+    if (!locationPass) return false
     return true
   })
 }

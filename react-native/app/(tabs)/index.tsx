@@ -2,9 +2,9 @@ import EventDetailsCard from "@/components/EventDetailsCard"
 import { EventsCarousel } from "@/components/EventsCarousel"
 import FilterModal from "@/components/FilterModal"
 import { StatsCard } from "@/components/StatsCard"
+import { useAppData } from "@/context/AppDataContext"
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
-import { useEvents } from "@/hooks/useEvents"
 import { useFilters } from "@/hooks/useFilters"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
 import { useScrollDrivenAnimation } from "@/hooks/useScrollDrivenAnimation"
@@ -33,11 +33,11 @@ export default function Home() {
   const theme = useCustomTheme()
   const { session } = useSession()
   const userProfile: Profile | undefined = session?.profile
-  const likedEvents = Array.isArray(userProfile?.likedEvents) ? userProfile.likedEvents : []
-  const subscribedEvents = Array.isArray(userProfile?.subscribedEvents) ? userProfile.subscribedEvents : []
+  const interestedEvents = Array.isArray(userProfile?.interestedEvents) ? userProfile.interestedEvents : []
+  const goingToEvents = Array.isArray(userProfile?.goingToEvents) ? userProfile.goingToEvents : []
   const initialFilters = useUserProfileFilters(userProfile)
   const { location: liveLocation, address: liveAddress } = useLiveLocation()
-  const { events: apiEvents, fetchEvents } = useEvents()
+  const { events: apiEvents, fetchEvents, likeEvent, updateProfile } = useAppData()
 
   useFocusEffect(
     React.useCallback(() => {
@@ -45,8 +45,10 @@ export default function Home() {
     }, [fetchEvents])
   )
   const eventsNearby = useMemo(() => {
-    return filterEventsNearby(apiEvents, liveLocation, 100)
+    const nearby = filterEventsNearby(apiEvents, liveLocation, 100)
+    return nearby
   }, [liveLocation, apiEvents])
+
   const statsNearby = useMemo(() => {
     if (!liveLocation?.coords || eventsNearby.length === 0) return null
     let closestEvent = undefined
@@ -74,26 +76,18 @@ export default function Home() {
       totalInterested,
     }
   }, [liveLocation, eventsNearby])
+
   const [filterModalVisible, setFilterModalVisible] = useState(false)
   const filters = useFilters(initialFilters)
   const now = new Date()
-  // Find event objects by id for liked and subscribed events
+  // Show all events, but highlight liked/upcoming
   const allEvents = useMemo(() => {
-    const map = new Map()
-    // Subscribed events first
-    for (const id of subscribedEvents) {
-      const event = apiEvents.find((e) => e.id === id)
-      if (event) map.set(event.id, { ...event, _subscribed: true })
-    }
-    // Liked events, but don't overwrite subscribed
-    for (const id of likedEvents) {
-      if (!map.has(id)) {
-        const event = apiEvents.find((e) => e.id === id)
-        if (event) map.set(event.id, { ...event, _subscribed: false })
-      }
-    }
-    return Array.from(map.values())
-  }, [likedEvents, subscribedEvents, apiEvents])
+    return apiEvents.map((event) => ({
+      ...event,
+      _going: typeof event.id === "string" && goingToEvents.includes(event.id),
+      _interested: typeof event.id === "string" && interestedEvents.includes(event.id),
+    }))
+  }, [apiEvents, goingToEvents, interestedEvents])
 
   const _filteredEvents = useMemo(() => {
     // Map selectedThemes (EventThemeName[]) to EventTheme[] for filterEvents
@@ -131,42 +125,43 @@ export default function Home() {
 
   // Collapsible header logic
   const [headerHeight, setHeaderHeight] = useState(0)
+
+  const handleEventButtonPress = async (event: any) => {
+    if (event._going) {
+      // Remove from going, add to not interested
+      if (userProfile?.id && event.id) {
+        await updateProfile(userProfile.id, {
+          goingToEvents: userProfile.goingToEvents?.filter((eid) => eid !== event.id) || [],
+          notInterestedEvents: [...(userProfile.notInterestedEvents || []), event.id],
+        })
+        // Optionally decrement going count here if needed
+      }
+    } else if (event._interested) {
+      // Remove from interested, add to going
+      if (userProfile?.id && event.id) {
+        await updateProfile(userProfile.id, {
+          interestedEvents: userProfile.interestedEvents?.filter((eid) => eid !== event.id) || [],
+          goingToEvents: [...(userProfile.goingToEvents || []), event.id],
+        })
+        // Optionally increment going count, decrement interested count
+      }
+    } else {
+      // Not interested: add to interested
+      if (userProfile?.id && event.id) {
+        await likeEvent(event.id, userProfile.id)
+      }
+    }
+    await fetchEvents()
+    // await fetchProfiles() // Uncomment if needed
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <FilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
-        onApply={(newFilters) => {
-          if (typeof filters.setFormats === "function") filters.setFormats(newFilters.formats ?? filters.formats)
-          if (typeof filters.setSelectedThemes === "function")
-            filters.setSelectedThemes(newFilters.selectedThemes ?? filters.selectedThemes)
-          if (typeof filters.setRange === "function")
-            filters.setRange(typeof newFilters.range === "number" ? newFilters.range : filters.range ?? 50)
-          if (typeof filters.setUseCurrentLocation === "function")
-            filters.setUseCurrentLocation(
-              typeof newFilters.useCurrentLocation === "boolean"
-                ? newFilters.useCurrentLocation
-                : filters.useCurrentLocation
-            )
-          if (typeof filters.setSelectedLocation === "function")
-            filters.setSelectedLocation(
-              newFilters.selectedLocation &&
-                typeof newFilters.selectedLocation.latitude === "number" &&
-                typeof newFilters.selectedLocation.longitude === "number"
-                ? {
-                    latitude: newFilters.selectedLocation.latitude,
-                    longitude: newFilters.selectedLocation.longitude,
-                  }
-                : null
-            )
-          if (typeof filters.setCustomStart === "function")
-            filters.setCustomStart(newFilters.customStart ?? filters.customStart)
-          if (typeof filters.setCustomEnd === "function")
-            filters.setCustomEnd(newFilters.customEnd ?? filters.customEnd)
-          if (typeof filters.setDateRange === "function")
-            filters.setDateRange(newFilters.dateRange ?? filters.dateRange)
-          setFilterModalVisible(false)
-        }}
+        filters={filters}
+        onApply={() => setFilterModalVisible(false)}
       />
       <View
         style={{
@@ -270,22 +265,11 @@ export default function Home() {
                 event={event}
                 buttons={[
                   {
-                    label: "Edit",
-                    icon: "pen-to-square",
+                    label: event._going ? "Going" : event._interested ? "Interested" : "Not Interested",
+                    icon: event._going ? "check-circle" : event._interested ? "star" : "circle",
                     backgroundColor: theme.colors.brand.red,
                     textColor: theme.colors.white,
-                    onPress: () => {
-                      /* TODO: Implement edit logic, e.g. open edit modal or navigate */
-                    },
-                  },
-                  {
-                    label: "Delete",
-                    icon: "trash",
-                    backgroundColor: theme.colors.gray[700],
-                    textColor: theme.colors.white,
-                    onPress: () => {
-                      /* TODO: Implement delete logic, e.g. show confirm dialog */
-                    },
+                    onPress: () => handleEventButtonPress(event),
                   },
                 ]}
               />

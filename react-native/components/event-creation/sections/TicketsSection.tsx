@@ -25,17 +25,26 @@ const TicketsSection: React.FC<TicketsSectionProps> = ({ tickets, onChange, erro
   const removeTicket = (idx: number) => onChange(tickets.filter((_, i) => i !== idx))
 
   return (
-    <View style={{ marginVertical: 8 }}>
+    <View
+      style={{
+        marginVertical: 12,
+        backgroundColor: theme.colors.background,
+        borderRadius: 16,
+        padding: 20,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+        <Text style={{ color: theme.colors.gray[500], fontSize: 14 }}>
+          Add ticket types, prices, or RSVP options for your event.
+        </Text>
+      </View>
       {tickets.map((t, idx) => (
         <View
           key={idx}
           style={{
             marginBottom: 12,
-            backgroundColor: theme.colors.gray[50],
+            backgroundColor: theme.colors.background,
             borderRadius: 10,
-            padding: 10,
-            borderWidth: 1,
-            borderColor: theme.colors.gray[100],
           }}
         >
           <TextInput
@@ -44,14 +53,13 @@ const TicketsSection: React.FC<TicketsSectionProps> = ({ tickets, onChange, erro
             placeholder="Ticket Type"
             placeholderTextColor={theme.colors.gray[400]}
             style={{
-              borderWidth: 1,
-              borderColor: theme.colors.gray[200],
-              borderRadius: 8,
-              padding: 8,
-              marginBottom: 6,
+              borderWidth: 0,
+              borderRadius: 10,
+              padding: 14,
+              marginBottom: 8,
+              backgroundColor: theme.colors.secondary,
               color: theme.colors.onBackground,
-              fontSize: 15,
-              backgroundColor: theme.colors.white,
+              fontSize: 16,
             }}
           />
           <TextInput
@@ -61,14 +69,13 @@ const TicketsSection: React.FC<TicketsSectionProps> = ({ tickets, onChange, erro
             keyboardType="numeric"
             placeholderTextColor={theme.colors.gray[400]}
             style={{
-              borderWidth: 1,
-              borderColor: theme.colors.gray[200],
-              borderRadius: 8,
-              padding: 8,
-              marginBottom: 6,
+              borderWidth: 0,
+              borderRadius: 10,
+              padding: 14,
+              marginBottom: 8,
+              backgroundColor: theme.colors.secondary,
               color: theme.colors.onBackground,
-              fontSize: 15,
-              backgroundColor: theme.colors.white,
+              fontSize: 16,
             }}
           />
           <TextInput
@@ -77,14 +84,13 @@ const TicketsSection: React.FC<TicketsSectionProps> = ({ tickets, onChange, erro
             placeholder="Currency (optional)"
             placeholderTextColor={theme.colors.gray[400]}
             style={{
-              borderWidth: 1,
-              borderColor: theme.colors.gray[200],
-              borderRadius: 8,
-              padding: 8,
-              marginBottom: 6,
+              borderWidth: 0,
+              borderRadius: 10,
+              padding: 14,
+              marginBottom: 8,
+              backgroundColor: theme.colors.secondary,
               color: theme.colors.onBackground,
-              fontSize: 15,
-              backgroundColor: theme.colors.white,
+              fontSize: 16,
             }}
           />
           <TextInput
@@ -93,13 +99,13 @@ const TicketsSection: React.FC<TicketsSectionProps> = ({ tickets, onChange, erro
             placeholder="Link (optional)"
             placeholderTextColor={theme.colors.gray[400]}
             style={{
-              borderWidth: 1,
-              borderColor: theme.colors.gray[200],
-              borderRadius: 8,
-              padding: 8,
+              borderWidth: 0,
+              borderRadius: 10,
+              padding: 14,
+              marginBottom: 8,
+              backgroundColor: theme.colors.secondary,
               color: theme.colors.onBackground,
-              fontSize: 15,
-              backgroundColor: theme.colors.white,
+              fontSize: 16,
             }}
           />
           <TouchableOpacity onPress={() => removeTicket(idx)}>

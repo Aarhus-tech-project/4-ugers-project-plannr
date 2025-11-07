@@ -1,6 +1,6 @@
 import EventDetailsCard from "@/components/EventDetailsCard"
+import { useAppData } from "@/context/AppDataContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
-import { useEvents } from "@/hooks/useEvents"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { router } from "expo-router"
 import React, { useEffect } from "react"
@@ -9,14 +9,16 @@ import { ScrollView, Text, View } from "react-native"
 export default function OwnEvents() {
   const theme = useCustomTheme()
   const bg = theme.colors.background
-  const { events, fetchEvents } = useEvents()
+  const { events, fetchEvents, deleteEvent } = useAppData()
+
+  const ownEvents = events.filter((event) => event.creatorId === (useAppData().session?.profile.id ?? ""))
 
   useEffect(() => {
     fetchEvents()
   }, [fetchEvents])
 
   const handleDelete = (id: string) => {
-    console.log("Deleting event with id:", id)
+    deleteEvent(id)
   }
 
   return (
@@ -58,7 +60,7 @@ export default function OwnEvents() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {events.length === 0 ? (
+        {ownEvents.length === 0 ? (
           <View style={{ alignItems: "center", marginTop: 48 }}>
             <FontAwesome6 name="calendar" size={48} color={theme.colors.gray[400]} />
             <Text style={{ color: theme.colors.gray[400], fontSize: 18, marginTop: 12 }}>
@@ -66,7 +68,7 @@ export default function OwnEvents() {
             </Text>
           </View>
         ) : (
-          events.map((event) => {
+          ownEvents.map((event) => {
             if (!event.id) return null
             return (
               <View key={event.id} style={{ marginBottom: 18 }}>

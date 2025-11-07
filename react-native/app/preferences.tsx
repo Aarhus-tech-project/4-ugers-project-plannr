@@ -16,6 +16,15 @@ import React from "react"
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native"
 import { ActivityIndicator, Text } from "react-native-paper"
 export default function Preferences() {
+  const { reloadPreferences } = usePreferences()
+  const { useFocusEffect } = require("@react-navigation/native")
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        reloadPreferences()
+      }
+    }, [reloadPreferences])
+  )
   const theme = useCustomTheme()
   const router = useRouter()
   const {
