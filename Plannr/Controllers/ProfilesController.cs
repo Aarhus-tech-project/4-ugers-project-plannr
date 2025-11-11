@@ -24,27 +24,24 @@ public class ProfilesController(ApplicationDbContext db) : ControllerBase
         if (!ModelState.IsValid)
             return ValidationProblem(ModelState);
 
-        // Trim for at undgå "whitespace-unikke" sjov
         input.Email = input.Email.Trim();
         input.Name = input.Name.Trim();
 
-        // Find eksisterende på email (case-insensitive)
         bool exists = await db.Profiles
             .AnyAsync(p => p.Email.ToLower() == input.Email.ToLower());
         if (exists)
         {
             return Conflict(new ProblemDetails
             {
-                Title = "Email already exists",
+                Title = "Error, use a different email",
                 Status = StatusCodes.Status409Conflict,
-                Detail = $"A profile with email '{input.Email}' already exists."
+                Detail = $""
             });
         }
 
         if (input.Id == Guid.Empty)
             input.Id = Guid.NewGuid();
 
-        // Navigation må ikke bindes ind fra klienten
         input.EventsCreated = new List<Event>();
 
         db.Profiles.Add(input);
