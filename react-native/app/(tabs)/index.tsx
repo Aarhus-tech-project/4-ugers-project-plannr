@@ -1,12 +1,14 @@
-import EventDetailsCard from "@/components/EventDetailsCard"
-import { EventsCarousel } from "@/components/EventsCarousel"
-import FilterModal from "@/components/FilterModal"
-import { StatsCard } from "@/components/StatsCard"
-import { useAppData } from "@/context/AppDataContext"
+import { EventsCarousel } from "@/components/event/carousel/EventsCarousel"
+import EventDetailsCard from "@/components/event/details/EventDetailsCard"
+import EventPage from "@/components/event/page/EventPage"
+import FilterModal from "@/components/modals/FilterModal"
+import { StatsCard } from "@/components/ui/StatsCard"
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { useEvents } from "@/hooks/useEvents"
 import { useFilters } from "@/hooks/useFilters"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
+import { useProfiles } from "@/hooks/useProfiles"
 import { useScrollDrivenAnimation } from "@/hooks/useScrollDrivenAnimation"
 import { useSession, useUserProfileFilters } from "@/hooks/useSession"
 import type { Profile } from "@/interfaces/profile"
@@ -31,23 +33,31 @@ export default function Home() {
     }, [scrollY, setScrollY])
   )
   const theme = useCustomTheme()
-  const { session } = useSession()
+  const { session, setProfile } = useSession()
   const userProfile: Profile | undefined = session?.profile
   const interestedEvents = Array.isArray(userProfile?.interestedEvents) ? userProfile.interestedEvents : []
   const goingToEvents = Array.isArray(userProfile?.goingToEvents) ? userProfile.goingToEvents : []
   const initialFilters = useUserProfileFilters(userProfile)
+  const filters = useFilters(initialFilters)
   const { location: liveLocation, address: liveAddress } = useLiveLocation()
-  const { events: apiEvents, fetchEvents, likeEvent, updateProfile } = useAppData()
+  const { fetchEvents } = useEvents()
+  const { api } = require("@/config/api")
+  const { updateProfile } = useProfiles()
+  const apiEvents = fetchEvents.data ?? []
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchEvents()
-    }, [fetchEvents])
+      fetchEvents.run()
+    }, [fetchEvents.run])
   )
   const eventsNearby = useMemo(() => {
     const nearby = filterEventsNearby(apiEvents, liveLocation, 100)
-    return nearby
-  }, [liveLocation, apiEvents])
+    // Filter out own events, liked events, and going events
+    return nearby.filter(
+      (event: any) =>
+        event.creatorId !== userProfile?.id && !interestedEvents.includes(event.id) && !goingToEvents.includes(event.id)
+    )
+  }, [liveLocation, apiEvents, userProfile?.id, interestedEvents, goingToEvents])
 
   const statsNearby = useMemo(() => {
     if (!liveLocation?.coords || eventsNearby.length === 0) return null
@@ -78,21 +88,21 @@ export default function Home() {
   }, [liveLocation, eventsNearby])
 
   const [filterModalVisible, setFilterModalVisible] = useState(false)
-  const filters = useFilters(initialFilters)
   const now = new Date()
   // Show all events, but highlight liked/upcoming
   const allEvents = useMemo(() => {
-    return apiEvents.map((event) => ({
-      ...event,
-      _going: typeof event.id === "string" && goingToEvents.includes(event.id),
-      _interested: typeof event.id === "string" && interestedEvents.includes(event.id),
-    }))
-  }, [apiEvents, goingToEvents, interestedEvents])
+    return (apiEvents as any[])
+      .filter((event: any) => event.creatorId !== userProfile?.id)
+      .map((event: any) => ({
+        ...event,
+        _going: typeof event.id === "string" && goingToEvents.includes(event.id),
+        _interested: typeof event.id === "string" && interestedEvents.includes(event.id),
+      }))
+  }, [apiEvents, goingToEvents, interestedEvents, userProfile?.id])
 
   const _filteredEvents = useMemo(() => {
     // Map selectedThemes (EventThemeName[]) to EventTheme[] for filterEvents
     const selectedThemes = (filters.selectedThemes ?? []).map((name) => ({ name, icon: "other" as const }))
-    // Ensure customLocation always has latitude/longitude as numbers
     let customLocation = null
     if (
       filters.selectedLocation &&
@@ -104,6 +114,7 @@ export default function Home() {
         longitude: filters.selectedLocation.longitude,
       }
     }
+    // Events matching filters
     const filtered = filterEvents(allEvents, {
       eventTypes: filters.formats ?? [],
       selectedThemes,
@@ -113,50 +124,134 @@ export default function Home() {
       customLocation,
       liveLocation,
       range: filters.range ?? 50,
+    }).filter((e) => {
+      const startAt = e.dateRange?.startAt || e.startAt
+      return startAt && dayjs.utc(startAt).isAfter(dayjs.utc(now))
     })
-    return filtered
-      .filter((e) => dayjs.utc(e.dateRange.startAt).isAfter(dayjs.utc(now)))
-      .sort((a, b) => {
-        const aStart = a?.dateRange?.startAt ? dayjs.utc(a.dateRange.startAt).valueOf() : 0
-        const bStart = b?.dateRange?.startAt ? dayjs.utc(b.dateRange.startAt).valueOf() : 0
-        return aStart - bStart
-      })
-  }, [allEvents, filters, liveLocation, now])
+    // Always include user's going/interested events (if in the future)
+    const userEvents = allEvents.filter(
+      (e) =>
+        (e._going || e._interested) &&
+        ((e.dateRange?.startAt && dayjs.utc(e.dateRange.startAt).isAfter(dayjs.utc(now))) ||
+          (e.startAt && dayjs.utc(e.startAt).isAfter(dayjs.utc(now))))
+    )
+    // Merge and dedupe by event id
+    const merged = [...filtered, ...userEvents].filter(
+      (event, idx, arr) => arr.findIndex((e) => e.id === event.id) === idx
+    )
+    return merged.sort((a, b) => {
+      const aStart = a?.dateRange?.startAt
+        ? dayjs.utc(a.dateRange.startAt).valueOf()
+        : a?.startAt
+        ? dayjs.utc(a.startAt).valueOf()
+        : 0
+      const bStart = b?.dateRange?.startAt
+        ? dayjs.utc(b.dateRange.startAt).valueOf()
+        : b?.startAt
+        ? dayjs.utc(b.startAt).valueOf()
+        : 0
+      return aStart - bStart
+    })
+  }, [
+    allEvents,
+    filters.selectedThemes,
+    filters.formats,
+    filters.mode,
+    filters.customStart,
+    filters.customEnd,
+    filters.selectedLocation,
+    filters.range,
+    liveLocation,
+    now,
+  ])
 
   // Collapsible header logic
   const [headerHeight, setHeaderHeight] = useState(0)
+  const [selectedEvent, setSelectedEvent] = useState<any>(null)
 
   const handleEventButtonPress = async (event: any) => {
-    if (event._going) {
-      // Remove from going, add to not interested
-      if (userProfile?.id && event.id) {
-        await updateProfile(userProfile.id, {
-          goingToEvents: userProfile.goingToEvents?.filter((eid) => eid !== event.id) || [],
-          notInterestedEvents: [...(userProfile.notInterestedEvents || []), event.id],
-        })
-        // Optionally decrement going count here if needed
-      }
-    } else if (event._interested) {
-      // Remove from interested, add to going
-      if (userProfile?.id && event.id) {
-        await updateProfile(userProfile.id, {
-          interestedEvents: userProfile.interestedEvents?.filter((eid) => eid !== event.id) || [],
-          goingToEvents: [...(userProfile.goingToEvents || []), event.id],
-        })
-        // Optionally increment going count, decrement interested count
-      }
-    } else {
-      // Not interested: add to interested
-      if (userProfile?.id && event.id) {
-        await likeEvent(event.id, userProfile.id)
-      }
+    if (!userProfile?.id || !event.id) {
+      console.warn("handleEventButtonPress: missing userProfile or event.id", { userProfile, event })
+      return
     }
-    await fetchEvents()
-    // await fetchProfiles() // Uncomment if needed
+    try {
+      // Always fetch the full profile first
+      const currentProfile = await api.profiles.get(userProfile.id)
+      if (!currentProfile) {
+        console.error("Could not fetch current profile for update")
+        return
+      }
+      let updatedProfileObj = { ...currentProfile }
+      let goingChanged = false
+      if (event._going) {
+        // Move from going to interested (never to not interested)
+        updatedProfileObj.goingToEvents = (currentProfile.goingToEvents ?? []).filter((eid: string) => eid !== event.id)
+        updatedProfileObj.interestedEvents = [...new Set([...(currentProfile.interestedEvents ?? []), event.id])]
+        goingChanged = true
+      } else {
+        // Move from interested to going
+        updatedProfileObj.interestedEvents = (currentProfile.interestedEvents ?? []).filter(
+          (eid: string) => eid !== event.id
+        )
+        updatedProfileObj.goingToEvents = [...new Set([...(currentProfile.goingToEvents ?? []), event.id])]
+        goingChanged = true
+      }
+      await updateProfile.run(userProfile.id, updatedProfileObj)
+      // Patch event attendance for going
+      if (goingChanged) {
+        try {
+          // Fetch latest event to get current going count
+          const latestEvent = await api.events.get(event.id)
+          const currentGoing = latestEvent?.attendance?.going ?? 0
+          let newGoing = currentGoing
+          if (event._going) {
+            // User is leaving going
+            newGoing = Math.max(0, currentGoing - 1)
+          } else {
+            // User is joining going
+            newGoing = currentGoing + 1
+          }
+          await api.events.patchAttendance(event.id, { going: newGoing })
+        } catch (err) {
+          console.error("Failed to patch event going attendance", err)
+        }
+      }
+      // Always fetch the latest profile after update
+      const fetchedProfile = await api.profiles.get(userProfile.id)
+      if (fetchedProfile && fetchedProfile.id) {
+        setProfile(fetchedProfile)
+      } else {
+        console.error("Fetched profile is invalid", fetchedProfile)
+      }
+    } catch (err) {
+      console.error("Error in handleEventButtonPress", err)
+    }
+    await fetchEvents.run()
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      {/* Event modal */}
+      {selectedEvent && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999,
+            backgroundColor: theme.colors.background + "F2",
+          }}
+        >
+          <EventPage
+            event={selectedEvent}
+            showHeader
+            headerTitle={selectedEvent.title}
+            onBack={() => setSelectedEvent(null)}
+          />
+        </View>
+      )}
       <FilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
@@ -232,7 +327,11 @@ export default function Home() {
             />
           </View>
           <View style={{ width: "90%", alignItems: "center", paddingBottom: 8 }}>
-            <EventsCarousel data={eventsNearby} liveLocation={liveLocation?.coords ? liveLocation : undefined} />
+            <EventsCarousel
+              data={eventsNearby}
+              liveLocation={liveLocation?.coords ? liveLocation : undefined}
+              onEventPress={setSelectedEvent}
+            />
           </View>
         </Animated.View>
         {/* Main content area: event cards or fallback */}
@@ -263,6 +362,7 @@ export default function Home() {
             <View key={event.id} style={{ width: "90%", marginBottom: 18 }}>
               <EventDetailsCard
                 event={event}
+                displayTitle={true}
                 buttons={[
                   {
                     label: event._going ? "Going" : event._interested ? "Interested" : "Not Interested",

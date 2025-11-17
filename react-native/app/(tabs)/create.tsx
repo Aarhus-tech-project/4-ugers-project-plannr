@@ -1,21 +1,22 @@
-import BottomButtonBar from "@/components/BottomButtonBar"
-import Stepper from "@/components/Stepper"
 import EventDateTimeStep, { EventDateTimeStepValidation } from "@/components/event-creation/EventDateTimeStep"
 import EventDetailsStep, { EventDetailsStepValidation } from "@/components/event-creation/EventDetailsStep"
 import EventImagesStep from "@/components/event-creation/EventImagesStep"
 import EventLocationStep from "@/components/event-creation/EventLocationStep"
 import EventReviewStep from "@/components/event-creation/EventReviewStep"
 import EventSectionsStep from "@/components/event-creation/EventSectionsStep"
-import { useAppData } from "@/context/AppDataContext"
+import KeyboardAwareScreen from "@/components/layout/KeyboardAwareScreen"
+import BottomButtonBar from "@/components/navigation/BottomButtonBar"
+import Stepper from "@/components/ui/Stepper"
 import { EventCreationProvider, useEventCreation } from "@/context/EventCreationContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { useEvents } from "@/hooks/useEvents"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
 import { EventLocation, EventPageSection, EventTheme, EventThemeName } from "@/interfaces/event"
 import { getEventDateRangeError } from "@/utils/date-range-validator"
 import { areAllSectionsFilled } from "@/utils/section-validator"
 import { router, useLocalSearchParams } from "expo-router"
 import React, { useCallback, useEffect, useState } from "react"
-import { ScrollView, View } from "react-native"
+import { View } from "react-native"
 import { Text } from "react-native-paper"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
@@ -125,6 +126,9 @@ function CreateEventHeader({ theme, isEditing }: { theme: ReturnType<typeof useC
 }
 
 function CreateEventScreenInner() {
+  const [submitting, setSubmitting] = useState(false)
+  // For refetching events after submit
+  const { fetchEvents } = useEvents()
   const theme = useCustomTheme()
   const [currentStep, setCurrentStep] = useState(0)
   const params = useLocalSearchParams()
@@ -146,7 +150,7 @@ function CreateEventScreenInner() {
     setSections,
     buildEventFields,
   } = useEventCreation()
-  const { createEvent } = useAppData()
+  const { createEvent } = useEvents()
 
   // Prefill context if editing
   useEffect(() => {
@@ -170,9 +174,12 @@ function CreateEventScreenInner() {
 
   const handleSubmit = async () => {
     try {
+      setSubmitting(true)
       const fields = buildEventFields()
       if (!fields) return
-      await createEvent(fields)
+      await createEvent.run(fields)
+      // Refetch events so own events list is up to date
+      await fetchEvents.run()
       // Reset all event creation states after submit
       setEventDetails({ title: "", themes: [], format: "inperson" })
       setDetailsValidation({})
@@ -184,6 +191,8 @@ function CreateEventScreenInner() {
       router.replace("/(tabs)/ownevents")
     } catch {
       // error already logged in createEvent
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -256,13 +265,21 @@ function CreateEventScreenInner() {
     <View style={{ flex: 1, backgroundColor: theme.colors.background, position: "relative" }}>
       <CreateEventHeader theme={theme} isEditing={isEditing} />
       <View style={{ backgroundColor: theme.colors.secondary }}>
-        <Stepper steps={stepMeta} currentStep={currentStep} />
+        <Stepper
+          steps={stepMeta}
+          currentStep={currentStep}
+          onStepChange={(idx) => {
+            // Only allow step change to next step if valid, or go back
+            if (idx === currentStep + 1 && isStepValid) setCurrentStep(idx)
+            else if (idx < currentStep) setCurrentStep(idx)
+          }}
+          canGoNext={isStepValid}
+        />
       </View>
       <View style={{ flex: 1, position: "relative" }}>
-        <ScrollView
+        <KeyboardAwareScreen
           style={{ flex: 1, backgroundColor: theme.colors.background }}
           contentContainerStyle={{ minHeight: "100%", paddingBottom: bottomBarHeight, paddingTop: 16 }}
-          showsVerticalScrollIndicator={false}
         >
           <StepContent
             step={currentStep}
@@ -281,7 +298,7 @@ function CreateEventScreenInner() {
             sections={sections}
             setSections={setSections}
           />
-        </ScrollView>
+        </KeyboardAwareScreen>
         <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }} pointerEvents="box-none">
           <BottomButtonBar
             containerStyle={{ backgroundColor: theme.colors.gray[800], paddingVertical: 22 }}
@@ -292,15 +309,16 @@ function CreateEventScreenInner() {
                 mode: "outlined",
                 backgroundColor: theme.colors.gray[900],
                 textColor: theme.colors.white,
+                disabled: submitting,
               },
               {
-                label: stepMeta[currentStep].key === "review" ? "Submit" : "Next",
+                label: submitting ? "Submitting..." : stepMeta[currentStep].key === "review" ? "Submit" : "Next",
                 onPress: handleNext,
                 mode: "contained",
-                backgroundColor: !isStepValid ? theme.colors.brand.red + "66" : theme.colors.brand.red,
+                backgroundColor: !isStepValid || submitting ? theme.colors.brand.red + "66" : theme.colors.brand.red,
                 textColor: theme.colors.white,
-                disabled: !isStepValid,
-                style: !isStepValid ? { opacity: 0.5 } : undefined,
+                disabled: !isStepValid || submitting,
+                style: !isStepValid || submitting ? { opacity: 0.5 } : undefined,
               },
             ]}
           />

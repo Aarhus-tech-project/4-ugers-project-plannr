@@ -2,25 +2,25 @@ import { useCustomTheme } from "@/hooks/useCustomTheme"
 import React from "react"
 import { Text, TextInput, TouchableOpacity, View } from "react-native"
 
-interface FAQItem {
-  question: string
-  answer: string
+interface ResourceFile {
+  name: string
+  url: string
 }
 
-interface FAQSectionProps {
-  items: FAQItem[]
-  onChange: (items: FAQItem[]) => void
+interface ResourcesSectionProps {
+  files: ResourceFile[]
+  onChange: (files: ResourceFile[]) => void
   error?: string
 }
 
-const FAQSection: React.FC<FAQSectionProps> = ({ items, onChange, error }) => {
+const ResourcesSection: React.FC<ResourcesSectionProps> = ({ files, onChange, error }) => {
   const theme = useCustomTheme()
-  const addItem = () => onChange([...items, { question: "", answer: "" }])
-  const updateItem = (idx: number, key: "question" | "answer", value: string) => {
-    const updated = items.map((item, i) => (i === idx ? { ...item, [key]: value } : item))
+  const addFile = () => onChange([...files, { name: "", url: "" }])
+  const updateFile = (idx: number, key: keyof ResourceFile, value: string) => {
+    const updated = files.map((f, i) => (i === idx ? { ...f, [key]: value } : f))
     onChange(updated)
   }
-  const removeItem = (idx: number) => onChange(items.filter((_, i) => i !== idx))
+  const removeFile = (idx: number) => onChange(files.filter((_, i) => i !== idx))
 
   return (
     <View
@@ -33,10 +33,10 @@ const FAQSection: React.FC<FAQSectionProps> = ({ items, onChange, error }) => {
     >
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
         <Text style={{ color: theme.colors.gray[500], fontSize: 14 }}>
-          Add common questions and answers to help your guests.
+          Share files, links, or resources for your event.
         </Text>
       </View>
-      {items.map((item, idx) => (
+      {files.map((f, idx) => (
         <View
           key={idx}
           style={{
@@ -46,9 +46,9 @@ const FAQSection: React.FC<FAQSectionProps> = ({ items, onChange, error }) => {
           }}
         >
           <TextInput
-            value={item.question}
-            onChangeText={(v) => updateItem(idx, "question", v)}
-            placeholder="Question"
+            value={f.name}
+            onChangeText={(v) => updateFile(idx, "name", v)}
+            placeholder="File Name"
             placeholderTextColor={theme.colors.gray[400]}
             style={{
               borderWidth: 0,
@@ -61,13 +61,12 @@ const FAQSection: React.FC<FAQSectionProps> = ({ items, onChange, error }) => {
             }}
           />
           <TextInput
-            value={item.answer}
-            onChangeText={(v) => updateItem(idx, "answer", v)}
-            placeholder="Answer"
+            value={f.url}
+            onChangeText={(v) => updateFile(idx, "url", v)}
+            placeholder="File URL"
             placeholderTextColor={theme.colors.gray[400]}
             style={{
               borderWidth: 0,
-              marginBottom: 8,
               borderRadius: 10,
               padding: 14,
               backgroundColor: theme.colors.secondary,
@@ -75,19 +74,19 @@ const FAQSection: React.FC<FAQSectionProps> = ({ items, onChange, error }) => {
               fontSize: 16,
             }}
           />
-          <TouchableOpacity onPress={() => removeItem(idx)}>
-            <Text style={{ color: theme.colors.brand.red, marginTop: 4, fontWeight: "bold" }}>Remove</Text>
+          <TouchableOpacity onPress={() => removeFile(idx)} style={{ marginTop: 4 }}>
+            <Text style={{ color: theme.colors.brand.red, fontSize: 13 }}>Remove</Text>
           </TouchableOpacity>
         </View>
       ))}
-      <TouchableOpacity onPress={addItem} style={{ marginTop: 6 }}>
-        <Text style={{ color: theme.colors.brand.blue, fontWeight: "bold" }}>+ Add FAQ</Text>
+      <TouchableOpacity onPress={addFile} style={{ marginTop: 8 }}>
+        <Text style={{ color: theme.colors.brand.blue, fontSize: 15, fontWeight: "bold" }}>Add Resource</Text>
       </TouchableOpacity>
       {typeof error === "string" && error.length > 0 && (
-        <Text style={{ color: theme.colors.brand.red, marginTop: 4, fontSize: 13 }}>{error}</Text>
+        <Text style={{ color: theme.colors.brand.red, marginTop: 6, fontSize: 13 }}>{error}</Text>
       )}
     </View>
   )
 }
 
-export default FAQSection
+export default ResourcesSection

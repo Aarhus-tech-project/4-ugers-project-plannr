@@ -1,8 +1,8 @@
-import EventThemeSelector from "@/components/EventThemeSelector"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { EventTheme, EventThemeName } from "@/interfaces/event"
 import React, { useState } from "react"
 import { Text, TextInput, TouchableWithoutFeedback, View } from "react-native"
+import EventThemeSelector from "../event/EventThemeSelector"
 
 export type EventDetailsStepValidation = {
   title?: string

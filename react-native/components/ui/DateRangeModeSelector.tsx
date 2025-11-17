@@ -31,12 +31,7 @@ const MODES = [
   { key: "custom", label: "Custom", icon: "calendar-plus" },
 ]
 
-export const DateRangeModeSelector: React.FC<DateRangeModeSelectorProps> = ({
-  setCustomStart,
-  setCustomEnd,
-  mode,
-  setMode,
-}) => {
+export const DateRangeModeSelector: React.FC<DateRangeModeSelectorProps> = ({ mode, setMode }) => {
   const theme = useCustomTheme()
   return (
     <View style={{ width: "100%" }}>
@@ -66,26 +61,14 @@ export const DateRangeModeSelector: React.FC<DateRangeModeSelectorProps> = ({
                 ) : undefined
               }
               selected={isSelected}
-              onPress={() => {
-                if (key !== "custom") {
-                  setCustomStart(null)
-                  setCustomEnd(null)
-                  setTimeout(() => {
-                    setMode(modeObj)
-                  }, 0)
-                } else {
-                  setMode(modeObj)
-                }
-              }}
+              onPress={() => setMode(modeObj)}
               style={[
                 styles.chip,
                 {
                   backgroundColor: isSelected ? theme.colors.brand.red : theme.colors.background,
                 },
               ]}
-              textStyle={{
-                color: isSelected ? theme.colors.background : theme.colors.onBackground,
-              }}
+              textStyle={{ color: isSelected ? theme.colors.background : theme.colors.onBackground }}
             >
               {label}
             </Chip>

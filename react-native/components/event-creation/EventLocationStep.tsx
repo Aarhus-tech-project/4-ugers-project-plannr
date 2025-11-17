@@ -1,8 +1,8 @@
-import MapPicker from "@/components/MapPicker"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { EventLocation } from "@/interfaces/event"
 import React from "react"
 import { Text, View } from "react-native"
+import MapPicker from "../ui/MapPicker"
 
 interface EventLocationStepProps {
   selectedLocation: EventLocation | null

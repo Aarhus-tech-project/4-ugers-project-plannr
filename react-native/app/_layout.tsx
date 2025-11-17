@@ -1,24 +1,18 @@
 import CreateAccountScreen from "@/app/create-account"
 import LoginScreen from "@/app/login"
-import GestureRoot from "@/components/GestureRoot"
+import GestureRoot from "@/components/layout/GestureRoot"
+import { PreferencesProvider } from "@/context/PreferencesContext"
 import { SessionProvider, useSession } from "@/hooks/useSession"
 import { darkTheme, lightTheme } from "@/theme"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import { Stack, useSegments } from "expo-router"
 import * as React from "react"
-import { ActivityIndicator, ScrollView, useColorScheme, View } from "react-native"
+import { ScrollView, useColorScheme } from "react-native"
 import { PaperProvider } from "react-native-paper"
 
 function AppContent() {
-  const { session, loading } = useSession()
+  const { session } = useSession()
   const segments = useSegments()
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    )
-  }
   if (!session) {
     // Show create account page if route is /create-account
     if (segments[0] === "create-account") {
@@ -49,10 +43,9 @@ export default function RootLayout() {
     SV.defaultProps.overScrollMode = "never"
   }, [])
 
-  const { AppDataProvider } = require("@/context/AppDataContext")
   return (
     <SessionProvider>
-      <AppDataProvider>
+      <PreferencesProvider>
         <PaperProvider theme={theme}>
           <GestureRoot>
             <BottomSheetModalProvider>
@@ -60,7 +53,7 @@ export default function RootLayout() {
             </BottomSheetModalProvider>
           </GestureRoot>
         </PaperProvider>
-      </AppDataProvider>
+      </PreferencesProvider>
     </SessionProvider>
   )
 }

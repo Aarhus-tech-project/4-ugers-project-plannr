@@ -1,8 +1,7 @@
-import EventDetailsCard from "@/components/EventDetailsCard"
-import EventImageGallery from "@/components/EventImageGallery"
-import MapViewer from "@/components/MapViewer"
+import EventDetailsCard from "@/components/event/details/EventDetailsCard"
+import EventImageGallery from "@/components/event/gallery/EventImageGallery"
+import MapViewer from "@/components/ui/MapViewer"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
-import { Event } from "@/interfaces/event"
 import { getSortedEventCards } from "@/utils/event-content"
 import { FontAwesome6 } from "@expo/vector-icons"
 import React from "react"
@@ -16,19 +15,10 @@ interface EventPageProps {
   showHeader?: boolean
   headerTitle?: string
   showActions?: boolean
+  onBack?: (() => void) | undefined
 }
 
-const EventPage: React.FC<EventPageProps> = ({
-  event,
-  onScroll,
-  showHeader = true,
-  headerTitle,
-}: {
-  event: Event
-  onScroll?: () => void
-  showHeader?: boolean
-  headerTitle?: string
-}) => {
+const EventPage: React.FC<EventPageProps> = ({ event, onScroll, showHeader = true, headerTitle, onBack }) => {
   const theme = useCustomTheme()
   const bg = theme.colors.background
   const cards = event ? getSortedEventCards(event) : []
@@ -47,6 +37,16 @@ const EventPage: React.FC<EventPageProps> = ({
             backgroundColor: theme.colors.secondary,
           }}
         >
+          {/* Optional back button */}
+          {onBack && (
+            <TouchableOpacity
+              onPress={onBack}
+              style={{ padding: 4, borderRadius: 16, position: "absolute", left: 20, top: 52 }}
+              activeOpacity={0.6}
+            >
+              <FontAwesome6 name="chevron-left" size={24} color={theme.colors.onBackground} />
+            </TouchableOpacity>
+          )}
           <Text
             style={{
               color: theme.colors.onBackground,
@@ -91,10 +91,10 @@ const EventPage: React.FC<EventPageProps> = ({
             <EventImageGallery
               images={
                 event?.sections
-                  ?.filter((section) => section.type === "images")
-                  .flatMap((section) =>
+                  ?.filter((section: any) => section.type === "images")
+                  .flatMap((section: any) =>
                     section.type === "images" && Array.isArray(section.srcs)
-                      ? section.srcs.filter((src) => typeof src === "string")
+                      ? section.srcs.filter((src: any) => typeof src === "string")
                       : []
                   ) ?? []
               }

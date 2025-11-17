@@ -1,18 +1,16 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useSession } from "@/hooks/useSession"
-import { useRouter } from "expo-router"
 import React from "react"
 import { TouchableOpacity } from "react-native"
 import { Text } from "react-native-paper"
 
 export default function LogoutButton() {
   const { logout } = useSession()
-  const router = useRouter()
   const theme = useCustomTheme()
 
   const handleLogout = async () => {
-    await logout()
-    router.replace("/login")
+    await logout.run()
+    // No need to navigate; layout will show login screen automatically
   }
 
   return (

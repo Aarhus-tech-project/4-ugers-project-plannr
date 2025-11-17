@@ -1,13 +1,14 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import React from "react"
-import { FlatList, Image, Platform, View } from "react-native"
+import { FlatList, Image, Platform, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native-paper"
 
 export interface EventsCarouselProps {
   data: any[]
   title?: string
   liveLocation?: { coords: { latitude: number; longitude: number } }
+  onEventPress?: (event: any) => void
 }
 
 function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -21,7 +22,7 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
   return R * c
 }
 
-export const EventsCarousel: React.FC<EventsCarouselProps> = ({ data, title, liveLocation }) => {
+export const EventsCarousel: React.FC<EventsCarouselProps> = ({ data, title, liveLocation, onEventPress }) => {
   const theme = useCustomTheme()
   if (!data || data.length === 0) return null
   return (
@@ -47,7 +48,9 @@ export const EventsCarousel: React.FC<EventsCarouselProps> = ({ data, title, liv
         style={{ maxHeight: 210 }}
         contentContainerStyle={{ gap: 16 }}
         renderItem={({ item }) => (
-          <View
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => onEventPress && onEventPress(item)}
             style={{
               borderRadius: 16,
               width: 160,
@@ -95,7 +98,7 @@ export const EventsCarousel: React.FC<EventsCarouselProps> = ({ data, title, liv
                   marginBottom: 4,
                   letterSpacing: 0.1,
                 }}
-                numberOfLines={2}
+                numberOfLines={1}
               >
                 {item.title}
               </Text>
@@ -154,7 +157,7 @@ export const EventsCarousel: React.FC<EventsCarouselProps> = ({ data, title, liv
                 </View>
               )}
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </View>

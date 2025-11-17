@@ -45,8 +45,12 @@ export function filterByType(eventTypes: EventFormat[], eventFormat: EventFormat
 }
 
 // Filter by theme
-export function filterByTheme(selectedThemes: EventTheme[], eventThemes: string[]): boolean {
-  return selectedThemes.length === 0 || selectedThemes.some((theme) => eventThemes?.includes(theme.name))
+export function filterByTheme(selectedThemes: any[], eventThemes: string[]): boolean {
+  // If no themes selected, allow all events
+  if (!selectedThemes || selectedThemes.length === 0) return true
+  // selectedThemes: [{name: string}], eventThemes: [string]
+  const selectedNames = selectedThemes.map((t: any) => (typeof t === "string" ? t : t.name))
+  return eventThemes?.some((theme) => selectedNames.includes(theme))
 }
 
 // Filter by date range

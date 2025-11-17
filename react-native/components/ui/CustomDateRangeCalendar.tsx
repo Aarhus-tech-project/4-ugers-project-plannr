@@ -1,4 +1,5 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { getDisabledDates } from "@/utils/calendar-disabled"
 import dayjs from "dayjs"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore"
 import utc from "dayjs/plugin/utc"
@@ -7,7 +8,6 @@ import { View } from "react-native"
 import { Calendar } from "react-native-calendars"
 import { Theme as CalendarTheme } from "react-native-calendars/src/types"
 import { Text } from "react-native-paper"
-import { getDisabledDates } from "../utils/calendar-disabled"
 import { WheelTimePicker } from "./WheelTimePicker"
 dayjs.extend(isSameOrBefore)
 dayjs.extend(utc)

@@ -116,14 +116,28 @@ export const StatsCard: React.FC<StatsCardProps> = ({
         </View>
       ) : (
         <View style={{ width: "100%", zIndex: 1, alignItems: "flex-start" }}>
-          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-            <FontAwesome6 name="map-pin" size={15} color={theme.colors.brand.red} style={{ marginRight: 4 }} />
-            <Text style={{ color: theme.colors.onBackground, fontSize: 15, textAlign: "left" }}>
-              <Text style={{ fontWeight: "bold" }}>
-                {statsNearby?.count ?? 0} event{statsNearby?.count === 1 ? "" : "s"}
-              </Text>{" "}
-              within 100km
-            </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-start",
+              marginBottom: 2,
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", maxWidth: "70%", flexWrap: "nowrap" }}>
+              <FontAwesome6 name="map-pin" size={15} color={theme.colors.brand.red} style={{ marginRight: 4 }} />
+              <Text
+                style={{ color: theme.colors.onBackground, fontSize: 15, textAlign: "left" }}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                <Text style={{ fontWeight: "bold" }}>
+                  {statsNearby?.count ?? 0} event{statsNearby?.count === 1 ? "" : "s"}
+                </Text>{" "}
+                within 100km
+              </Text>
+            </View>
             <Text
               style={{
                 backgroundColor: theme.colors.brand.red + "22",
@@ -140,11 +154,28 @@ export const StatsCard: React.FC<StatsCardProps> = ({
             </Text>
           </View>
           {statsNearby?.closest && (
-            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
-              <FontAwesome6 name="bolt" size={15} color={theme.colors.brand.red} style={{ marginRight: 4 }} />
-              <Text style={{ color: theme.colors.onBackground, fontSize: 15, textAlign: "left" }}>
-                Closest: <Text style={{ fontWeight: "bold" }}>{statsNearby.closest.title}</Text>
-              </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "flex-start",
+                marginBottom: 2,
+                justifyContent: "space-between",
+                width: "100%",
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", maxWidth: "70%", flexWrap: "nowrap" }}>
+                <FontAwesome6 name="bolt" size={15} color={theme.colors.brand.red} style={{ marginRight: 4 }} />
+                <Text
+                  style={{ color: theme.colors.onBackground, fontSize: 15, textAlign: "left" }}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  Closest:{" "}
+                  <Text style={{ fontWeight: "bold" }} numberOfLines={1} ellipsizeMode="tail">
+                    {statsNearby.closest.title}
+                  </Text>
+                </Text>
+              </View>
               <Text
                 style={{
                   backgroundColor: theme.colors.brand.blue + "22",

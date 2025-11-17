@@ -1,11 +1,11 @@
-import Flag from "@/components/Flag"
+import Flag from "@/components/ui/Flag"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import type { Event } from "@/interfaces/event"
 import { eventThemes } from "@/utils/event-content"
 import { FontAwesome6 } from "@expo/vector-icons"
 import dayjs from "dayjs"
 import { Linking, Platform, ScrollView, TouchableOpacity, View } from "react-native"
-import { Text } from "react-native-paper"
+import { Divider, Text } from "react-native-paper"
 
 import type { Profile } from "@/interfaces/profile"
 
@@ -15,18 +15,20 @@ interface EventDetailsButton {
   backgroundColor?: string
   textColor?: string
   icon?: string
+  disabled?: boolean
   mode?: "contained" | "outlined"
 }
 
 interface Props {
   event: Event
   profile?: Profile
+  displayTitle?: boolean
   buttons?: EventDetailsButton[]
 }
 
 import React from "react"
 
-export default function EventDetailsCard({ event, buttons }: Props) {
+export default function EventDetailsCard({ event, buttons, displayTitle }: Props) {
   const theme = useCustomTheme()
 
   const iconColor = theme.colors.brand.red
@@ -38,6 +40,34 @@ export default function EventDetailsCard({ event, buttons }: Props) {
   }
   return (
     <>
+      {/* Event Access Instructions/Password (only if going) */}
+      {event._going && event.access && (event.access.instruction || event.access.password) && (
+        <View
+          style={{
+            width: "100%",
+            marginBottom: 12,
+            marginTop: 8,
+            padding: 12,
+            backgroundColor: theme.colors.surface,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: theme.colors.brand.red,
+          }}
+        >
+          {event.access.instruction && (
+            <Text style={{ color: textColor, fontSize: 16, marginBottom: event.access.password ? 6 : 0 }}>
+              <Text style={{ fontWeight: "bold" }}>Access Instructions: </Text>
+              {event.access.instruction}
+            </Text>
+          )}
+          {event.access.password && (
+            <Text style={{ color: textColor, fontSize: 16 }}>
+              <Text style={{ fontWeight: "bold" }}>Password: </Text>
+              {event.access.password}
+            </Text>
+          )}
+        </View>
+      )}
       <View
         style={{
           display: "flex",
@@ -54,6 +84,12 @@ export default function EventDetailsCard({ event, buttons }: Props) {
           position: "relative",
         }}
       >
+        {displayTitle && (
+          <>
+            <Text style={{ color: textColor, fontSize: 20, fontWeight: "bold", marginVertical: 8 }}>{event.title}</Text>
+            <Divider style={{ width: "100%", marginBottom: 8 }} />
+          </>
+        )}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -67,10 +103,10 @@ export default function EventDetailsCard({ event, buttons }: Props) {
             gap: 16,
           }}
         >
-          {/* Interested Count */}
+          {/* Going Count */}
           <View style={rowStyle}>
             <FontAwesome6 name="users" size={20} color={iconColor} style={{ marginRight: 12 }} />
-            <Text style={{ color: textColor, fontSize: 16 }}>{event.attendance?.interested ?? 0}</Text>
+            <Text style={{ color: textColor, fontSize: 16 }}>{event.attendance?.going ?? 0}</Text>
           </View>
           <View style={{ width: 1, height: 40, backgroundColor: theme.colors.shadow, marginHorizontal: 0 }} />
           {/* Themes (stacked icons and summary) */}
@@ -227,6 +263,7 @@ export default function EventDetailsCard({ event, buttons }: Props) {
           {buttons.map((btn, idx) => (
             <React.Fragment key={btn.label + idx}>
               <TouchableOpacity
+                disabled={btn.disabled}
                 style={{
                   flex: 1,
                   display: "flex",

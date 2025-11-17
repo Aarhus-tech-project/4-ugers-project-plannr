@@ -1,24 +1,31 @@
-import EventDetailsCard from "@/components/EventDetailsCard"
-import { useAppData } from "@/context/AppDataContext"
+import EventDetailsCard from "@/components/event/details/EventDetailsCard"
+import { useAuth } from "@/hooks/useAuth"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { useEvents } from "@/hooks/useEvents"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { router } from "expo-router"
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { ScrollView, Text, View } from "react-native"
 
 export default function OwnEvents() {
   const theme = useCustomTheme()
   const bg = theme.colors.background
-  const { events, fetchEvents, deleteEvent } = useAppData()
-
-  const ownEvents = events.filter((event) => event.creatorId === (useAppData().session?.profile.id ?? ""))
+  const { fetchEvents, deleteEvent } = useEvents()
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const { session } = useAuth()
+  const events = fetchEvents.data ?? []
 
   useEffect(() => {
-    fetchEvents()
-  }, [fetchEvents])
+    fetchEvents.run()
+  }, [fetchEvents.run])
 
-  const handleDelete = (id: string) => {
-    deleteEvent(id)
+  const ownEvents = (events as any[]).filter((event: any) => event.creatorId === (session?.profile?.id ?? ""))
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id)
+    await deleteEvent.run(id)
+    await fetchEvents.run()
+    setDeletingId(null)
   }
 
   return (
@@ -74,6 +81,7 @@ export default function OwnEvents() {
               <View key={event.id} style={{ marginBottom: 18 }}>
                 <EventDetailsCard
                   event={event}
+                  displayTitle={true}
                   buttons={[
                     {
                       label: "Edit",
@@ -83,11 +91,12 @@ export default function OwnEvents() {
                       onPress: () => router.push({ pathname: "/create", params: { event: JSON.stringify(event) } }),
                     },
                     {
-                      label: "Delete",
+                      label: deletingId === event.id ? "Deleting..." : "Delete",
                       icon: "trash",
                       backgroundColor: theme.colors.gray[700],
                       textColor: theme.colors.white,
                       onPress: () => handleDelete(event.id!),
+                      disabled: !!deletingId,
                     },
                   ]}
                 />

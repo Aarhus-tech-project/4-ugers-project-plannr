@@ -177,6 +177,8 @@ export interface Event {
   attendance?: EventAttendance
   location?: EventLocation
   access?: EventAccess
+  // UI-only property for local state (not persisted)
+  _going?: boolean
   ageRestriction?: number
   themes?: EventThemeName[]
   sections?: EventPageSection[]

@@ -2,27 +2,27 @@ import { useCustomTheme } from "@/hooks/useCustomTheme"
 import React from "react"
 import { Text, TextInput, TouchableOpacity, View } from "react-native"
 
-interface Guest {
-  name: string
-  bio?: string
-  avatarUrl?: string
-  social?: string
+interface Ticket {
+  type: string
+  price: number
+  currency?: string
+  link?: string
 }
 
-interface GuestsSectionProps {
-  guests: Guest[]
-  onChange: (guests: Guest[]) => void
+interface TicketsSectionProps {
+  tickets: Ticket[]
+  onChange: (tickets: Ticket[]) => void
   error?: string
 }
 
-const GuestsSection: React.FC<GuestsSectionProps> = ({ guests, onChange, error }) => {
+const TicketsSection: React.FC<TicketsSectionProps> = ({ tickets, onChange, error }) => {
   const theme = useCustomTheme()
-  const addGuest = () => onChange([...guests, { name: "" }])
-  const updateGuest = (idx: number, key: keyof Guest, value: string) => {
-    const updated = guests.map((g, i) => (i === idx ? { ...g, [key]: value } : g))
+  const addTicket = () => onChange([...tickets, { type: "", price: 0 }])
+  const updateTicket = (idx: number, key: keyof Ticket, value: string | number) => {
+    const updated = tickets.map((t, i) => (i === idx ? { ...t, [key]: value } : t))
     onChange(updated)
   }
-  const removeGuest = (idx: number) => onChange(guests.filter((_, i) => i !== idx))
+  const removeTicket = (idx: number) => onChange(tickets.filter((_, i) => i !== idx))
 
   return (
     <View
@@ -35,10 +35,10 @@ const GuestsSection: React.FC<GuestsSectionProps> = ({ guests, onChange, error }
     >
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
         <Text style={{ color: theme.colors.gray[500], fontSize: 14 }}>
-          Add special guests, speakers, or hosts for your event.
+          Add ticket types, prices, or RSVP options for your event.
         </Text>
       </View>
-      {guests.map((g, idx) => (
+      {tickets.map((t, idx) => (
         <View
           key={idx}
           style={{
@@ -48,9 +48,9 @@ const GuestsSection: React.FC<GuestsSectionProps> = ({ guests, onChange, error }
           }}
         >
           <TextInput
-            value={g.name}
-            onChangeText={(v) => updateGuest(idx, "name", v)}
-            placeholder="Name"
+            value={t.type}
+            onChangeText={(v) => updateTicket(idx, "type", v)}
+            placeholder="Ticket Type"
             placeholderTextColor={theme.colors.gray[400]}
             style={{
               borderWidth: 0,
@@ -63,9 +63,25 @@ const GuestsSection: React.FC<GuestsSectionProps> = ({ guests, onChange, error }
             }}
           />
           <TextInput
-            value={g.bio}
-            onChangeText={(v) => updateGuest(idx, "bio", v)}
-            placeholder="Bio (optional)"
+            value={String(t.price)}
+            onChangeText={(v) => updateTicket(idx, "price", Number(v))}
+            placeholder="Price"
+            placeholderTextColor={theme.colors.gray[400]}
+            keyboardType="numeric"
+            style={{
+              borderWidth: 0,
+              borderRadius: 10,
+              padding: 14,
+              marginBottom: 8,
+              backgroundColor: theme.colors.secondary,
+              color: theme.colors.onBackground,
+              fontSize: 16,
+            }}
+          />
+          <TextInput
+            value={t.currency || ""}
+            onChangeText={(v) => updateTicket(idx, "currency", v)}
+            placeholder="Currency (optional)"
             placeholderTextColor={theme.colors.gray[400]}
             style={{
               borderWidth: 0,
@@ -78,48 +94,32 @@ const GuestsSection: React.FC<GuestsSectionProps> = ({ guests, onChange, error }
             }}
           />
           <TextInput
-            value={g.avatarUrl}
-            onChangeText={(v) => updateGuest(idx, "avatarUrl", v)}
-            placeholder="Avatar URL (optional)"
+            value={t.link || ""}
+            onChangeText={(v) => updateTicket(idx, "link", v)}
+            placeholder="Ticket Link (optional)"
             placeholderTextColor={theme.colors.gray[400]}
             style={{
               borderWidth: 0,
               borderRadius: 10,
               padding: 14,
-              marginBottom: 8,
               backgroundColor: theme.colors.secondary,
               color: theme.colors.onBackground,
               fontSize: 16,
             }}
           />
-          <TextInput
-            value={g.social}
-            onChangeText={(v) => updateGuest(idx, "social", v)}
-            placeholder="Social (optional)"
-            placeholderTextColor={theme.colors.gray[400]}
-            style={{
-              borderWidth: 0,
-              borderRadius: 10,
-              padding: 14,
-              marginBottom: 8,
-              backgroundColor: theme.colors.secondary,
-              color: theme.colors.onBackground,
-              fontSize: 16,
-            }}
-          />
-          <TouchableOpacity onPress={() => removeGuest(idx)}>
-            <Text style={{ color: theme.colors.brand.red, marginTop: 4, fontWeight: "bold" }}>Remove</Text>
+          <TouchableOpacity onPress={() => removeTicket(idx)} style={{ marginTop: 4 }}>
+            <Text style={{ color: theme.colors.brand.red, fontSize: 13 }}>Remove</Text>
           </TouchableOpacity>
         </View>
       ))}
-      <TouchableOpacity onPress={addGuest} style={{ marginTop: 6 }}>
-        <Text style={{ color: theme.colors.brand.blue, fontWeight: "bold" }}>+ Add Guest</Text>
+      <TouchableOpacity onPress={addTicket} style={{ marginTop: 8 }}>
+        <Text style={{ color: theme.colors.brand.blue, fontSize: 15, fontWeight: "bold" }}>Add Ticket</Text>
       </TouchableOpacity>
       {typeof error === "string" && error.length > 0 && (
-        <Text style={{ color: theme.colors.brand.red, marginTop: 4, fontSize: 13 }}>{error}</Text>
+        <Text style={{ color: theme.colors.brand.red, marginTop: 6, fontSize: 13 }}>{error}</Text>
       )}
     </View>
   )
 }
 
-export default GuestsSection
+export default TicketsSection

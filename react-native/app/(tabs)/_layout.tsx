@@ -1,4 +1,4 @@
-import { AnimatedTabBar } from "@/components/AnimatedTabBar"
+import { AnimatedTabBar } from "@/components/ui/AnimatedTabBar"
 import { TabBarVisibilityProvider } from "@/context/TabBarVisibilityContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome, FontAwesome6 } from "@expo/vector-icons"

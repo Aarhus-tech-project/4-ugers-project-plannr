@@ -1,55 +1,58 @@
-import EventPage from "@/components/EventPage"
-import { useAppData } from "@/context/AppDataContext"
+import EventPage from "@/components/event/page/EventPage"
+import { usePreferences } from "@/context/PreferencesContext"
+import { usePreferencesVersion } from "@/context/PreferencesVersionContext"
 import { useTabBarVisibility } from "@/context/TabBarVisibilityContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { useEvents } from "@/hooks/useEvents"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
-import { usePreferences } from "@/hooks/usePreferences"
+import { useProfiles } from "@/hooks/useProfiles"
 import { useScrollDrivenAnimation } from "@/hooks/useScrollDrivenAnimation"
+import { useSession } from "@/hooks/useSession"
 import { filterEvents } from "@/utils/eventFilterUtils"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useFocusEffect } from "@react-navigation/native"
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import { Animated, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native-paper"
 
 export default function Finder() {
   const theme = useCustomTheme()
   const { setScrollY } = useTabBarVisibility()
-  const { session, likeEvent, dislikeEvent, fetchProfiles, events, fetchEvents } = useAppData()
-  const {
-    range,
-    selectedThemes,
-    dateRangeMode,
-    eventTypes,
-    customStart,
-    customEnd,
-    customLocation,
-    reloadPreferences,
-  } = usePreferences()
-  const { location: liveLocation } = useLiveLocation()
-  useFocusEffect(
-    React.useCallback(() => {
-      const fetchAndFilter = async () => {
-        await fetchEvents()
-        await reloadPreferences()
-        setCurrent(0)
-      }
-      fetchAndFilter()
-    }, [fetchEvents, reloadPreferences])
-  )
+  const { session, setProfile } = useSession()
+  const { fetchEvents, likeEvent } = useEvents()
+  const events = fetchEvents.data ?? []
 
-  // Track current event index
+  const { fetchProfiles, updateProfile } = useProfiles()
+  const { range, selectedThemes, dateRangeMode, eventTypes, customStart, customEnd, customLocation } = usePreferences()
+
+  const { version } = usePreferencesVersion()
+  const { location: liveLocation } = useLiveLocation()
   const [current, setCurrent] = useState(0)
-  if (!session) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading user session...</Text>
-      </View>
-    )
-  }
   const userProfile = session?.profile
-  const likedEventIds = userProfile?.interestedEvents ?? []
-  const filteredEvents = filterEvents(events, {
+  const [optimisticLikedEventIds, setOptimisticLikedEventIds] = useState<string[] | null>(null)
+  const likedEventIds = optimisticLikedEventIds ?? userProfile?.interestedEvents ?? []
+  const filteredEvents = useMemo(() => {
+    const now = new Date()
+    return filterEvents(events, {
+      eventTypes,
+      selectedThemes,
+      dateRangeMode,
+      customStart,
+      customEnd,
+      customLocation,
+      liveLocation,
+      range,
+    })
+      .filter((event) => {
+        // Only show events in the future
+        const startAt = event.dateRange?.startAt || event.startAt
+        if (!startAt) return false
+        return new Date(startAt) > now
+      })
+      .filter((event) => !likedEventIds.includes(event.id))
+      .filter((event) => event.creatorId !== userProfile?.id)
+  }, [
+    events,
     eventTypes,
     selectedThemes,
     dateRangeMode,
@@ -58,30 +61,54 @@ export default function Finder() {
     customLocation,
     liveLocation,
     range,
-  }).filter((event) => !likedEventIds.includes(event.id))
+    likedEventIds,
+    version,
+    userProfile?.id,
+  ])
 
-  // Current event from filtered list
   const event = filteredEvents[current] || null
+
+  // Fetch events on focus or when preferences version changes
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchEvents.run()
+      setCurrent(0)
+      setOptimisticLikedEventIds(null)
+    }, [version])
+  )
 
   // Accept/deny event handlers
   const denyEvent = async () => {
     if (userProfile?.id && event?.id) {
-      await dislikeEvent(event.id, userProfile.id)
-      await fetchEvents()
-      await fetchProfiles()
+      // Add event to notInterestedEvents for the user profile
+      const notInterestedEvents = Array.isArray(userProfile.notInterestedEvents)
+        ? [...new Set([...userProfile.notInterestedEvents, event.id])]
+        : [event.id]
+      await updateProfile.run(userProfile.id, { notInterestedEvents })
+      await fetchEvents.run()
+      await fetchProfiles.run()
     }
     setCurrent((prev) => Math.min(prev + 1, filteredEvents.length))
   }
   const acceptEvent = async () => {
-    if (!userProfile) {
+    if (!userProfile || !event) {
       console.warn("No user profile found, cannot like event.")
       setCurrent((prev) => Math.min(prev + 1, filteredEvents.length))
       return
     }
-    if (event && userProfile.id) {
-      await likeEvent(event.id, userProfile.id)
-      await fetchEvents()
-      await fetchProfiles()
+    try {
+      setOptimisticLikedEventIds([...(userProfile.interestedEvents ?? []), event.id])
+      const result = await likeEvent.run(userProfile.id, userProfile.interestedEvents ?? [], event.id)
+      if (!result) {
+        console.warn("likeEvent.run did not return a result")
+      } else if (result.profile && result.profile.interestedEvents) {
+        setOptimisticLikedEventIds(result.profile.interestedEvents)
+        setProfile(result.profile) // Update session context with new profile
+      }
+      await fetchEvents.run()
+      await fetchProfiles.run()
+    } catch (err) {
+      console.warn("Failed to like event:", err)
     }
     setCurrent(0)
   }

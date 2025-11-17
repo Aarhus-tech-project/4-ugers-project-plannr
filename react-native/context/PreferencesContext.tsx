@@ -1,10 +1,7 @@
 import type { EventFormat, EventTheme } from "@/interfaces/event"
 import { DateRangeMode } from "@/interfaces/filter"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import dayjs from "dayjs"
-import { useCallback, useEffect, useState } from "react"
-import { useAsyncFn } from "./useAsyncFn"
-dayjs.extend(require("dayjs/plugin/utc"))
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react"
 
 export interface PreferencesData {
   range: number
@@ -16,7 +13,7 @@ export interface PreferencesData {
   customLocation: { latitude: number; longitude: number } | null
 }
 
-export interface PreferencesState extends PreferencesData {
+export interface PreferencesContextType extends PreferencesData {
   setRange: (v: number) => void
   setSelectedThemes: (v: EventTheme[]) => void
   setDateRangeMode: (v: DateRangeMode) => void
@@ -25,22 +22,22 @@ export interface PreferencesState extends PreferencesData {
   setCustomEnd: (v: Date | null) => void
   setCustomLocation: (loc: { latitude: number; longitude: number } | null) => void
   updateModeFromCustom: (start: Date | null, end: Date | null) => void
-  reloadPreferences: ReturnType<typeof useAsyncFn>
+}
+
+const defaultData: PreferencesData = {
+  range: 50,
+  selectedThemes: [],
+  dateRangeMode: { daily: true },
+  eventTypes: ["inperson"],
+  customStart: null,
+  customEnd: null,
+  customLocation: null,
 }
 
 const STORAGE_KEY = "userPreferences"
+const PreferencesContext = createContext<PreferencesContextType | undefined>(undefined)
 
-export function usePreferences(initial?: Partial<PreferencesData>): PreferencesState {
-  const defaultData: PreferencesData = {
-    range: 50,
-    selectedThemes: [],
-    dateRangeMode: { daily: true },
-    eventTypes: ["inperson"],
-    customStart: null,
-    customEnd: null,
-    customLocation: null,
-    ...initial,
-  }
+export function PreferencesProvider({ children }: { children: React.ReactNode }) {
   const [prefs, setPrefs] = useState<PreferencesData>(defaultData)
 
   // Load preferences from AsyncStorage on mount
@@ -53,7 +50,6 @@ export function usePreferences(initial?: Partial<PreferencesData>): PreferencesS
         } catch {}
       }
     })()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Save preferences to AsyncStorage whenever they change
@@ -71,7 +67,6 @@ export function usePreferences(initial?: Partial<PreferencesData>): PreferencesS
     (loc: { latitude: number; longitude: number } | null) => setPrefs((p) => ({ ...p, customLocation: loc })),
     []
   )
-
   const updateModeFromCustom = useCallback(
     (start: Date | null, end: Date | null) => {
       if (start && end) {
@@ -83,30 +78,27 @@ export function usePreferences(initial?: Partial<PreferencesData>): PreferencesS
     [setDateRangeMode, setCustomStart, setCustomEnd]
   )
 
-  // FIX: Do NOT call setPrefs inside reloadPreferences to avoid infinite loop
-  const reloadPreferences = useAsyncFn(async () => {
-    const stored = await AsyncStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      try {
-        const loaded = { ...defaultData, ...JSON.parse(stored) }
-        return loaded
-      } catch {
-        return prefs
-      }
-    }
-    return prefs
-  })
+  return (
+    <PreferencesContext.Provider
+      value={{
+        ...prefs,
+        setRange,
+        setSelectedThemes,
+        setDateRangeMode,
+        setEventTypes,
+        setCustomStart,
+        setCustomEnd,
+        setCustomLocation,
+        updateModeFromCustom,
+      }}
+    >
+      {children}
+    </PreferencesContext.Provider>
+  )
+}
 
-  return {
-    ...prefs,
-    setRange,
-    setSelectedThemes,
-    setDateRangeMode,
-    setEventTypes,
-    setCustomStart,
-    setCustomEnd,
-    setCustomLocation,
-    updateModeFromCustom,
-    reloadPreferences,
-  }
+export function usePreferences() {
+  const ctx = useContext(PreferencesContext)
+  if (!ctx) throw new Error("usePreferences must be used within PreferencesProvider")
+  return ctx
 }
