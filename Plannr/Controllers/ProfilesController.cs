@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Plannr.Api.Data;
 using Plannr.Api.Models;
+using System.Net.Mail;
 using System.Security.Claims;
 
 namespace Plannr.Api.Controllers;
@@ -108,5 +111,75 @@ public class ProfilesController(ApplicationDbContext db) : ControllerBase
             .FirstOrDefaultAsync(p => p.Email.ToLower() == email.Trim().ToLower());
 
         return profile is null ? NotFound() : Ok(profile);
+    }
+
+    [Authorize] // keep it if your app requires auth to edit own profile
+    [HttpPatch("{id:guid}/info")]
+    public async Task<IActionResult> PatchInfo(Guid id, [FromBody] ProfileInfoUpdateDto dto)
+    {
+        var profile = await db.Profiles.FirstOrDefaultAsync(p => p.Id == id);
+        if (profile == null) return NotFound();
+
+        // Ownership check (same style as your PUT)
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        if (userIdStr != null && Guid.TryParse(userIdStr, out var userId))
+        {
+            if (profile.UserId != null && profile.UserId != userId)
+                return Forbid();
+        }
+
+        // Nothing provided?
+        if (dto.Email is null && dto.Name is null && dto.Bio is null && dto.Phone is null)
+            return BadRequest(new { message = "No fields to update." });
+
+        // Prepare new values with trimming
+        string? newEmail = dto.Email?.Trim();
+        string? newName = dto.Name?.Trim();
+        string? newBio = dto.Bio;    // allow empty string to clear
+        string? newPhone = dto.Phone;  // allow empty string to clear
+
+        // Validate Email if provided
+        // Email empty
+        if (string.IsNullOrWhiteSpace(newEmail))
+        {
+            var ms = new ModelStateDictionary();
+            ms.AddModelError(nameof(dto.Email), "Email cannot be empty.");
+            return ValidationProblem(ms);
+        }
+
+        // Email invalid
+        try { _ = new System.Net.Mail.MailAddress(newEmail); }
+        catch
+        {
+            var ms = new ModelStateDictionary();
+            ms.AddModelError(nameof(dto.Email), "Email is not valid.");
+            return ValidationProblem(ms);
+        }
+
+        // Name empty
+        if (dto.Name is not null && string.IsNullOrWhiteSpace(newName))
+        {
+            var ms = new ModelStateDictionary();
+            ms.AddModelError(nameof(dto.Name), "Name cannot be empty.");
+            return ValidationProblem(ms);
+        }
+
+        // Apply updates (only for provided fields)
+        if (dto.Email is not null) profile.Email = newEmail!;
+        if (dto.Name is not null) profile.Name = newName!;
+        if (dto.Bio is not null) profile.Bio = string.IsNullOrEmpty(newBio) ? null : newBio.Trim();
+        if (dto.Phone is not null) profile.Phone = string.IsNullOrEmpty(newPhone) ? null : newPhone.Trim();
+
+        await db.SaveChangesAsync();
+        return Ok(new
+        {
+            profile.Id,
+            profile.Email,
+            profile.Name,
+            profile.Bio,
+            profile.Phone,
+            profile.AvatarUrl,
+            profile.CreatedAt
+        });
     }
 }

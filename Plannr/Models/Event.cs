@@ -25,7 +25,7 @@ public class Event
     public List<string>? Themes { get; set; }
     public JsonDocument? Sections { get; set; }
 
-    // Creator er en Profile
+    // Creator is a Profile
     public Guid CreatorId { get; set; }
 
     [JsonIgnore]
@@ -35,7 +35,6 @@ public class Event
     public ICollection<EventImage> Images { get; set; } = new List<EventImage>();
     public ICollection<EventPrompt> Prompts { get; set; } = new List<EventPrompt>();
 
-    // Valgfri adapter hvis din klient sender dateRange
     [NotMapped]
     public EventDateRange? DateRange { get; set; }
 }

@@ -10,7 +10,7 @@ public class EventImage
 
     [JsonIgnore]
     [ValidateNever]
-    public Event? Event { get; set; } = default!; // Nullable navigation
+    public Event? Event { get; set; } = default!;
 
     public string Src { get; set; } = default!;
     public int Likes { get; set; } = 0;

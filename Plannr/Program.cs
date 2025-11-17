@@ -51,14 +51,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddControllers().AddJsonOptions(opts =>
 {
-    // Hvis du bruger JsonDocument: ingen speciel config nødvendig
 });
 
 builder.Services.AddScoped<JwtTokenService>();
 
 var app = builder.Build();
 
-// Kør migrationer automatisk ved opstart (praktisk til dev/test)
+// Run migrations automatically at startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

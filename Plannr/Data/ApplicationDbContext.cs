@@ -25,7 +25,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.Property(p => p.AvatarUrl).HasMaxLength(1000);
             b.HasIndex(p => p.Email).IsUnique();
 
-            // Optional relation til AppUser via UserId
+            // Optional relation to AppUser via UserId
             b.HasIndex(p => p.UserId).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
 
             // UUID arrays (Npgsql mapper List<Guid> -> uuid[])
@@ -35,7 +35,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.Property(p => p.NotInterestedEvents).HasColumnType("uuid[]").HasDefaultValueSql("'{}'::uuid[]");
         });
 
-        // EVENT
         // EVENT
         modelBuilder.Entity<Event>(b =>
         {
@@ -65,13 +64,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 loc.Property(l => l.Latitude).HasPrecision(9, 6);
                 loc.Property(l => l.Longitude).HasPrecision(9, 6);
 
-                // Læg i separat tabel for klarhed
+                // Put in separate table for clarity
                 loc.ToTable("EventLocations");
                 loc.WithOwner().HasForeignKey("EventId");
                 loc.Property<Guid>("EventId");
                 loc.HasKey("EventId");
 
-                // Simple B-tree indeks; ikke magisk til kugleafstand, men hjælper på prefilters
+                // Simple B-tree index;
                 loc.HasIndex(l => new { l.Latitude, l.Longitude });
             });
 

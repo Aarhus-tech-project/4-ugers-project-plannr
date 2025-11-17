@@ -19,7 +19,7 @@ public class HealthController : ControllerBase
             bool can = await db.Database.CanConnectAsync();
             if (!can) return StatusCode(503, new { status = "db_unreachable" });
 
-            // ekstra sanity: kør en helt simpel query
+            // extra sanity: Run simple query - This is also used for App Service Azure Health Probes
             int now = await db.Database.ExecuteSqlRawAsync("select 1");
             return Ok(new { status = "ok", code = now });
         }

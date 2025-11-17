@@ -2,6 +2,6 @@
 
 public class EventAccess
 {
-    public string Instruction { get; set; } = string.Empty; // fx "Henvend dig i receptionen"
-    public string? Password { get; set; } // valgfrit
+    public string Instruction { get; set; } = string.Empty;
+    public string? Password { get; set; }
 }

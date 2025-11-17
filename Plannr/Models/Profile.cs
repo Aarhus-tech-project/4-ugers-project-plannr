@@ -6,7 +6,7 @@ public class Profile
 {
     public Guid Id { get; set; }
 
-    // Link til Identity-bruger
+    // Link to Identity-user
     public Guid? UserId { get; set; }
 
     [JsonIgnore]
@@ -19,7 +19,7 @@ public class Profile
     public string? AvatarUrl { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    // Event lists (gemmes som uuid[] i Postgres)
+    // Event lists (Saved as uuid[] i Postgres)
     public List<Guid> InterestedEvents { get; set; } = new();
 
     public List<Guid> GoingToEvents { get; set; } = new();

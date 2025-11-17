@@ -86,24 +86,23 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
             q = q.Where(e => e.CreatorId == creatorId.Value);
         }
 
-        // Theme filter (Themes er text[] i Postgres)
+        // Theme filter (Themes are text[] in Postgres)
         if (!string.IsNullOrWhiteSpace(theme))
         {
             var t = theme.Trim();
             q = q.Where(e => e.Themes != null && e.Themes.Contains(t));
         }
 
-        // Geo filter med Haversine (km)
+        // Geo filter with Haversine (km)
         if (lat.HasValue && lon.HasValue && rangeKm.HasValue)
         {
-            // Konstanter til EF-oversættelse
+            // Constants for EF-Translations
             const double EarthRadiusKm = 6371.0;
             double targetLat = lat.Value;
             double targetLon = lon.Value;
             double rad = Math.PI / 180.0;
             double maxKm = Math.Max(0, rangeKm.Value);
 
-            // Filtrér bort null locations først
             q = q.Where(e => e.Location != null && e.Location.Latitude != null && e.Location.Longitude != null);
 
             // Haversine: 2*R*asin(sqrt(sin²(dφ/2)+cos φ1 cos φ2 sin²(dλ/2)))
