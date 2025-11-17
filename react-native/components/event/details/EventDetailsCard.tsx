@@ -23,12 +23,13 @@ interface Props {
   event: Event
   profile?: Profile
   displayTitle?: boolean
+  going?: boolean
   buttons?: EventDetailsButton[]
 }
 
 import React from "react"
 
-export default function EventDetailsCard({ event, buttons, displayTitle }: Props) {
+export default function EventDetailsCard({ event, buttons, displayTitle, going }: Props) {
   const theme = useCustomTheme()
 
   const iconColor = theme.colors.brand.red
@@ -40,34 +41,6 @@ export default function EventDetailsCard({ event, buttons, displayTitle }: Props
   }
   return (
     <>
-      {/* Event Access Instructions/Password (only if going) */}
-      {event._going && event.access && (event.access.instruction || event.access.password) && (
-        <View
-          style={{
-            width: "100%",
-            marginBottom: 12,
-            marginTop: 8,
-            padding: 12,
-            backgroundColor: theme.colors.surface,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: theme.colors.brand.red,
-          }}
-        >
-          {event.access.instruction && (
-            <Text style={{ color: textColor, fontSize: 16, marginBottom: event.access.password ? 6 : 0 }}>
-              <Text style={{ fontWeight: "bold" }}>Access Instructions: </Text>
-              {event.access.instruction}
-            </Text>
-          )}
-          {event.access.password && (
-            <Text style={{ color: textColor, fontSize: 16 }}>
-              <Text style={{ fontWeight: "bold" }}>Password: </Text>
-              {event.access.password}
-            </Text>
-          )}
-        </View>
-      )}
       <View
         style={{
           display: "flex",
@@ -224,6 +197,18 @@ export default function EventDetailsCard({ event, buttons, displayTitle }: Props
               <View style={rowStyle}>
                 <FontAwesome6 name="user-shield" size={20} color={iconColor} style={{ marginRight: 12 }} />
                 <Text style={{ color: textColor, fontSize: 16 }}>Age limit {event.ageRestriction}+</Text>
+              </View>
+            </>
+          )}
+          {/* Access Info */}
+          {event?.access && going && (
+            <>
+              <View style={rowStyle}>
+                <FontAwesome6 name="lock" size={20} color={iconColor} style={{ marginRight: 12 }} />
+                <Text style={{ color: textColor, fontSize: 16 }}>
+                  Instructions: {event?.access?.instruction}
+                  {event?.access?.password ? `  Password: ${event.access.password}` : ""}
+                </Text>
               </View>
             </>
           )}

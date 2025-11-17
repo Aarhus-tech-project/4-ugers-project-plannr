@@ -31,26 +31,34 @@ export default function Finder() {
   const userProfile = session?.profile
   const [optimisticLikedEventIds, setOptimisticLikedEventIds] = useState<string[] | null>(null)
   const likedEventIds = optimisticLikedEventIds ?? userProfile?.interestedEvents ?? []
+  const goingEventIds = userProfile?.goingToEvents ?? []
   const filteredEvents = useMemo(() => {
     const now = new Date()
-    return filterEvents(events, {
-      eventTypes,
-      selectedThemes,
-      dateRangeMode,
-      customStart,
-      customEnd,
-      customLocation,
-      liveLocation,
-      range,
-    })
-      .filter((event) => {
-        // Only show events in the future
-        const startAt = event.dateRange?.startAt || event.startAt
-        if (!startAt) return false
-        return new Date(startAt) > now
+    return (
+      filterEvents(events, {
+        eventTypes,
+        selectedThemes,
+        dateRangeMode,
+        customStart,
+        customEnd,
+        customLocation,
+        liveLocation,
+        range,
       })
-      .filter((event) => !likedEventIds.includes(event.id))
-      .filter((event) => event.creatorId !== userProfile?.id)
+        .filter((event) => {
+          // Only show events in the future
+          const startAt = event.dateRange?.startAt || event.startAt
+          if (!startAt) return false
+          return new Date(startAt) > now
+        })
+        // Exclude events the user is going to or interested in
+        .filter(
+          (event) =>
+            !likedEventIds.includes(event.id) &&
+            !goingEventIds.includes(event.id) &&
+            event.creatorId !== userProfile?.id
+        )
+    )
   }, [
     events,
     eventTypes,
@@ -62,6 +70,7 @@ export default function Finder() {
     liveLocation,
     range,
     likedEventIds,
+    goingEventIds,
     version,
     userProfile?.id,
   ])
@@ -84,7 +93,14 @@ export default function Finder() {
       const notInterestedEvents = Array.isArray(userProfile.notInterestedEvents)
         ? [...new Set([...userProfile.notInterestedEvents, event.id])]
         : [event.id]
-      await updateProfile.run(userProfile.id, { notInterestedEvents })
+      await updateProfile.run(userProfile.id, {
+        id: userProfile.id,
+        name: userProfile.name,
+        email: userProfile.email,
+        bio: userProfile.bio ?? "",
+        phone: userProfile.phone ?? "",
+        notInterestedEvents,
+      })
       await fetchEvents.run()
       await fetchProfiles.run()
     }
@@ -146,7 +162,7 @@ export default function Finder() {
             fontSize: 20,
           }}
         >
-          Finder
+          {event?.title || "Event Finder"}
         </Text>
       </View>
       {event ? (

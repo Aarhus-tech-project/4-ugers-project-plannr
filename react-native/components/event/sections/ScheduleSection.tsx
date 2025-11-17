@@ -1,3 +1,4 @@
+import { WheelTimePicker } from "@/components/ui/WheelTimePicker"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import React from "react"
 import { Text, TextInput, TouchableOpacity, View } from "react-native"
@@ -52,21 +53,26 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ items, onChange, erro
             borderRadius: 10,
           }}
         >
-          <TextInput
-            value={item.activity}
-            onChangeText={(v) => updateItem(idx, "activity", v)}
-            placeholder="Activity"
-            placeholderTextColor={theme.colors.gray[400]}
-            style={{
-              borderWidth: 0,
-              borderRadius: 10,
-              padding: 14,
-              marginBottom: 8,
-              backgroundColor: theme.colors.secondary,
-              color: theme.colors.onBackground,
-              fontSize: 16,
-            }}
-          />
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+            <WheelTimePicker value={item.time} onChange={(date) => updateItem(idx, "time", date)} min={minDate} />
+            <TextInput
+              value={item.activity}
+              onChangeText={(v) => updateItem(idx, "activity", v)}
+              placeholder="Activity"
+              placeholderTextColor={theme.colors.gray[400]}
+              style={{
+                borderWidth: 0,
+                borderRadius: 10,
+                padding: 14,
+                marginBottom: 0,
+                backgroundColor: theme.colors.secondary,
+                color: theme.colors.onBackground,
+                fontSize: 16,
+                flex: 1,
+                marginLeft: 8,
+              }}
+            />
+          </View>
           <TouchableOpacity onPress={() => removeItem(idx)} style={{ marginTop: 4 }}>
             <Text style={{ color: theme.colors.brand.red, fontSize: 13 }}>Remove</Text>
           </TouchableOpacity>

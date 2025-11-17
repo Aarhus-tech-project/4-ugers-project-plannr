@@ -124,6 +124,24 @@ export const api = {
    */
   profiles: {
     /**
+     * Patch profile info (email, name, bio, phone)
+     * @param {string} profileId - The unique identifier of the profile to update.
+     * @param {object} data - The info fields to update.
+     * @returns {Promise<Profile>} Resolves with the updated profile object.
+     * @example
+     * const updated = await api.profiles.patchInfo('profile123', { email: 'new@email.tld', name: 'New Name', ... });
+     */
+    patchInfo: async (
+      profileId: string,
+      data: { email: string; name: string; bio: string; phone: string }
+    ): Promise<Profile> => {
+      const res = await apiFetch(`${API_BASE_URL}/profiles/${profileId}/info`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      })
+      return res.json()
+    },
+    /**
      * Fetch all user profiles from the backend.
      * @returns {Promise<Profile[]>} Resolves with an array of profile objects.
      * @example

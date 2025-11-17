@@ -89,10 +89,14 @@ export default function Home() {
 
   const [filterModalVisible, setFilterModalVisible] = useState(false)
   const now = new Date()
-  // Show all events, but highlight liked/upcoming
+  // Only show events the user is going to or interested in
   const allEvents = useMemo(() => {
     return (apiEvents as any[])
-      .filter((event: any) => event.creatorId !== userProfile?.id)
+      .filter(
+        (event: any) =>
+          event.creatorId !== userProfile?.id &&
+          (goingToEvents.includes(event.id) || interestedEvents.includes(event.id))
+      )
       .map((event: any) => ({
         ...event,
         _going: typeof event.id === "string" && goingToEvents.includes(event.id),
@@ -242,6 +246,7 @@ export default function Home() {
             bottom: 0,
             zIndex: 999,
             backgroundColor: theme.colors.background + "F2",
+            justifyContent: "flex-end",
           }}
         >
           <EventPage
@@ -250,6 +255,59 @@ export default function Home() {
             headerTitle={selectedEvent.title}
             onBack={() => setSelectedEvent(null)}
           />
+
+          <Animated.View
+            style={{
+              position: "absolute",
+              right: 0,
+              bottom: 114,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingHorizontal: 24,
+              zIndex: 10,
+              transform: [
+                {
+                  translateY: scrollY.interpolate({
+                    inputRange: [0, 80],
+                    outputRange: [0, 80],
+                    extrapolate: "clamp",
+                  }),
+                },
+              ],
+              opacity: 1,
+            }}
+          >
+            {/* Interested button for near events */}
+            {!goingToEvents.includes(selectedEvent.id) && !interestedEvents.includes(selectedEvent.id) && (
+              <TouchableOpacity
+                onPress={async () => {
+                  await handleEventButtonPress(selectedEvent)
+                  setSelectedEvent(null)
+                  // Refetch events and scroll to top after liking
+                  await fetchEvents.run()
+                }}
+                activeOpacity={0.9}
+              >
+                <View
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    backgroundColor: theme.colors.brand.red,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    shadowColor: theme.colors.gray[700],
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 4,
+                  }}
+                >
+                  <FontAwesome6 name="heart" size={32} color={theme.colors.secondary} />
+                </View>
+              </TouchableOpacity>
+            )}
+          </Animated.View>
         </View>
       )}
       <FilterModal
@@ -363,6 +421,7 @@ export default function Home() {
               <EventDetailsCard
                 event={event}
                 displayTitle={true}
+                going={event._going}
                 buttons={[
                   {
                     label: event._going ? "Going" : event._interested ? "Interested" : "Not Interested",

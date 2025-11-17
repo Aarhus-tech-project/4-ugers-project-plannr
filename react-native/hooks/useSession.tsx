@@ -1,7 +1,7 @@
 import { api } from "@/config/api"
 import { Filter } from "@/interfaces/filter"
 import { Profile } from "@/interfaces/profile"
-import { SessionType } from "@/interfaces/session"
+import { ProviderType, SessionType } from "@/interfaces/session"
 import * as SecureStore from "expo-secure-store"
 import React, { createContext, useContext, useEffect, useState } from "react"
 import { useAsyncFn } from "./useAsyncFn"
@@ -100,7 +100,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const profile = await api.profiles.get(data.profileId, data.token)
     const sessionObj = {
       profile,
-      provider: "manual",
+      provider: "manual" as ProviderType,
       token: data.token,
       loginAt: Date.now(),
     }

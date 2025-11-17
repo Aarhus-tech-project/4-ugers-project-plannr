@@ -2,9 +2,10 @@ import EventDetailsCard from "@/components/event/details/EventDetailsCard"
 import { useAuth } from "@/hooks/useAuth"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useEvents } from "@/hooks/useEvents"
+import useFocusEffect from "@/hooks/useFocusEffectCompat"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { router } from "expo-router"
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import { ScrollView, Text, View } from "react-native"
 
 export default function OwnEvents() {
@@ -15,9 +16,13 @@ export default function OwnEvents() {
   const { session } = useAuth()
   const events = fetchEvents.data ?? []
 
-  useEffect(() => {
-    fetchEvents.run()
-  }, [fetchEvents.run])
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchEvents.run()
+    }, [fetchEvents.run])
+  )
+
+  console.log("OwnEvents render, events:", events, session?.profile)
 
   const ownEvents = (events as any[]).filter((event: any) => event.creatorId === (session?.profile?.id ?? ""))
 
