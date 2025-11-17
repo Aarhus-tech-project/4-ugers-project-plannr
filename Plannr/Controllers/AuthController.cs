@@ -22,7 +22,7 @@ public class AuthController(
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-        // Tjek email unik (Identity har også constraint)
+        // check email unique (Identity har også constraint)
         var existing = await userManager.FindByEmailAsync(req.Email);
         if (existing is not null)
             return Conflict(new ProblemDetails { Title = "Email already exists", Status = 409 });
@@ -39,7 +39,7 @@ public class AuthController(
         if (!result.Succeeded)
             return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
 
-        // Opret Profile knyttet til bruger
+        // Create Profile linked to user
         var profile = new Profile
         {
             Id = Guid.NewGuid(),

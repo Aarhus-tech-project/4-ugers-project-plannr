@@ -1,12 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Plannr.Api.Models;
 
 namespace Plannr.Api.Data;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-    : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
     public DbSet<Profile> Profiles => Set<Profile>();
     public DbSet<Event> Events => Set<Event>();
@@ -16,6 +13,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<AppUser>().ToTable("AspNetUsers");
 
         // PROFILE
         modelBuilder.Entity<Profile>(b =>
@@ -27,10 +25,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.Property(p => p.AvatarUrl).HasMaxLength(1000);
             b.HasIndex(p => p.Email).IsUnique();
 
-            b.HasOne(p => p.User)
-             .WithOne(u => u.Profile)
-             .HasForeignKey<Profile>(p => p.UserId)
-             .OnDelete(DeleteBehavior.Cascade);
+            // Optional relation to AppUser via UserId
+            b.HasIndex(p => p.UserId).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
+
+            // UUID arrays (Npgsql mapper List<Guid> -> uuid[])
+            b.Property(p => p.InterestedEvents).HasColumnType("uuid[]").HasDefaultValueSql("'{}'::uuid[]");
+            b.Property(p => p.GoingToEvents).HasColumnType("uuid[]").HasDefaultValueSql("'{}'::uuid[]");
+            b.Property(p => p.CheckedInEvents).HasColumnType("uuid[]").HasDefaultValueSql("'{}'::uuid[]");
+            b.Property(p => p.NotInterestedEvents).HasColumnType("uuid[]").HasDefaultValueSql("'{}'::uuid[]");
         });
 
         // EVENT
@@ -62,13 +64,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 loc.Property(l => l.Latitude).HasPrecision(9, 6);
                 loc.Property(l => l.Longitude).HasPrecision(9, 6);
 
-                // Læg i separat tabel for klarhed
+                // Put in separate table for clarity
                 loc.ToTable("EventLocations");
                 loc.WithOwner().HasForeignKey("EventId");
                 loc.Property<Guid>("EventId");
                 loc.HasKey("EventId");
 
-                // Simple B-tree indeks; ikke magisk til kugleafstand, men hjælper på prefilters
+                // Simple B-tree index;
                 loc.HasIndex(l => new { l.Latitude, l.Longitude });
             });
 

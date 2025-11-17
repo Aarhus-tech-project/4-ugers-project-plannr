@@ -27,7 +27,7 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
 
     // GET: /api/events
     [HttpGet]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<IActionResult> GetAll()
     {
         var events = await db.Events
@@ -54,7 +54,7 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
         return ev is null ? NotFound() : Ok(ev);
     }
 
-    // NEW: GET /api/events/search?theme=Art OR ?lat=...&lon=...&rangeKm=50
+    // Updated: GET /api/events/search?theme=Art OR ?lat=...&lon=...&rangeKm=50 OR ?creatorId=...
     [HttpGet("search")]
     [AllowAnonymous]
     public async Task<IActionResult> Search(
@@ -62,10 +62,16 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
         [FromQuery] double? lat,
         [FromQuery] double? lon,
         [FromQuery] double? rangeKm,
+        [FromQuery] Guid? creatorId,
         [FromQuery] int take = 100)
     {
-        if (string.IsNullOrWhiteSpace(theme) && (!lat.HasValue || !lon.HasValue || !rangeKm.HasValue))
-            return BadRequest(new { message = "Provide either theme or lat/lon/rangeKm." });
+        // Validate that at least one filter is provided
+        if (string.IsNullOrWhiteSpace(theme) &&
+            (!lat.HasValue || !lon.HasValue || !rangeKm.HasValue) &&
+            !creatorId.HasValue)
+        {
+            return BadRequest(new { message = "Provide either theme, lat/lon/rangeKm, or creatorId." });
+        }
 
         take = Math.Clamp(take, 1, 500);
 
@@ -74,25 +80,29 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
             .Include(e => e.Prompts)
             .Include(e => e.Creator);
 
-        // Theme filter (Themes er text[] i Postgres)
+        // Creator filter - get events by specific profile
+        if (creatorId.HasValue)
+        {
+            q = q.Where(e => e.CreatorId == creatorId.Value);
+        }
+
+        // Theme filter (Themes are text[] in Postgres)
         if (!string.IsNullOrWhiteSpace(theme))
         {
             var t = theme.Trim();
-            // Npgsql understøtter EF-contains på List<string> → ANY @> m.m.; dette bliver til array-contains
             q = q.Where(e => e.Themes != null && e.Themes.Contains(t));
         }
 
-        // Geo filter med Haversine (km)
+        // Geo filter with Haversine (km)
         if (lat.HasValue && lon.HasValue && rangeKm.HasValue)
         {
-            // Konstanter til EF-oversættelse
+            // Constants for EF-Translations
             const double EarthRadiusKm = 6371.0;
             double targetLat = lat.Value;
             double targetLon = lon.Value;
             double rad = Math.PI / 180.0;
             double maxKm = Math.Max(0, rangeKm.Value);
 
-            // Filtrér bort null locations først
             q = q.Where(e => e.Location != null && e.Location.Latitude != null && e.Location.Longitude != null);
 
             // Haversine: 2*R*asin(sqrt(sin²(dφ/2)+cos φ1 cos φ2 sin²(dλ/2)))
@@ -120,9 +130,9 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
                 )
             );
         }
-        else
+        else if (!creatorId.HasValue) // Only apply date ordering if not searching by creator AND not geo searching
         {
-            // Hvis kun theme, så behold en stabil sortering
+            // Hvis kun theme eller creator, så behold en stabil sortering
             q = q.OrderBy(e => e.StartAt);
         }
 
@@ -217,5 +227,38 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
         db.Events.Remove(ev);
         await db.SaveChangesAsync();
         return NoContent();
+    }
+
+    // PATCH: /api/events/{id}/attendance - Update attendance fields (any authenticated user)
+    [HttpPatch("{id:guid}/attendance")]
+    [Authorize]
+    public async Task<IActionResult> UpdateAttendance(Guid id, [FromBody] EventAttendanceUpdateDto updateDto)
+    {
+        var existing = await db.Events
+            .Include(e => e.Attendance)
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (existing is null)
+            return NotFound(new { message = "Event not found" });
+
+        // Initialize Attendance if it doesn't exist
+        if (existing.Attendance is null)
+        {
+            existing.Attendance = new EventAttendance();
+        }
+
+        // Update only the provided fields
+        if (updateDto.Interested.HasValue)
+            existing.Attendance.Interested = updateDto.Interested.Value;
+
+        if (updateDto.Going.HasValue)
+            existing.Attendance.Going = updateDto.Going.Value;
+
+        if (updateDto.CheckedIn.HasValue)
+            existing.Attendance.CheckedIn = updateDto.CheckedIn.Value;
+
+        await db.SaveChangesAsync();
+
+        return Ok(existing.Attendance);
     }
 }
