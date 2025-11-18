@@ -18,21 +18,10 @@ export const api = {
     list: async (): Promise<Event[]> => {
       try {
         const res = await apiFetch(`${API_BASE_URL}/events`, { method: "GET" })
-        const text = await res.text()
-        // Try to parse JSON
-        try {
-          const json = JSON.parse(text)
-          return json
-        } catch (err) {
-          if (__DEV__) {
-            console.log("[api.events.list] JSON parse error:", err)
-          }
-          return []
-        }
+        const data = await res.json()
+        return data
       } catch (err) {
-        if (__DEV__) {
-          console.log("[api.events.list] fetch error:", err)
-        }
+        console.error("Error fetching events:", err)
         return []
       }
     },
@@ -99,7 +88,6 @@ export const api = {
       eventId: string,
       attendance: { interested?: number; going?: number; checkedIn?: number }
     ): Promise<object> => {
-      console.log("patchAttendance called with:", eventId, JSON.stringify(attendance))
       const res = await apiFetch(`${API_BASE_URL}/events/${eventId}/attendance`, {
         method: "PATCH",
         body: JSON.stringify(attendance),

@@ -176,7 +176,11 @@ function CreateEventScreenInner() {
     try {
       setSubmitting(true)
       const fields = buildEventFields()
-      if (!fields) return
+      if (!fields) {
+        // Show alert if profile is not loaded
+        alert("Your profile is not loaded yet. Please wait a moment and try again.")
+        return
+      }
       await createEvent.run(fields)
       // Refetch events so own events list is up to date
       await fetchEvents.run()

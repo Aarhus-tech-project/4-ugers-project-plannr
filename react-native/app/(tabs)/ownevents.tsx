@@ -22,8 +22,6 @@ export default function OwnEvents() {
     }, [fetchEvents.run])
   )
 
-  console.log("OwnEvents render, events:", events, session?.profile)
-
   const ownEvents = (events as any[]).filter((event: any) => event.creatorId === (session?.profile?.id ?? ""))
 
   const handleDelete = async (id: string) => {
@@ -67,9 +65,9 @@ export default function OwnEvents() {
           padding: 24,
           paddingHorizontal: 24,
           paddingVertical: 16,
-          marginVertical: 8,
           alignSelf: "center",
         }}
+        contentContainerStyle={{ paddingBottom: 70 }}
         showsVerticalScrollIndicator={false}
       >
         {ownEvents.length === 0 ? (

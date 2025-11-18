@@ -2,6 +2,7 @@ import { api } from "@/config/api"
 import { Filter } from "@/interfaces/filter"
 import { Profile } from "@/interfaces/profile"
 import { ProviderType, SessionType } from "@/interfaces/session"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import * as SecureStore from "expo-secure-store"
 import React, { createContext, useContext, useEffect, useState } from "react"
 import { useAsyncFn } from "./useAsyncFn"
@@ -118,6 +119,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useAsyncFn(async () => {
     await SecureStore.deleteItemAsync(SESSION_KEY)
+    await AsyncStorage.removeItem(SESSION_KEY)
     setSession(null)
     return null
   })

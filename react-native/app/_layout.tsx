@@ -32,7 +32,7 @@ function AppContent() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme()
-  const theme = colorScheme !== "dark" ? darkTheme : lightTheme
+  const theme = colorScheme === "dark" ? darkTheme : lightTheme
 
   // Patch ScrollView defaults to disable overscroll globally
   React.useEffect(() => {

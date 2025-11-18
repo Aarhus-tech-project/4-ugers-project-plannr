@@ -79,11 +79,18 @@ export async function apiFetch(url: string, options: ApiFetchOptions = {}): Prom
   }
   // HTTP error handling
   if (!response.ok) {
-    let errorData
+    let errorData: any = null
     try {
-      errorData = await response.json()
+      // Try to parse as JSON
+      errorData = await response.clone().json()
     } catch {
-      errorData = await response.text()
+      try {
+        // If JSON fails, try as text
+        errorData = await response.clone().text()
+      } catch {
+        // If all fails, fallback to empty object
+        errorData = {}
+      }
     }
     throw new ApiError(`API error: ${response.status} ${response.statusText}`, response.status, errorData)
   }
