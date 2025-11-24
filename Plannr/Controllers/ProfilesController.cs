@@ -64,7 +64,6 @@ public class ProfilesController(ApplicationDbContext db) : ControllerBase
         if (profile == null)
             return NotFound();
 
-        // Ejer-check (valgfri men anbefalet)
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
         if (userIdStr != null && Guid.TryParse(userIdStr, out var userId))
         {
