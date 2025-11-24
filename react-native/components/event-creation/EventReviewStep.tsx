@@ -1,4 +1,4 @@
-import EventPage from "@/components/EventPage"
+import EventPage from "@/components/event/page/EventPage"
 import { useEventCreation } from "@/context/EventCreationContext"
 import React from "react"
 

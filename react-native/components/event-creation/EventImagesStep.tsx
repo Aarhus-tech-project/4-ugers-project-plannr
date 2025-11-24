@@ -1,4 +1,5 @@
 import { useCustomTheme } from "@/hooks/useCustomTheme"
+import { EventPageSection } from "@/interfaces/event"
 import FontAwesome6 from "@expo/vector-icons/build/FontAwesome6"
 import * as ImagePicker from "expo-image-picker"
 import React, { useState } from "react"
@@ -9,8 +10,6 @@ export interface EventImage {
   name?: string
   type?: string
 }
-
-import { EventPageSection } from "@/interfaces/event"
 
 export interface EventImagesStepProps {
   sections: EventPageSection[]

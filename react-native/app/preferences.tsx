@@ -1,23 +1,26 @@
-import AttendanceModeSelector from "@/components/AttendanceModeSelector"
-import CustomDateRangeCalendar from "@/components/CustomDateRangeCalendar"
-import { DateRangeModeSelector } from "@/components/DateRangeModeSelector"
-import DiscoveryRangeSlider from "@/components/DiscoveryRangeSlider"
-import EventThemeSelector from "@/components/EventThemeSelector"
-import LocationOptionSelector from "@/components/LocationOptionSelector"
-import MapPicker from "@/components/MapPicker"
+import EventThemeSelector from "@/components/event/EventThemeSelector"
+import KeyboardAwareScreen from "@/components/layout/KeyboardAwareScreen"
+import AttendanceModeSelector from "@/components/ui/AttendanceModeSelector"
+import CustomDateRangeCalendar from "@/components/ui/CustomDateRangeCalendar"
+import { DateRangeModeSelector } from "@/components/ui/DateRangeModeSelector"
+import DiscoveryRangeSlider from "@/components/ui/DiscoveryRangeSlider"
+import LocationOptionSelector from "@/components/ui/LocationOptionSelector"
+import MapPicker from "@/components/ui/MapPicker"
+import { usePreferences } from "@/context/PreferencesContext"
+import { usePreferencesVersion } from "@/context/PreferencesVersionContext"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useLazyEventThemes } from "@/hooks/useLazyEventThemes"
 import { useLiveLocation } from "@/hooks/useLiveLocation"
-import { usePreferences } from "@/hooks/usePreferences"
 import type { EventLocation } from "@/interfaces/event"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import React from "react"
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native"
+import { StyleSheet, TouchableOpacity, View } from "react-native"
 import { ActivityIndicator, Text } from "react-native-paper"
 export default function Preferences() {
   const theme = useCustomTheme()
   const router = useRouter()
+  const { bump } = usePreferencesVersion()
   const {
     range,
     setRange,
@@ -94,7 +97,10 @@ export default function Preferences() {
         }}
       >
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            bump()
+            router.back()
+          }}
           style={{ padding: 4, borderRadius: 16, position: "absolute", left: 20, top: 82 }}
           activeOpacity={0.6}
         >
@@ -112,10 +118,9 @@ export default function Preferences() {
           Finder Preferences
         </Text>
       </View>
-      <ScrollView
+      <KeyboardAwareScreen
         style={{ flex: 1, backgroundColor: theme.colors.background }}
         contentContainerStyle={{ alignItems: "center", paddingBottom: 16, paddingTop: 16 }}
-        showsVerticalScrollIndicator={false}
       >
         {/* Location Option Card */}
         <View
@@ -245,7 +250,7 @@ export default function Preferences() {
         >
           <AttendanceModeSelector formats={eventTypes ?? []} onChange={setEventTypes} />
         </View>
-      </ScrollView>
+      </KeyboardAwareScreen>
     </View>
   )
 }

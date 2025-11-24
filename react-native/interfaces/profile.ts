@@ -8,7 +8,9 @@ export interface Profile {
   phone?: string
   avatarUrl?: string
   eventFinderSettings?: Filter
-  likedEvents?: string[]
-  subscribedEvents?: string[]
+  interestedEvents?: string[]
+  goingToEvents?: string[]
+  checkedInEvents?: string[]
+  notInterestedEvents?: string[]
   filters?: Filter
 }

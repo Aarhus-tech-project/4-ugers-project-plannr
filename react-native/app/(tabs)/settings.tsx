@@ -1,4 +1,4 @@
-import LogoutButton from "@/components/LogoutButton"
+import LogoutButton from "@/components/ui/LogoutButton"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { useRouter } from "expo-router"

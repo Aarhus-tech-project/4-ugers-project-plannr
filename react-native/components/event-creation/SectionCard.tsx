@@ -32,11 +32,9 @@ const SectionCard: React.FC<SectionCardProps> = ({
       style={[
         styles.card,
         {
-          backgroundColor: theme.colors.secondary,
-          borderColor: theme.colors.gray[200],
-          borderWidth: 2,
+          backgroundColor: theme.colors.background,
+          borderWidth: 0,
           padding: 16,
-          borderStyle: "dashed",
           marginVertical: 12,
         },
       ]}

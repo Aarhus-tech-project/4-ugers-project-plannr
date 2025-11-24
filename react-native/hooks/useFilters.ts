@@ -1,7 +1,6 @@
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 import { EventFormat, EventLocation, EventThemeName } from "../interfaces/event"
 import { DateRangeMode, FilterDateRange, FilterLocation } from "../interfaces/filter"
-import { useAsyncStorage } from "./useAsyncStorage"
 
 type FiltersData = {
   dateRange: FilterDateRange
@@ -37,7 +36,7 @@ export interface FiltersState {
 }
 
 export function useFilters(initial?: Partial<FiltersState>): FiltersState {
-  const [filters, setFilters] = useAsyncStorage<FiltersData>("eventFilters", {
+  const [filters, setFilters] = useState<FiltersData>({
     dateRange: initial?.dateRange ?? { current: { day: true, week: false, month: false, year: false } },
     customStart: initial?.customStart ?? null,
     customEnd: initial?.customEnd ?? null,
@@ -50,17 +49,11 @@ export function useFilters(initial?: Partial<FiltersState>): FiltersState {
   })
 
   const setDateRange = useCallback(
-    (range: FilterDateRange) => setFilters({ ...filters, dateRange: range }),
-    [filters, setFilters]
+    (range: FilterDateRange) => setFilters((prev) => ({ ...prev, dateRange: range })),
+    []
   )
-  const setCustomStart = useCallback(
-    (date: Date | null) => setFilters({ ...filters, customStart: date }),
-    [filters, setFilters]
-  )
-  const setCustomEnd = useCallback(
-    (date: Date | null) => setFilters({ ...filters, customEnd: date }),
-    [filters, setFilters]
-  )
+  const setCustomStart = useCallback((date: Date | null) => setFilters((prev) => ({ ...prev, customStart: date })), [])
+  const setCustomEnd = useCallback((date: Date | null) => setFilters((prev) => ({ ...prev, customEnd: date })), [])
   const { normalizeDateRangeMode } = require("../utils/eventFilterUtils")
   const setMode = useCallback(
     (mode: DateRangeMode) => {
@@ -85,24 +78,25 @@ export function useFilters(initial?: Partial<FiltersState>): FiltersState {
         dateRange: newDateRange,
       }))
     },
-    [setFilters, filters.customStart, filters.customEnd]
+    [filters.customStart, filters.customEnd]
   )
   const setRange = useCallback(
-    (value: FilterLocation["range"]) => setFilters({ ...filters, range: value }),
-    [filters, setFilters]
+    (value: FilterLocation["range"]) => setFilters((prev) => ({ ...prev, range: value })),
+    []
   )
   const setSelectedThemes = useCallback(
-    (themes: EventThemeName[]) => setFilters({ ...filters, selectedThemes: themes }),
-    [filters, setFilters]
+    (themes: EventThemeName[]) => setFilters((prev) => ({ ...prev, selectedThemes: themes })),
+    []
   )
-  const setFormats = useCallback((formats: EventFormat[]) => setFilters({ ...filters, formats }), [filters, setFilters])
+  const setFormats = useCallback((formats: EventFormat[]) => setFilters((prev) => ({ ...prev, formats })), [])
   const setUseCurrentLocation = useCallback(
-    (value: boolean) => setFilters({ ...filters, useCurrentLocation: value }),
-    [filters, setFilters]
+    (value: boolean) => setFilters((prev) => ({ ...prev, useCurrentLocation: value })),
+    []
   )
   const setSelectedLocation = useCallback(
-    (loc: Pick<EventLocation, "latitude" | "longitude"> | null) => setFilters({ ...filters, selectedLocation: loc }),
-    [filters, setFilters]
+    (loc: Pick<EventLocation, "latitude" | "longitude"> | null) =>
+      setFilters((prev) => ({ ...prev, selectedLocation: loc })),
+    []
   )
 
   return {

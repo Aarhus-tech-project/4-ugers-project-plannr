@@ -72,7 +72,6 @@ export const EventCreationProvider = ({ children }: { children: ReactNode }) => 
   // Only build event fields, do not post
   const buildEventFields = () => {
     if (!session?.profile?.id) {
-      console.error("No session or profile id found!")
       return null
     }
     return {

@@ -1,4 +1,4 @@
-import CustomDateRangeCalendar from "@/components/CustomDateRangeCalendar"
+import CustomDateRangeCalendar from "@/components/ui/CustomDateRangeCalendar"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { getEventDateRangeError } from "@/utils/date-range-validator"
 import React, { useEffect, useState } from "react"

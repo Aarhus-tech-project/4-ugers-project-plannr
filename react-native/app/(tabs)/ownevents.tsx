@@ -1,22 +1,34 @@
-import EventDetailsCard from "@/components/EventDetailsCard"
+import EventDetailsCard from "@/components/event/details/EventDetailsCard"
+import { useAuth } from "@/hooks/useAuth"
 import { useCustomTheme } from "@/hooks/useCustomTheme"
 import { useEvents } from "@/hooks/useEvents"
+import useFocusEffect from "@/hooks/useFocusEffectCompat"
 import { FontAwesome6 } from "@expo/vector-icons"
 import { router } from "expo-router"
-import React, { useEffect } from "react"
+import React, { useState } from "react"
 import { ScrollView, Text, View } from "react-native"
 
 export default function OwnEvents() {
   const theme = useCustomTheme()
   const bg = theme.colors.background
-  const { events, fetchEvents } = useEvents()
+  const { fetchEvents, deleteEvent } = useEvents()
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const { session } = useAuth()
+  const events = fetchEvents.data ?? []
 
-  useEffect(() => {
-    fetchEvents()
-  }, [fetchEvents])
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchEvents.run()
+    }, [fetchEvents.run])
+  )
 
-  const handleDelete = (id: string) => {
-    console.log("Deleting event with id:", id)
+  const ownEvents = (events as any[]).filter((event: any) => event.creatorId === (session?.profile?.id ?? ""))
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id)
+    await deleteEvent.run(id)
+    await fetchEvents.run()
+    setDeletingId(null)
   }
 
   return (
@@ -53,12 +65,12 @@ export default function OwnEvents() {
           padding: 24,
           paddingHorizontal: 24,
           paddingVertical: 16,
-          marginVertical: 8,
           alignSelf: "center",
         }}
+        contentContainerStyle={{ paddingBottom: 70 }}
         showsVerticalScrollIndicator={false}
       >
-        {events.length === 0 ? (
+        {ownEvents.length === 0 ? (
           <View style={{ alignItems: "center", marginTop: 48 }}>
             <FontAwesome6 name="calendar" size={48} color={theme.colors.gray[400]} />
             <Text style={{ color: theme.colors.gray[400], fontSize: 18, marginTop: 12 }}>
@@ -66,12 +78,13 @@ export default function OwnEvents() {
             </Text>
           </View>
         ) : (
-          events.map((event) => {
+          ownEvents.map((event) => {
             if (!event.id) return null
             return (
               <View key={event.id} style={{ marginBottom: 18 }}>
                 <EventDetailsCard
                   event={event}
+                  displayTitle={true}
                   buttons={[
                     {
                       label: "Edit",
@@ -81,11 +94,12 @@ export default function OwnEvents() {
                       onPress: () => router.push({ pathname: "/create", params: { event: JSON.stringify(event) } }),
                     },
                     {
-                      label: "Delete",
+                      label: deletingId === event.id ? "Deleting..." : "Delete",
                       icon: "trash",
                       backgroundColor: theme.colors.gray[700],
                       textColor: theme.colors.white,
                       onPress: () => handleDelete(event.id!),
+                      disabled: !!deletingId,
                     },
                   ]}
                 />
