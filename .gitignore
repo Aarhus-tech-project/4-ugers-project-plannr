@@ -58,3 +58,19 @@ app-example
 .expo-shared/
 # EAS
 .eas/
+
+# nextjs
+.next/
+out/
+.build/
+.cache/
+.vercel/
+.now/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# storybook
+.storybook/
+stories
