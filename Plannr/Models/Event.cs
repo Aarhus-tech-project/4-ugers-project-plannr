@@ -33,7 +33,6 @@ public class Event
     public Profile Creator { get; set; } = default!;
 
     public ICollection<EventImage> Images { get; set; } = new List<EventImage>();
-    public ICollection<EventPrompt> Prompts { get; set; } = new List<EventPrompt>();
 
     [NotMapped]
     public EventDateRange? DateRange { get; set; }

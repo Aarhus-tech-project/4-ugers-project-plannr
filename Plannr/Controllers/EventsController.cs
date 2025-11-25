@@ -32,7 +32,6 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     {
         var events = await db.Events
             .Include(e => e.Images)
-            .Include(e => e.Prompts)
             .Include(e => e.Creator)
             .OrderBy(e => e.StartAt)
             .ToListAsync();
@@ -47,7 +46,6 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     {
         var ev = await db.Events
             .Include(e => e.Images)
-            .Include(e => e.Prompts)
             .Include(e => e.Creator)
             .FirstOrDefaultAsync(e => e.Id == id);
 
@@ -77,7 +75,6 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
 
         IQueryable<Event> q = db.Events
             .Include(e => e.Images)
-            .Include(e => e.Prompts)
             .Include(e => e.Creator);
 
         // Creator filter - get events by specific profile
@@ -170,8 +167,6 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
 
         if (input.Images is { Count: > 0 })
             foreach (var img in input.Images) img.EventId = input.Id;
-        if (input.Prompts is { Count: > 0 })
-            foreach (var pr in input.Prompts) pr.EventId = input.Id;
 
         db.Events.Add(input);
         await db.SaveChangesAsync();
@@ -186,7 +181,6 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     {
         var existing = await db.Events
             .Include(e => e.Images)
-            .Include(e => e.Prompts)
             .FirstOrDefaultAsync(e => e.Id == id);
 
         if (existing is null) return NotFound();
@@ -197,7 +191,6 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
 
         existing.Title = update.Title;
         existing.Description = update.Description;
-        existing.Format = string.IsNullOrWhiteSpace(update.Format) ? existing.Format : update.Format;
         existing.StartAt = update.DateRange?.StartAt ?? update.StartAt;
         existing.EndAt = update.DateRange?.EndAt ?? update.EndAt;
         existing.AgeRestriction = update.AgeRestriction;

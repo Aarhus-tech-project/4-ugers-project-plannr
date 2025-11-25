@@ -8,7 +8,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Profile> Profiles => Set<Profile>();
     public DbSet<Event> Events => Set<Event>();
     public DbSet<EventImage> EventImages => Set<EventImage>();
-    public DbSet<EventPrompt> EventPrompts => Set<EventPrompt>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -91,17 +90,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             b.HasOne(i => i.Event)
              .WithMany(e => e.Images)
              .HasForeignKey(i => i.EventId)
-             .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        // EVENT PROMPT
-        modelBuilder.Entity<EventPrompt>(b =>
-        {
-            b.Property(p => p.Prompt).HasMaxLength(500).IsRequired();
-            b.Property(p => p.Answer).HasMaxLength(2000).IsRequired();
-            b.HasOne(p => p.Event)
-             .WithMany(e => e.Prompts)
-             .HasForeignKey(p => p.EventId)
              .OnDelete(DeleteBehavior.Cascade);
         });
     }
