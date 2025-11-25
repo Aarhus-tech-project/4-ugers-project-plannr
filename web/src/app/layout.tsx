@@ -1,14 +1,14 @@
+import { ColorModeButton } from "@/components/ColorModeButton"
 import { AppProviders } from "@/components/providers/AppProviders"
-import { ClientOnly } from "@/components/utils/ClientOnly"
 
-export default function RootLayout(props: { children: React.ReactNode }) {
-  const { children } = props
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html suppressHydrationWarning>
+    <html suppressHydrationWarning lang="en">
       <body>
-        <ClientOnly>
-          <AppProviders>{children}</AppProviders>
-        </ClientOnly>
+        <AppProviders>
+          <ColorModeButton />
+          {children}
+        </AppProviders>
       </body>
     </html>
   )

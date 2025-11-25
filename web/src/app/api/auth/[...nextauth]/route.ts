@@ -17,12 +17,30 @@ export const authOptions = {
        * @returns The user object if credentials are valid, or null if invalid.
        */
       async authorize(credentials) {
-        // Replace with your own secure user lookup
-        if (credentials?.username === "admin" && credentials?.password === "pass") {
-          return { id: "1", name: "Admin" }
+        // Call backend login endpoint
+        try {
+          const res = await fetch("https://plannr.azurewebsites.net/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: credentials?.username,
+              password: credentials?.password,
+            }),
+          })
+          if (!res.ok) return null
+          const data = await res.json()
+          // Expecting { profileId, token }
+          if (data?.profileId && data?.token) {
+            return {
+              id: data.profileId,
+              token: data.token,
+              name: credentials?.username,
+            }
+          }
+          return null
+        } catch (err) {
+          return null
         }
-        // If credentials are invalid, return null to signal failed login
-        return null
       },
     }),
   ],

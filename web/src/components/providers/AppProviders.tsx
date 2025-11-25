@@ -1,6 +1,6 @@
 "use client"
 import { ColorModeProvider } from "@/components/providers/ColorModeProvider"
-import { theme } from "@/styles/theme"
+import { system } from "@/styles/theme"
 import { ChakraProvider } from "@chakra-ui/react"
 import { SessionProvider } from "next-auth/react"
 
@@ -15,7 +15,7 @@ import { SessionProvider } from "next-auth/react"
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <ChakraProvider value={theme}>
+      <ChakraProvider value={system}>
         <ColorModeProvider>{children}</ColorModeProvider>
       </ChakraProvider>
     </SessionProvider>
