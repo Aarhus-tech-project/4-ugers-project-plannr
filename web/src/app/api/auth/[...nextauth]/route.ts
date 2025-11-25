@@ -39,6 +39,7 @@ export const authOptions = {
           }
           return null
         } catch (err) {
+          console.error("Login error:", err)
           return null
         }
       },

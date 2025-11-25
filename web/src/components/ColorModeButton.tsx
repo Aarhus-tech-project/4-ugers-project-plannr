@@ -1,9 +1,16 @@
 "use client"
 import { Button } from "@chakra-ui/react"
 import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 
 export function ColorModeButton() {
   const { theme, setTheme } = useTheme()
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   return (
     <Button
       position="fixed"
@@ -13,7 +20,7 @@ export function ColorModeButton() {
       variant="outline"
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
     >
-      {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
+      {isMounted ? (theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode") : null}
     </Button>
   )
 }
