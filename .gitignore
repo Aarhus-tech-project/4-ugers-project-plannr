@@ -58,3 +58,7 @@ app-example
 .expo-shared/
 # EAS
 .eas/
+
+#next
+.next/
+out/
