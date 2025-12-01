@@ -1,23 +1,27 @@
 import API_ENDPOINTS from "@utils/api-endpoints"
 import type { NextRequest } from "next/server"
 
-export async function GET(req: NextRequest, context: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: { params: { id: string } }) {
   const id = context.params.id
-  console.log("[API] GET /api/profiles/", id, "called")
+  console.log("[API] PATCH /api/profiles/", id, "/info called")
+  console.log("Method:", req.method)
   const jwt = req.headers.get("authorization")?.replace("Bearer ", "")
   console.log("JWT:", jwt)
   if (!jwt) {
     console.log("Missing JWT token")
     return new Response(JSON.stringify({ error: "Missing JWT token" }), { status: 401 })
   }
-  const url = API_ENDPOINTS.PROFILES.BY_ID(id)
+  const body = await req.json()
+  console.log("Request body:", body)
+  const url = API_ENDPOINTS.PROFILES.PATCH_INFO(id)
   console.log("Proxying to backend URL:", url)
   const res = await fetch(url, {
-    method: "GET",
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${jwt}`,
     },
+    body: JSON.stringify(body),
   })
   console.log("Backend response status:", res.status)
   let data

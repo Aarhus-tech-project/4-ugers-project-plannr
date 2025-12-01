@@ -1,21 +1,19 @@
 "use client"
 import { Box, Button, Heading, Input } from "@chakra-ui/react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+// import Navbar from "@/components/Navbar"
 
 export default function SignupPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
   const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
-    setSuccess(false)
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -27,7 +25,6 @@ export default function SignupPage() {
         setError(data.error || "Registration failed")
         return
       }
-      setSuccess(true)
       setTimeout(() => router.push("/login"), 1500)
     } catch (err) {
       console.error("Registration error:", err)
@@ -36,55 +33,84 @@ export default function SignupPage() {
   }
 
   return (
-    <Box maxW="sm" mx="auto" mt={20} p={8} borderWidth={1} borderRadius="lg">
-      <Heading mb={6}>Sign Up</Heading>
-      {error && (
-        <Box mb={4} p={3} bg="red.500" color="white" borderRadius="md">
-          {error}
-        </Box>
-      )}
-      {success && (
-        <Box mb={4} p={3} bg="green.500" color="white" borderRadius="md">
-          Registration successful! Redirecting...
-        </Box>
-      )}
-      <form onSubmit={handleSubmit}>
-        <Box mb={4}>
-          <label htmlFor="name" style={{ fontWeight: "bold", marginBottom: 4, display: "block" }}>
-            Name
-          </label>
-          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-        </Box>
-        <Box mb={4}>
-          <label htmlFor="email" style={{ fontWeight: "bold", marginBottom: 4, display: "block" }}>
-            Email
-          </label>
-          <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </Box>
-        <Box mb={6}>
-          <label htmlFor="password" style={{ fontWeight: "bold", marginBottom: 4, display: "block" }}>
-            Password
-          </label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </Box>
-        <Button colorScheme="teal" type="submit" width="full">
+    <>
+      <Box maxW="sm" mx="auto" mt={20} p={8} borderWidth={0} borderRadius="2xl" bg="brand.white" boxShadow="lg">
+        <Heading mb={6} color="brand.red" fontWeight="extrabold">
           Sign Up
-        </Button>
-      </form>
-      <Box mt={4} textAlign="center">
-        <span>Already have an account? </span>
-        <Link href="/login">
-          <Button variant="ghost" colorScheme="blue">
+        </Heading>
+        {error && (
+          <Box mb={4} p={3} bg="brand.red" color="white" borderRadius="md" fontWeight="bold">
+            {error}
+          </Box>
+        )}
+        <form onSubmit={handleSubmit}>
+          <Box mb={4}>
+            <label htmlFor="name" style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}>
+              Name
+            </label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              bg="gray.50"
+              borderRadius="md"
+            />
+          </Box>
+          <Box mb={4}>
+            <label
+              htmlFor="email"
+              style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}
+            >
+              Email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              bg="gray.50"
+              borderRadius="md"
+            />
+          </Box>
+          <Box mb={4}>
+            <label
+              htmlFor="password"
+              style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}
+            >
+              Password
+            </label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              bg="gray.50"
+              borderRadius="md"
+            />
+          </Box>
+          <Button
+            colorScheme="brand"
+            bg="brand.red"
+            color="white"
+            type="submit"
+            width="full"
+            borderRadius="lg"
+            fontWeight="bold"
+            _hover={{ bg: "brand.red", opacity: 0.85 }}
+          >
+            Sign Up
+          </Button>
+        </form>
+        <Box mt={4} textAlign="center">
+          <span style={{ color: "#757575ff" }}>Already have an account? </span>
+          <Button variant="ghost" colorScheme="brand" color="brand.red" onClick={() => router.push("/login")}>
             Login
           </Button>
-        </Link>
+        </Box>
       </Box>
-    </Box>
+    </>
   )
 }
