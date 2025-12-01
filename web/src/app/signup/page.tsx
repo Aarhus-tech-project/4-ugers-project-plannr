@@ -79,8 +79,8 @@ export default function SignupPage() {
       </form>
       <Box mt={4} textAlign="center">
         <span>Already have an account? </span>
-        <Link href="/login" passHref legacyBehavior>
-          <Button as="a" variant="ghost" colorScheme="blue">
+        <Link href="/login">
+          <Button variant="ghost" colorScheme="blue">
             Login
           </Button>
         </Link>
