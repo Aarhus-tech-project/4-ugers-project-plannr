@@ -56,84 +56,26 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
     [HttpGet("search")]
     [AllowAnonymous]
     public async Task<IActionResult> Search(
-        [FromQuery] string? theme,
-        [FromQuery] double? lat,
-        [FromQuery] double? lon,
-        [FromQuery] double? rangeKm,
-        [FromQuery] Guid? creatorId,
+        [FromQuery] string? keyword,
         [FromQuery] int take = 100)
     {
-        // Validate that at least one filter is provided
-        if (string.IsNullOrWhiteSpace(theme) &&
-            (!lat.HasValue || !lon.HasValue || !rangeKm.HasValue) &&
-            !creatorId.HasValue)
-        {
-            return BadRequest(new { message = "Provide either theme, lat/lon/rangeKm, or creatorId." });
-        }
-
         take = Math.Clamp(take, 1, 500);
 
         IQueryable<Event> q = db.Events
             .Include(e => e.Images)
             .Include(e => e.Creator);
 
-        // Creator filter - get events by specific profile
-        if (creatorId.HasValue)
+        if (!string.IsNullOrWhiteSpace(keyword))
         {
-            q = q.Where(e => e.CreatorId == creatorId.Value);
-        }
-
-        // Theme filter (Themes are text[] in Postgres)
-        if (!string.IsNullOrWhiteSpace(theme))
-        {
-            var t = theme.Trim();
-            q = q.Where(e => e.Themes != null && e.Themes.Contains(t));
-        }
-
-        // Geo filter with Haversine (km)
-        if (lat.HasValue && lon.HasValue && rangeKm.HasValue)
-        {
-            // Constants for EF-Translations
-            const double EarthRadiusKm = 6371.0;
-            double targetLat = lat.Value;
-            double targetLon = lon.Value;
-            double rad = Math.PI / 180.0;
-            double maxKm = Math.Max(0, rangeKm.Value);
-
-            q = q.Where(e => e.Location != null && e.Location.Latitude != null && e.Location.Longitude != null);
-
-            // Haversine: 2*R*asin(sqrt(sin²(dφ/2)+cos φ1 cos φ2 sin²(dλ/2)))
+            var kw = keyword.Trim().ToLower();
             q = q.Where(e =>
-                EarthRadiusKm * 2.0 *
-                Math.Asin(
-                    Math.Sqrt(
-                        Math.Pow(Math.Sin(((double)e.Location!.Latitude!.Value * rad - targetLat * rad) / 2.0), 2.0) +
-                        Math.Cos(targetLat * rad) *
-                        Math.Cos((double)e.Location!.Latitude!.Value * rad) *
-                        Math.Pow(Math.Sin((((double)e.Location!.Longitude!.Value - targetLon) * rad) / 2.0), 2.0)
-                    )
-                ) <= maxKm
-            )
-            // Så vi får de nærmeste først: beregn samme distance i OrderBy
-            .OrderBy(e =>
-                EarthRadiusKm * 2.0 *
-                Math.Asin(
-                    Math.Sqrt(
-                        Math.Pow(Math.Sin(((double)e.Location!.Latitude!.Value * rad - targetLat * rad) / 2.0), 2.0) +
-                        Math.Cos(targetLat * rad) *
-                        Math.Cos((double)e.Location!.Latitude!.Value * rad) *
-                        Math.Pow(Math.Sin((((double)e.Location!.Longitude!.Value - targetLon) * rad) / 2.0), 2.0)
-                    )
-                )
+                (e.Title != null && e.Title.ToLower().Contains(kw)) ||
+                (e.Description != null && e.Description.ToLower().Contains(kw)) ||
+                (e.Themes != null && e.Themes.Any(t => t.ToLower().Contains(kw)))
             );
         }
-        else if (!creatorId.HasValue) // Only apply date ordering if not searching by creator AND not geo searching
-        {
-            // Hvis kun theme eller creator, så behold en stabil sortering
-            q = q.OrderBy(e => e.StartAt);
-        }
 
-        var results = await q.Take(take).ToListAsync();
+        var results = await q.OrderBy(e => e.StartAt).Take(take).ToListAsync();
         return Ok(results);
     }
 

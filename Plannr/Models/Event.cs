@@ -36,6 +36,11 @@ public class Event
 
     [NotMapped]
     public EventDateRange? DateRange { get; set; }
+
+    public Guid? CompanyId { get; set; }
+
+    [JsonIgnore]
+    public Company? Company { get; set; }
 }
 
 public class EventDateRange

@@ -6,6 +6,7 @@ C:\Projects\Skole\Plannr\bin\Debug\net8.0\Plannr.deps.json
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Plannr.runtimeconfig.json
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Plannr.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Plannr.pdb
+C:\Projects\Skole\Plannr\bin\Debug\net8.0\Castle.Core.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Humanizer.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.Internal.dll
@@ -19,6 +20,7 @@ C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.CodeAnalysis.Workspaces.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Abstractions.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Design.dll
+C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.InMemory.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Relational.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.Extensions.Caching.Memory.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.dll
@@ -37,6 +39,7 @@ C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.Open
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Microsoft.OpenApi.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Mono.TextTemplating.dll
+C:\Projects\Skole\Plannr\bin\Debug\net8.0\Moq.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Npgsql.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
@@ -49,6 +52,10 @@ C:\Projects\Skole\Plannr\bin\Debug\net8.0\System.Composition.Hosting.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\System.Composition.Runtime.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\System.Composition.TypedParts.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Projects\Skole\Plannr\bin\Debug\net8.0\xunit.abstractions.dll
+C:\Projects\Skole\Plannr\bin\Debug\net8.0\xunit.assert.dll
+C:\Projects\Skole\Plannr\bin\Debug\net8.0\xunit.core.dll
+C:\Projects\Skole\Plannr\bin\Debug\net8.0\xunit.execution.dotnet.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.resources.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.resources.dll
 C:\Projects\Skole\Plannr\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.resources.dll

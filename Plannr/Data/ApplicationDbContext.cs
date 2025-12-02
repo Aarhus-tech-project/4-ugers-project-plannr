@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Plannr.Api.Models;
+using System.Text.Json.Serialization;
 
 namespace Plannr.Api.Data;
 
@@ -8,9 +9,34 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Profile> Profiles => Set<Profile>();
     public DbSet<Event> Events => Set<Event>();
     public DbSet<EventImage> EventImages => Set<EventImage>();
+    public DbSet<Company> Companies => Set<Company>();
+    public Guid? CompanyId { get; set; }
+
+    [JsonIgnore]
+    public Company? Company { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Company>(b =>
+        {
+            b.Property(c => c.Name).HasMaxLength(200).IsRequired();
+            b.Property(c => c.Description).HasMaxLength(2000);
+            b.Property(c => c.LogoUrl).HasMaxLength(1000);
+            b.Property(c => c.CreatedAt).IsRequired();
+
+            b.HasOne(c => c.Profile)
+                .WithOne()
+                .HasForeignKey<Company>(c => c.ProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasMany(c => c.Users)
+                .WithOne(u => u.Company)
+                .HasForeignKey(u => u.CompanyId);
+
+            b.HasMany(c => c.Events)
+                .WithOne(e => e.Company)
+                .HasForeignKey(e => e.CompanyId);
+        });
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<AppUser>().ToTable("AspNetUsers");
 
