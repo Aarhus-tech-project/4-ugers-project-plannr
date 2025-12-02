@@ -1,4 +1,4 @@
-import { Filter } from "./filter"
+import type { Filter } from "./filter"
 
 export interface Profile {
   id: string
@@ -13,4 +13,12 @@ export interface Profile {
   checkedInEvents?: string[]
   notInterestedEvents?: string[]
   filters?: Filter
+}
+
+export interface ProfileUpdateDto {
+  name?: string
+  email?: string
+  bio?: string
+  phone?: string
+  avatarUrl?: string
 }

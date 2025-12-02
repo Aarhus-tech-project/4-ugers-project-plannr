@@ -1,7 +1,8 @@
 "use client"
 
+import type { EventThemeName } from "@/lib/types"
 import { Box, Icon, Steps, Text, useBreakpointValue } from "@chakra-ui/react"
-import type { EventThemeName } from "@interfaces/event"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { HiCheckCircle } from "react-icons/hi"
@@ -21,7 +22,9 @@ const steps = [
 
 export default function CreateEventPage() {
   const router = useRouter()
+  const { data: session } = useSession()
   const [showOverlay, setShowOverlay] = useState(false)
+
   // Submission handler for ReviewStep
   async function handleSubmit() {
     if (!stepValid.slice(0, 4).every(Boolean)) {
@@ -29,8 +32,13 @@ export default function CreateEventPage() {
       return
     }
     setError(null)
-    // TODO: Replace with your actual token retrieval logic
-    const token = localStorage.getItem("token") || ""
+
+    const jwt = session?.jwt
+    if (!jwt) {
+      setError("You must be logged in to create an event.")
+      return
+    }
+
     try {
       // Build startAt and endAt from date/time step
       const startAt = new Date(`${dateTime.date}T${dateTime.time}`).toISOString()
@@ -53,19 +61,22 @@ export default function CreateEventPage() {
         images: imagesPayload,
         themes: details.themes,
       }
-      const res = await fetch("/api/events/create", {
+
+      const res = await fetch("/api/events", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${jwt}`,
         },
         body: JSON.stringify(payload),
       })
+
       if (!res.ok) {
         const data = await res.json()
         setError(data.error || "Failed to create event.")
         return
       }
+
       setReviewSubmitted(true)
       setError(null)
       setShowOverlay(true)

@@ -1,8 +1,9 @@
+import type { EventCardProps } from "@/lib/types"
 import { Avatar, Box, Button, Heading, HStack, Icon, Image, Tag, Text } from "@chakra-ui/react"
 import { useState } from "react"
 import { FiMapPin, FiShare2, FiUsers } from "react-icons/fi"
 
-export function EventCard({ event }: { event: any }) {
+export function EventCard({ event }: EventCardProps) {
   const [interested, setInterested] = useState(false)
   const [going, setGoing] = useState(false)
   return (

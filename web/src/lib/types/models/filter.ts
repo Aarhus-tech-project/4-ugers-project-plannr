@@ -1,4 +1,4 @@
-import { EventFormat, EventThemeName } from "./event"
+import type { EventFormat, EventThemeName } from "./event"
 
 export type DateRangeMode = {
   daily?: boolean

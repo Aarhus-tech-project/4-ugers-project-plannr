@@ -1,11 +1,12 @@
+import type { SearchBarProps } from "@/lib/types"
 import { Icon, Input, InputGroup } from "@chakra-ui/react"
 import { FiSearch } from "react-icons/fi"
 
-export function SearchBar({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function SearchBar({ value, onChange, placeholder = "Search events..." }: SearchBarProps) {
   return (
     <InputGroup maxW="400px" startElement={<Icon as={FiSearch} color="brand.red" />}>
       <Input
-        placeholder="Search events, places, or people..."
+        placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         bg="white"

@@ -1,15 +1,9 @@
+import type { EventThemeName, ThemeSelectorProps } from "@/lib/types"
+import { allThemes, themeIconMap } from "@/lib/utils/theme-icons"
 import { Box, Button, chakra, Menu, Portal, Text } from "@chakra-ui/react"
-import type { EventThemeName } from "@interfaces/event"
 import { FaChevronDown } from "react-icons/fa"
-import { allThemes, themeIconMap } from "../utils/themeIcons"
 
-export function ThemeSelector({
-  selectedThemes,
-  onChange,
-}: {
-  selectedThemes: EventThemeName[]
-  onChange: (themes: EventThemeName[]) => void
-}) {
+export function ThemeSelector({ selectedThemes, onChange }: ThemeSelectorProps) {
   return (
     <Menu.Root closeOnSelect={false}>
       <Menu.Trigger asChild>
@@ -48,7 +42,7 @@ export function ThemeSelector({
                   value={theme}
                   onSelect={() => {
                     if (isSelected) {
-                      onChange(selectedThemes.filter((t) => t !== theme))
+                      onChange(selectedThemes.filter((t: EventThemeName) => t !== theme))
                     } else if (!disabled) {
                       onChange([...selectedThemes, theme])
                     }

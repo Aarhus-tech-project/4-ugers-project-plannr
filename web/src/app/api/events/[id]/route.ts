@@ -4,7 +4,6 @@ import {
   forwardToBackend,
   getJwtFromRequest,
   handleBackendResponse,
-  parseRequestBody,
 } from "@/lib/utils/api-helpers"
 import type { NextRequest } from "next/server"
 
@@ -14,7 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return createErrorResponse("Unauthorized", 401)
   }
 
-  const res = await forwardToBackend(BACKEND_API.profiles.byId(params.id), {
+  const res = await forwardToBackend(BACKEND_API.events.byId(params.id), {
     method: "GET",
     jwt,
   })
@@ -23,21 +22,33 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   return Response.json(data, { status: res.status })
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const jwt = await getJwtFromRequest(req)
   if (!jwt) {
     return createErrorResponse("Unauthorized", 401)
   }
 
-  const body = await parseRequestBody(req)
-  if (!body) {
-    return createErrorResponse("Invalid request body", 400)
-  }
+  const body = await req.json()
 
-  const res = await forwardToBackend(BACKEND_API.profiles.byId(params.id), {
-    method: "PATCH",
+  const res = await forwardToBackend(BACKEND_API.events.byId(params.id), {
+    method: "PUT",
     jwt,
     body: JSON.stringify(body),
+  })
+
+  const data = await handleBackendResponse(res)
+  return Response.json(data, { status: res.status })
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const jwt = await getJwtFromRequest(req)
+  if (!jwt) {
+    return createErrorResponse("Unauthorized", 401)
+  }
+
+  const res = await forwardToBackend(BACKEND_API.events.byId(params.id), {
+    method: "DELETE",
+    jwt,
   })
 
   const data = await handleBackendResponse(res)

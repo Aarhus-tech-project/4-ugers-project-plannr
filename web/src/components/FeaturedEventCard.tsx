@@ -1,8 +1,9 @@
+import type { FeaturedEventCardProps } from "@/lib/types"
 import { Box, Button, Heading, HStack, Icon, Image, Tag, Text } from "@chakra-ui/react"
 import { useState } from "react"
 import { FiMapPin, FiShare2, FiUsers } from "react-icons/fi"
 
-export function FeaturedEventCard({ event, onDetails }: { event: any; onDetails: () => void }) {
+export function FeaturedEventCard({ event }: FeaturedEventCardProps) {
   const [going, setGoing] = useState(false)
   const [interested, setInterested] = useState(false)
   return (

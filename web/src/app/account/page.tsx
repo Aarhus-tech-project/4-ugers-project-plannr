@@ -1,12 +1,12 @@
 "use client"
+import type { ProfileFormData } from "@/lib/types"
 import { Avatar, Box, Button, Heading, Input, Text } from "@chakra-ui/react"
 import { useSession } from "next-auth/react"
 import * as React from "react"
 
 export default function AccountPage() {
-  console.log("AccountPage rendered")
   const { data: session, status } = useSession()
-  const [form, setForm] = React.useState({
+  const [form, setForm] = React.useState<ProfileFormData>({
     name: "",
     email: "",
     bio: "",
@@ -19,40 +19,49 @@ export default function AccountPage() {
 
   // Populate fields when session loads
   React.useEffect(() => {
-    if (session?.user) {
-      setForm((prev) => ({
-        ...prev,
-        name: session.user?.name || "",
-        email: session.user?.email || "",
-        image: session.user?.image || "",
-        bio: (session as any).user?.bio || "",
-        phone: (session as any).user?.phone || "",
-      }))
+    if (session?.profile) {
+      setForm({
+        name: session.profile.name || "",
+        email: session.profile.email || "",
+        image: (session.profile.avatarUrl as string) || "",
+        bio: (session.profile.bio as string) || "",
+        phone: (session.profile.phone as string) || "",
+      })
     }
   }, [session])
 
   if (status === "loading") return null
-  if (!session || !session.user) return <Text>You must be logged in to view account settings.</Text>
+  if (!session) return <Text>You must be logged in to view account settings.</Text>
 
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setSuccess(false)
     setError(null)
+
+    if (!session) {
+      setError("Session expired. Please login again.")
+      setLoading(false)
+      return
+    }
+
     try {
-      const jwt = (session as any)?.jwt
-      const profileId = (session as any)?.profileId
+      const jwt = session.jwt
+      const profileId = session.profileId
+
       if (!jwt || !profileId) {
         setError("Missing authentication or profile ID.")
         setLoading(false)
         return
       }
-      const body: any = {}
+
+      const body: Record<string, string> = {}
       if (form.name) body.Name = form.name
       if (form.email) body.Email = form.email
       if (form.bio) body.Bio = form.bio
       if (form.phone) body.Phone = form.phone
-      const res = await fetch(`/api/profiles/${profileId}/info`, {
+
+      const res = await fetch(`/api/profiles/${profileId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -60,11 +69,13 @@ export default function AccountPage() {
         },
         body: JSON.stringify(body),
       })
+
       if (!res.ok) {
         setError("Failed to update profile.")
         setLoading(false)
         return
       }
+
       setSuccess(true)
     } catch {
       setError("Unexpected error occurred.")
@@ -78,18 +89,21 @@ export default function AccountPage() {
       <Heading mb={6} color="brand.red" fontWeight="extrabold">
         Account Settings
       </Heading>
-      {/* Replace Avatar usage with slot API */}
+      {/* Avatar section */}
       <Box display="flex" alignItems="center" mb={6} gap={4}>
         <Avatar.Root size="xl" colorPalette="red" shape="full">
-          <Avatar.Fallback name={session?.user?.name ?? "?"} />
-          {session?.user?.image && <Avatar.Image src={session.user.image} alt={session.user.name ?? "Avatar"} />}
+          <Avatar.Fallback name={session.profile?.name ?? "?"} />
+          <Avatar.Image
+            src={(session.profile?.avatarUrl as string) || undefined}
+            alt={session.profile?.name ?? "Avatar"}
+          />
         </Avatar.Root>
         <Box>
           <Text fontWeight="bold" fontSize="lg" color="gray.900">
-            {session?.user?.name}
+            {session.profile?.name}
           </Text>
           <Text fontSize="md" color="gray.700">
-            {session?.user?.email}
+            {session.profile?.email}
           </Text>
         </Box>
       </Box>

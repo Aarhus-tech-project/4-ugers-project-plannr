@@ -1,18 +1,20 @@
 "use client"
 
+import type { LoginFormData } from "@/lib/types"
 import { Box, Button, Heading, Input } from "@chakra-ui/react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function LoginPage() {
-  const [user, setUser] = useState({ email: "", password: "" })
+  const [user, setUser] = useState<LoginFormData>({ email: "", password: "" })
   const [error, setError] = useState("")
   const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
+
     try {
       const res = await signIn("credentials", {
         redirect: false,
@@ -20,15 +22,16 @@ export default function LoginPage() {
         password: user.password,
         callbackUrl: "/",
       })
+
       if (res?.error) {
         setError(res.error || "Wrong credentials. Please try again.")
         return
       }
+
       if (res?.ok) {
         router.push("/")
       }
-    } catch (err) {
-      console.error("Login error:", err)
+    } catch {
       setError("Login failed. Please try again.")
     }
   }

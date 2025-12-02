@@ -61,8 +61,8 @@ export type EventThemeName =
   | "Ceremony"
   | "Celebration"
   | "Other"
-// FA6 Icon names for reference: https://fontawesome.com/icons?d=gallery&s=solid&m=free
-type EventThemeIcon =
+
+export type EventThemeIcon =
   | "music"
   | "paintbrush"
   | "futbol"
@@ -128,6 +128,7 @@ export interface EventTheme {
 }
 
 export type EventFormat = "inperson" | "online" | "hybrid"
+
 export interface EventLocation {
   address: string
   city: string
@@ -139,18 +140,14 @@ export interface EventLocation {
 
 export type EventPageSection =
   | { type: "description"; content: string }
-  | {
-      type: "map"
-      latitude: number
-      longitude: number
-    }
+  | { type: "map"; latitude: number; longitude: number }
   | { type: "faq"; items: Array<{ question: string; answer: string }> }
   | { type: "guests"; guests: Array<{ name: string; bio?: string; avatarUrl?: string; social?: string }> }
   | { type: "tickets"; tickets: Array<{ type: string; price: number; currency?: string; link?: string }> }
   | { type: "resources"; files: Array<{ name: string; url: string }> }
   | { type: "dresscode"; content: string }
   | { type: "schedule"; items: Array<{ time: Date; activity: string }> }
-  | { type: "images"; srcs: string[] } //string[] is for my mock data.
+  | { type: "images"; srcs: string[] }
 
 export interface EventDateRange {
   startAt: Date
@@ -169,17 +166,39 @@ export interface EventAttendance {
 }
 
 export interface Event {
-  creatorId: string
   id?: string
+  creatorId: string
   title: string
   format: EventFormat
   dateRange: EventDateRange
   attendance?: EventAttendance
   location?: EventLocation
   access?: EventAccess
-  // UI-only property for local state (not persisted)
-  _going?: boolean
   ageRestriction?: number
   themes?: EventThemeName[]
   sections?: EventPageSection[]
+  // UI-only property for local state (not persisted)
+  _going?: boolean
+  // Additional fields for compatibility
+  description?: string
+  imageUrl?: string
+  date?: string
+  spots?: number
+  categories?: string[]
+  organizer?: {
+    name: string
+    imageUrl?: string
+  }
+}
+
+export interface EventImage {
+  src: string
+  likes?: number
+}
+
+export interface EventCreator {
+  id: string
+  name: string
+  email?: string
+  avatarUrl?: string
 }

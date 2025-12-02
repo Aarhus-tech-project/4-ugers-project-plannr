@@ -1,4 +1,5 @@
 "use client"
+import type { Event, EventThemeName } from "@/lib/types"
 import { Box, Button, Flex, Heading, Icon, SimpleGrid, Text, useBreakpointValue } from "@chakra-ui/react"
 import { EventCard } from "@components/EventCard"
 import { FeaturedEventCard } from "@components/FeaturedEventCard"
@@ -6,24 +7,29 @@ import { SearchBar } from "@components/SearchBar"
 import { TestimonialCard } from "@components/TestimonialCard"
 import { ThemeSelector } from "@components/ThemeSelector"
 import { useProfileEvents } from "@hooks/useProfileEvents"
-import type { Event, EventThemeName } from "@interfaces/event"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { FiPlus } from "react-icons/fi"
 
 // Demo featured events (replace with real data as needed)
-const featuredEvents: Array<{ id: string; title: string; image?: string; date?: string; description?: string }> = [
+const featuredEvents: Event[] = [
   {
     id: "1",
+    creatorId: "demo",
     title: "Winter Music Fest",
-    image: "/images/demo1.jpg",
+    format: "inperson" as const,
+    dateRange: { startAt: new Date("2025-12-10") },
+    imageUrl: "/images/demo1.jpg",
     date: "2025-12-10",
     description: "A night of music and fun.",
   },
   {
     id: "2",
+    creatorId: "demo",
     title: "Tech Expo",
-    image: "/images/demo2.jpg",
+    format: "inperson" as const,
+    dateRange: { startAt: new Date("2025-12-15") },
+    imageUrl: "/images/demo2.jpg",
     date: "2025-12-15",
     description: "Explore the latest in tech.",
   },
@@ -121,7 +127,7 @@ export default function EventsPage() {
             </Heading>
             <Flex gap={6} overflowX="auto" pb={2}>
               {featuredEvents.map((event) => (
-                <FeaturedEventCard key={event.id} event={event} onDetails={() => router.push(`/events/${event.id}`)} />
+                <FeaturedEventCard key={event.id} event={event} />
               ))}
             </Flex>
           </Box>
