@@ -1,5 +1,21 @@
-function formatAddress(addressObj: any): string {
-  // Try to extract house_number, road, city, town, village
+interface NominatimAddress {
+  house_number?: string
+  road?: string
+  city?: string
+  town?: string
+  village?: string
+  country?: string
+}
+
+interface NominatimResult {
+  place_id: number
+  lat: string
+  lon: string
+  display_name: string
+  address?: NominatimAddress
+}
+
+function formatAddress(addressObj: NominatimAddress): string {
   const parts = []
   if (addressObj.house_number) parts.push(addressObj.house_number)
   if (addressObj.road) parts.push(addressObj.road)
@@ -8,6 +24,7 @@ function formatAddress(addressObj: any): string {
   else if (addressObj.village) parts.push(addressObj.village)
   return parts.join(" ")
 }
+
 import { Box, Button, HStack, Input, Text, VStack } from "@chakra-ui/react"
 import MapPicker from "@components/MapPicker"
 import { useState } from "react"
@@ -20,7 +37,7 @@ interface LocationStepProps {
 
 export default function LocationStep({ value, onChange }: LocationStepProps) {
   const [search, setSearch] = useState("")
-  const [suggestions, setSuggestions] = useState<any[]>([])
+  const [suggestions, setSuggestions] = useState<NominatimResult[]>([])
   const [loading, setLoading] = useState(false)
 
   const handleSearch = async () => {
@@ -46,7 +63,7 @@ export default function LocationStep({ value, onChange }: LocationStepProps) {
     setLoading(false)
   }
 
-  const handlePickSuggestion = (sugg: any) => {
+  const handlePickSuggestion = (sugg: NominatimResult) => {
     const formatted = sugg.address ? formatAddress(sugg.address) : sugg.display_name
     const city = sugg.address?.city || sugg.address?.town || sugg.address?.village || ""
     const country = sugg.address?.country || ""

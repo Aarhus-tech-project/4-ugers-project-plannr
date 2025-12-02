@@ -7,13 +7,14 @@ import {
 } from "@/lib/utils/api-helpers"
 import type { NextRequest } from "next/server"
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const jwt = await getJwtFromRequest(req)
   if (!jwt) {
     return createErrorResponse("Unauthorized", 401)
   }
 
-  const res = await forwardToBackend(BACKEND_API.events.byId(params.id), {
+  const res = await forwardToBackend(BACKEND_API.events.byId(id), {
     method: "GET",
     jwt,
   })
@@ -22,7 +23,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   return Response.json(data, { status: res.status })
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const jwt = await getJwtFromRequest(req)
   if (!jwt) {
     return createErrorResponse("Unauthorized", 401)
@@ -30,7 +32,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   const body = await req.json()
 
-  const res = await forwardToBackend(BACKEND_API.events.byId(params.id), {
+  const res = await forwardToBackend(BACKEND_API.events.byId(id), {
     method: "PUT",
     jwt,
     body: JSON.stringify(body),
@@ -40,13 +42,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return Response.json(data, { status: res.status })
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const jwt = await getJwtFromRequest(req)
   if (!jwt) {
     return createErrorResponse("Unauthorized", 401)
   }
 
-  const res = await forwardToBackend(BACKEND_API.events.byId(params.id), {
+  const res = await forwardToBackend(BACKEND_API.events.byId(id), {
     method: "DELETE",
     jwt,
   })

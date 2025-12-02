@@ -1,25 +1,33 @@
 "use client"
 
+import { AuthInput } from "@/components/forms/AuthInput"
+import { ErrorState } from "@/components/ui/States"
+import { useAuthForm } from "@/hooks/useAuthForm"
+import { useAuthenticatedRedirect } from "@/hooks/useClientRedirect"
 import type { LoginFormData } from "@/lib/types"
-import { Box, Button, Heading, Input } from "@chakra-ui/react"
+import { Box, Button, Heading, Link, Text } from "@chakra-ui/react"
 import { signIn } from "next-auth/react"
+import NextLink from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
 
 export default function LoginPage() {
-  const [user, setUser] = useState<LoginFormData>({ email: "", password: "" })
-  const [error, setError] = useState("")
+  const { values, error, setError, isLoading, setIsLoading, handleChange } = useAuthForm<LoginFormData>({
+    email: "",
+    password: "",
+  })
   const router = useRouter()
+  const { isAuthenticated } = useAuthenticatedRedirect()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
+    setIsLoading(true)
 
     try {
       const res = await signIn("credentials", {
         redirect: false,
-        email: user.email,
-        password: user.password,
+        email: values.email,
+        password: values.password,
         callbackUrl: "/",
       })
 
@@ -33,74 +41,69 @@ export default function LoginPage() {
       }
     } catch {
       setError("Login failed. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
+  if (isAuthenticated) {
+    return null
+  }
+
   return (
-    <>
-      <Box maxW="sm" mx="auto" mt={20} p={8} borderWidth={0} borderRadius="2xl" bg="brand.white" boxShadow="lg">
-        <Heading mb={6} color="brand.red" fontWeight="extrabold">
+    <Box maxW="sm" mx="auto" mt={20} p={8} borderRadius="2xl" bg="brand.white" boxShadow="lg">
+      <Heading mb={6} color="brand.red" fontWeight="extrabold">
+        Login
+      </Heading>
+
+      {error && <ErrorState message={error} />}
+
+      <form onSubmit={handleSubmit}>
+        <AuthInput
+          id="email"
+          label="Email"
+          type="email"
+          value={values.email}
+          onChange={handleChange("email")}
+          placeholder="Enter your email"
+          required
+          autoComplete="email"
+        />
+
+        <AuthInput
+          id="password"
+          label="Password"
+          type="password"
+          value={values.password}
+          onChange={handleChange("password")}
+          placeholder="Enter your password"
+          required
+          autoComplete="current-password"
+        />
+
+        <Button
+          colorScheme="brand"
+          bg="brand.red"
+          color="white"
+          type="submit"
+          width="full"
+          borderRadius="lg"
+          fontWeight="bold"
+          loading={isLoading}
+          _hover={{ bg: "brand.red", opacity: 0.85 }}
+        >
           Login
-        </Heading>
-        {error && (
-          <Box mb={4} p={3} bg="brand.red" color="white" borderRadius="md" fontWeight="bold">
-            {error}
-          </Box>
-        )}
-        <form onSubmit={handleSubmit}>
-          <Box mb={4}>
-            <label
-              htmlFor="email"
-              style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}
-            >
-              Email
-            </label>
-            <Input
-              id="email"
-              value={user.email}
-              onChange={(e) => setUser({ ...user, email: e.target.value })}
-              required
-              bg="gray.50"
-              borderRadius="md"
-            />
-          </Box>
-          <Box mb={6}>
-            <label
-              htmlFor="password"
-              style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}
-            >
-              Password
-            </label>
-            <Input
-              id="password"
-              type="password"
-              value={user.password}
-              onChange={(e) => setUser({ ...user, password: e.target.value })}
-              required
-              bg="gray.50"
-              borderRadius="md"
-            />
-          </Box>
-          <Button
-            colorScheme="brand"
-            bg="brand.red"
-            color="white"
-            type="submit"
-            width="full"
-            borderRadius="lg"
-            fontWeight="bold"
-            _hover={{ bg: "brand.red", opacity: 0.85 }}
-          >
-            Login
-          </Button>
-        </form>
-        <Box mt={4} textAlign="center">
-          <span style={{ color: "#757575ff" }}>Don't have an account? </span>
-          <Button variant="ghost" colorScheme="brand" color="brand.red" onClick={() => router.push("/signup")}>
-            Sign up
-          </Button>
-        </Box>
+        </Button>
+      </form>
+
+      <Box mt={4} textAlign="center">
+        <Text as="span" color="gray.600">
+          Don&apos;t have an account?{" "}
+        </Text>
+        <Link as={NextLink} href="/signup" color="brand.red" fontWeight="bold">
+          Sign up
+        </Link>
       </Box>
-    </>
+    </Box>
   )
 }

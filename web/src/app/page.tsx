@@ -1,19 +1,23 @@
 "use client"
+
+import { LoadingState } from "@/components/ui/States"
+import { useRequireAuth } from "@/hooks/useClientRedirect"
 import { Box, Button, Flex, Heading, HStack, Icon, Image, Text, VStack } from "@chakra-ui/react"
-import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { FiCalendar, FiCheckCircle, FiUsers } from "react-icons/fi"
 
 export default function LandingPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
-  if (status === "loading") return null
+  const { session, isLoading } = useRequireAuth()
+
+  if (isLoading) {
+    return <LoadingState message="Loading..." />
+  }
+
   if (!session) {
-    if (typeof window !== "undefined") {
-      window.location.href = "/login"
-    }
     return null
   }
+
   return (
     <Box minH="100vh" bg="brand.white" display="flex" flexDirection="column">
       <Flex direction="column" align="center" justify="center" flex={1} py={16} px={4}>

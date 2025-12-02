@@ -1,6 +1,6 @@
+import type { EventThemeName } from "@/lib/types"
 import { Box, Input, Textarea } from "@chakra-ui/react"
 import { ThemeSelector } from "@components/ThemeSelector"
-import type { EventThemeName } from "@interfaces/event"
 
 interface DetailsStepProps {
   value: {

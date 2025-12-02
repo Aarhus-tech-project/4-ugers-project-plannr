@@ -3,9 +3,7 @@ import type { ThemeProviderProps } from "next-themes"
 import { ThemeProvider, useTheme } from "next-themes"
 import { LuMoon, LuSun } from "react-icons/lu"
 
-export interface ColorModeProviderProps extends ThemeProviderProps {}
-
-export function ColorModeProvider(props: ColorModeProviderProps) {
+export function ColorModeProvider(props: ThemeProviderProps) {
   return <ThemeProvider attribute="class" disableTransitionOnChange {...props} />
 }
 

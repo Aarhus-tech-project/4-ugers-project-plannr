@@ -109,7 +109,15 @@ export default function CreateEventPage() {
     country: "",
   })
   const [images, setImages] = useState<{ images: string[] }>({ images: [] })
-  const sectionRefs = steps.map(() => useRef<HTMLDivElement>(null))
+
+  // Create refs for each step section
+  const ref0 = useRef<HTMLDivElement>(null)
+  const ref1 = useRef<HTMLDivElement>(null)
+  const ref2 = useRef<HTMLDivElement>(null)
+  const ref3 = useRef<HTMLDivElement>(null)
+  const ref4 = useRef<HTMLDivElement>(null)
+  const sectionRefs = [ref0, ref1, ref2, ref3, ref4]
+
   const [activeStep, setActiveStep] = useState(0)
   const [reviewSubmitted, setReviewSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -191,13 +199,17 @@ export default function CreateEventPage() {
   useEffect(() => {
     const stepsContent = document.querySelector("[data-steps-content]") as HTMLElement | null
     if (!stepsContent) return
-    stepsContent.addEventListener("scroll", handleScroll, { passive: true })
-    stepsContent.addEventListener("wheel", handleWheel, { passive: false })
+
+    const scrollHandler = () => handleScroll()
+    const wheelHandler = (e: WheelEvent) => handleWheel(e)
+
+    stepsContent.addEventListener("scroll", scrollHandler, { passive: true })
+    stepsContent.addEventListener("wheel", wheelHandler, { passive: false })
     return () => {
-      stepsContent.removeEventListener("scroll", handleScroll)
-      stepsContent.removeEventListener("wheel", handleWheel)
+      stepsContent.removeEventListener("scroll", scrollHandler)
+      stepsContent.removeEventListener("wheel", wheelHandler)
     }
-  }, [activeStep])
+  }, [activeStep, handleScroll, handleWheel])
 
   // Step content style (merged look)
   const stepContentStyle = {
