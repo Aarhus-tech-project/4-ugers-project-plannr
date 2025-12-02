@@ -1,12 +1,13 @@
 "use client"
-
 import { Box, Button, Heading, Input } from "@chakra-ui/react"
-import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+// import Navbar from "@/components/Navbar"
 
-export default function LoginPage() {
-  const [user, setUser] = useState({ email: "", password: "" })
+export default function SignupPage() {
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const router = useRouter()
 
@@ -14,22 +15,20 @@ export default function LoginPage() {
     e.preventDefault()
     setError("")
     try {
-      const res = await signIn("credentials", {
-        redirect: false,
-        email: user.email,
-        password: user.password,
-        callbackUrl: "/",
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
       })
-      if (res?.error) {
-        setError(res.error || "Wrong credentials. Please try again.")
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error || "Registration failed")
         return
       }
-      if (res?.ok) {
-        router.push("/")
-      }
+      setTimeout(() => router.push("/login"), 1500)
     } catch (err) {
-      console.error("Login error:", err)
-      setError("Login failed. Please try again.")
+      console.error("Registration error:", err)
+      setError("Registration failed")
     }
   }
 
@@ -37,7 +36,7 @@ export default function LoginPage() {
     <>
       <Box maxW="sm" mx="auto" mt={20} p={8} borderWidth={0} borderRadius="2xl" bg="brand.white" boxShadow="lg">
         <Heading mb={6} color="brand.red" fontWeight="extrabold">
-          Login
+          Sign Up
         </Heading>
         {error && (
           <Box mb={4} p={3} bg="brand.red" color="white" borderRadius="md" fontWeight="bold">
@@ -45,6 +44,19 @@ export default function LoginPage() {
           </Box>
         )}
         <form onSubmit={handleSubmit}>
+          <Box mb={4}>
+            <label htmlFor="name" style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}>
+              Name
+            </label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              bg="gray.50"
+              borderRadius="md"
+            />
+          </Box>
           <Box mb={4}>
             <label
               htmlFor="email"
@@ -54,14 +66,15 @@ export default function LoginPage() {
             </label>
             <Input
               id="email"
-              value={user.email}
-              onChange={(e) => setUser({ ...user, email: e.target.value })}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               bg="gray.50"
               borderRadius="md"
             />
           </Box>
-          <Box mb={6}>
+          <Box mb={4}>
             <label
               htmlFor="password"
               style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}
@@ -71,8 +84,8 @@ export default function LoginPage() {
             <Input
               id="password"
               type="password"
-              value={user.password}
-              onChange={(e) => setUser({ ...user, password: e.target.value })}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
               bg="gray.50"
               borderRadius="md"
@@ -88,13 +101,13 @@ export default function LoginPage() {
             fontWeight="bold"
             _hover={{ bg: "brand.red", opacity: 0.85 }}
           >
-            Login
+            Sign Up
           </Button>
         </form>
         <Box mt={4} textAlign="center">
-          <span style={{ color: "#757575ff" }}>Don't have an account? </span>
-          <Button variant="ghost" colorScheme="brand" color="brand.red" onClick={() => router.push("/signup")}>
-            Sign up
+          <span style={{ color: "#757575ff" }}>Already have an account? </span>
+          <Button variant="ghost" colorScheme="brand" color="brand.red" onClick={() => router.push("/login")}>
+            Login
           </Button>
         </Box>
       </Box>
