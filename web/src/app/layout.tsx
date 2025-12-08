@@ -1,6 +1,5 @@
-import Navbar from "@/components/Navbar"
-import { AppProviders } from "@/components/providers/AppProviders"
-import { ClientOnly } from "@/components/utils/ClientOnly"
+import { AppProviders } from "@/shared/components/providers/AppProviders"
+import { ClientOnly } from "@/shared/components/utils/ClientOnly"
 
 export default function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
@@ -8,11 +7,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
     <html suppressHydrationWarning>
       <body>
         <ClientOnly>
-          <AppProviders>
-            {/* Show Navbar on all pages except login and signup */}
-            <Navbar />
-            {children}
-          </AppProviders>
+          <AppProviders>{children}</AppProviders>
         </ClientOnly>
       </body>
     </html>

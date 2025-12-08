@@ -4,15 +4,24 @@ import type { NextRequest } from "next/server"
 
 /**
  * Extract JWT token from Next.js request
+ * Checks both next-auth session and Authorization header
  */
 export async function getJwtFromRequest(req: NextRequest): Promise<string | null> {
+  // First try to get from next-auth session
   const token = await getToken({ req })
 
-  if (!token || typeof token.jwt !== "string") {
-    return null
+  if (token && typeof token.jwt === "string") {
+    return token.jwt
   }
 
-  return token.jwt
+  // Fallback to Authorization header (for client-side API calls)
+  const authHeader = req.headers.get("authorization")
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const jwt = authHeader.substring(7)
+    return jwt
+  }
+
+  return null
 }
 
 /**

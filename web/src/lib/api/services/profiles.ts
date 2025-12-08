@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/client"
-import type { Profile } from "@/lib/types"
+import type { Profile } from "@/shared/types"
 
 /**
  * Client-side service for profile-related API calls
@@ -16,6 +16,6 @@ export const profilesService = {
    * Update profile information
    */
   async update(id: string, data: Partial<Profile>, jwt: string): Promise<Profile> {
-    return apiClient.patch<Profile>(`/api/profiles/${id}`, data, jwt)
+    return apiClient.put<Profile>(`/api/profiles/${id}`, data, jwt)
   },
 }

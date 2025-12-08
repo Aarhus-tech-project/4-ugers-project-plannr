@@ -1,12 +1,14 @@
 "use client"
 
-import { AuthInput } from "@/components/forms/AuthInput"
-import { ErrorState } from "@/components/ui/States"
-import { useAuthForm } from "@/hooks/useAuthForm"
-import { useAuthenticatedRedirect } from "@/hooks/useClientRedirect"
-import { Box, Button, Heading, Link, Text } from "@chakra-ui/react"
+import { useAuthForm } from "@/features/auth/hooks/useAuthForm"
+import { Button } from "@/shared/components/ui/Button"
+import { Card } from "@/shared/components/ui/Card"
+import { Input } from "@/shared/components/ui/Input"
+import { useAuthenticatedRedirect } from "@/shared/hooks/useClientRedirect"
+import { Box, Heading, Icon, Link, Text, VStack } from "@chakra-ui/react"
 import NextLink from "next/link"
 import { useRouter } from "next/navigation"
+import { FiCalendar } from "react-icons/fi"
 
 interface SignupFormData {
   name: string
@@ -54,68 +56,82 @@ export default function SignupPage() {
   }
 
   return (
-    <Box maxW="sm" mx="auto" mt={20} p={8} borderRadius="2xl" bg="brand.white" boxShadow="lg">
-      <Heading mb={6} color="brand.red" fontWeight="extrabold">
-        Sign Up
-      </Heading>
+    <Box minH="100vh" bg="bg.canvas" display="flex" alignItems="center" justifyContent="center" p={4}>
+      <Box maxW="420px" w="full">
+        <VStack gap={8} align="stretch">
+          {/* Logo */}
+          <VStack gap={3} textAlign="center">
+            <Box p={3} bg="brand.primary" borderRadius="xl">
+              <Icon as={FiCalendar} boxSize={8} color="fg.inverted" />
+            </Box>
+            <Heading fontSize="4xl" fontWeight="extrabold" color="fg.default" letterSpacing="tight">
+              Plannr
+            </Heading>
+            <Text fontSize="md" color="fg.muted">
+              Create your account
+            </Text>
+          </VStack>
 
-      {error && <ErrorState message={error} />}
+          {/* Card */}
+          <Card variant="elevated" p={6}>
+            <form onSubmit={handleSubmit}>
+              <VStack gap={4} align="stretch">
+                <Input
+                  type="text"
+                  label="Name"
+                  placeholder="John Doe"
+                  value={values.name}
+                  onChange={(e) => handleChange("name")(e)}
+                  required
+                  autoComplete="name"
+                />
 
-      <form onSubmit={handleSubmit}>
-        <AuthInput
-          id="name"
-          label="Name"
-          value={values.name}
-          onChange={handleChange("name")}
-          placeholder="Enter your name"
-          required
-          autoComplete="name"
-        />
+                <Input
+                  type="email"
+                  label="Email"
+                  placeholder="you@example.com"
+                  value={values.email}
+                  onChange={(e) => handleChange("email")(e)}
+                  error={error?.includes("email") ? error : undefined}
+                  required
+                  autoComplete="email"
+                />
 
-        <AuthInput
-          id="email"
-          label="Email"
-          type="email"
-          value={values.email}
-          onChange={handleChange("email")}
-          placeholder="Enter your email"
-          required
-          autoComplete="email"
-        />
+                <Input
+                  type="password"
+                  label="Password"
+                  placeholder="••••••••"
+                  value={values.password}
+                  onChange={(e) => handleChange("password")(e)}
+                  error={error && !error.includes("email") ? error : undefined}
+                  helperText="At least 8 characters"
+                  required
+                  autoComplete="new-password"
+                />
 
-        <AuthInput
-          id="password"
-          label="Password"
-          type="password"
-          value={values.password}
-          onChange={handleChange("password")}
-          placeholder="Enter your password"
-          required
-          autoComplete="new-password"
-        />
+                <Button type="submit" width="full" size="lg" loading={isLoading} mt={2}>
+                  Create Account
+                </Button>
+              </VStack>
+            </form>
+          </Card>
 
-        <Button
-          colorScheme="brand"
-          bg="brand.red"
-          color="white"
-          type="submit"
-          width="full"
-          borderRadius="lg"
-          fontWeight="bold"
-          loading={isLoading}
-          _hover={{ bg: "brand.red", opacity: 0.85 }}
-        >
-          Sign Up
-        </Button>
-      </form>
-
-      <Box mt={4} textAlign="center">
-        <Text as="span" color="gray.600">
-          Already have an account?{" "}
-        </Text>
-        <Link as={NextLink} href="/login" color="brand.red" fontWeight="bold">
-          Login
-        </Link>
+          {/* Footer */}
+          <Box textAlign="center">
+            <Text fontSize="sm" color="fg.muted">
+              Already have an account?{" "}
+              <Link
+                as={NextLink}
+                href="/login"
+                color="brand.primary"
+                fontWeight="semibold"
+                _hover={{ textDecoration: "underline" }}
+              >
+                Sign in
+              </Link>
+            </Text>
+          </Box>
+        </VStack>
       </Box>
     </Box>
   )

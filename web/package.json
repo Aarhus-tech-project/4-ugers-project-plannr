@@ -16,6 +16,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@types/next-auth": "^3.13.0",
+    "countries-list": "^3.2.0",
     "dayjs": "^1.11.19",
     "framer-motion": "^12.23.24",
     "leaflet": "^1.9.4",

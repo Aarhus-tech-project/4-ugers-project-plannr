@@ -1,14 +1,16 @@
 "use client"
 
-import { AuthInput } from "@/components/forms/AuthInput"
-import { ErrorState } from "@/components/ui/States"
-import { useAuthForm } from "@/hooks/useAuthForm"
-import { useAuthenticatedRedirect } from "@/hooks/useClientRedirect"
-import type { LoginFormData } from "@/lib/types"
-import { Box, Button, Heading, Link, Text } from "@chakra-ui/react"
+import { useAuthForm } from "@/features/auth/hooks/useAuthForm"
+import { Button } from "@/shared/components/ui/Button"
+import { Card } from "@/shared/components/ui/Card"
+import { Input } from "@/shared/components/ui/Input"
+import { useAuthenticatedRedirect } from "@/shared/hooks/useClientRedirect"
+import type { LoginFormData } from "@/shared/types"
+import { Box, Heading, Icon, Link, Text, VStack } from "@chakra-ui/react"
 import { signIn } from "next-auth/react"
 import NextLink from "next/link"
 import { useRouter } from "next/navigation"
+import { FiCalendar } from "react-icons/fi"
 
 export default function LoginPage() {
   const { values, error, setError, isLoading, setIsLoading, handleChange } = useAuthForm<LoginFormData>({
@@ -28,7 +30,7 @@ export default function LoginPage() {
         redirect: false,
         email: values.email,
         password: values.password,
-        callbackUrl: "/",
+        callbackUrl: "/events",
       })
 
       if (res?.error) {
@@ -37,7 +39,7 @@ export default function LoginPage() {
       }
 
       if (res?.ok) {
-        router.push("/")
+        router.push("/events")
       }
     } catch {
       setError("Login failed. Please try again.")
@@ -51,58 +53,71 @@ export default function LoginPage() {
   }
 
   return (
-    <Box maxW="sm" mx="auto" mt={20} p={8} borderRadius="2xl" bg="brand.white" boxShadow="lg">
-      <Heading mb={6} color="brand.red" fontWeight="extrabold">
-        Login
-      </Heading>
+    <Box minH="100vh" bg="bg.canvas" display="flex" alignItems="center" justifyContent="center" p={4}>
+      <Box maxW="420px" w="full">
+        <VStack gap={8} align="stretch">
+          {/* Logo */}
+          <VStack gap={3} textAlign="center">
+            <Box p={3} bg="brand.primary" borderRadius="xl">
+              <Icon as={FiCalendar} boxSize={8} color="fg.inverted" />
+            </Box>
+            <Heading fontSize="4xl" fontWeight="extrabold" color="fg.default" letterSpacing="tight">
+              Plannr
+            </Heading>
+            <Text fontSize="md" color="fg.muted">
+              Sign in to discover events
+            </Text>
+          </VStack>
 
-      {error && <ErrorState message={error} />}
+          {/* Card */}
+          <Card variant="elevated" p={6}>
+            <form onSubmit={handleSubmit}>
+              <VStack gap={4} align="stretch">
+                <Input
+                  type="email"
+                  label="Email"
+                  placeholder="you@example.com"
+                  value={values.email}
+                  onChange={(e) => handleChange("email")(e)}
+                  error={error?.includes("email") ? error : undefined}
+                  required
+                  autoComplete="email"
+                />
 
-      <form onSubmit={handleSubmit}>
-        <AuthInput
-          id="email"
-          label="Email"
-          type="email"
-          value={values.email}
-          onChange={handleChange("email")}
-          placeholder="Enter your email"
-          required
-          autoComplete="email"
-        />
+                <Input
+                  type="password"
+                  label="Password"
+                  placeholder="••••••••"
+                  value={values.password}
+                  onChange={(e) => handleChange("password")(e)}
+                  error={error && !error.includes("email") ? error : undefined}
+                  required
+                  autoComplete="current-password"
+                />
 
-        <AuthInput
-          id="password"
-          label="Password"
-          type="password"
-          value={values.password}
-          onChange={handleChange("password")}
-          placeholder="Enter your password"
-          required
-          autoComplete="current-password"
-        />
+                <Button type="submit" width="full" size="lg" loading={isLoading} mt={2}>
+                  Sign In
+                </Button>
+              </VStack>
+            </form>
+          </Card>
 
-        <Button
-          colorScheme="brand"
-          bg="brand.red"
-          color="white"
-          type="submit"
-          width="full"
-          borderRadius="lg"
-          fontWeight="bold"
-          loading={isLoading}
-          _hover={{ bg: "brand.red", opacity: 0.85 }}
-        >
-          Login
-        </Button>
-      </form>
-
-      <Box mt={4} textAlign="center">
-        <Text as="span" color="gray.600">
-          Don&apos;t have an account?{" "}
-        </Text>
-        <Link as={NextLink} href="/signup" color="brand.red" fontWeight="bold">
-          Sign up
-        </Link>
+          {/* Footer */}
+          <Box textAlign="center">
+            <Text fontSize="sm" color="fg.muted">
+              Don&apos;t have an account?{" "}
+              <Link
+                as={NextLink}
+                href="/signup"
+                color="brand.primary"
+                fontWeight="semibold"
+                _hover={{ textDecoration: "underline" }}
+              >
+                Sign up
+              </Link>
+            </Text>
+          </Box>
+        </VStack>
       </Box>
     </Box>
   )

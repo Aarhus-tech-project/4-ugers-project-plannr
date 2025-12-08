@@ -7,6 +7,8 @@ import {
 } from "@/lib/utils/api-helpers"
 import type { NextRequest } from "next/server"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const jwt = await getJwtFromRequest(req)

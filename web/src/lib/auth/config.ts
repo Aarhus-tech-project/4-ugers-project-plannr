@@ -72,7 +72,7 @@ export const authOptions: AuthOptions = {
       session.jwt = (token.jwt as string) || ""
       session.profileId = (token.profileId as string) || ""
 
-      // Fetch user profile for session
+      // Fetch user profile and merge into session.user
       if (token.jwt && token.profileId) {
         try {
           const res = await fetch(BACKEND_API.profiles.byId(String(token.profileId)), {
@@ -84,10 +84,20 @@ export const authOptions: AuthOptions = {
           })
 
           if (res.ok) {
-            session.profile = await res.json()
+            const profile = await res.json()
+            // Merge profile into session.user instead of separate property
+            session.user = {
+              ...session.user,
+              id: profile.id,
+              name: profile.name,
+              email: profile.email,
+              avatarUrl: profile.avatarUrl,
+              bio: profile.bio,
+              phone: profile.phone,
+            }
           }
         } catch {
-          // Silently fail - session will work without profile
+          // Silently fail - session will work with minimal user data
         }
       }
 
