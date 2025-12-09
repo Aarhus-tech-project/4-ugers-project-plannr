@@ -62,5 +62,3 @@ app-example
 #next
 .next/
 out/
-
-*.md
