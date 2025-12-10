@@ -106,23 +106,6 @@
 
 ---
 
-## 6. Timetable (Estimates vs. Actual)
-
-| Task                       | Estimate | Actual   | Comment                                                                             |
-| -------------------------- | -------- | -------- | ----------------------------------------------------------------------------------- |
-| Project setup & planning   | 6h       | 8h       | Extra time to set up Next.js and integrate with existing backend API.               |
-| Authentication flow        | 8h       | 12h      | Went over due to NextAuth integration with backend API and session management.      |
-| Event discovery UI         | 10h      | 12h      | Slightly over, needed to refine filtering and search functionality.                 |
-| Event creation flow        | 16h      | 24h      | Over, due to complex multi-step form logic, live preview, and Suggestions feedback. |
-| Event details page         | 8h       | 10h      | Slightly over, added multiple tab sections and responsive design.                   |
-| Profile/account management | 10h      | 10h      | On track, straightforward implementation.                                           |
-| Styling & accessibility    | 12h      | 16h      | Extra time for responsive design, color scheme, and accessibility.                  |
-| Testing & bug fixing       | 8h       | 12h      | More bugs than expected, especially with event editing and form validation.         |
-| Documentation/report       | 12h      | 16h      | Slightly over, gathering screenshots and writing comprehensive report.              |
-| **Total**                  | **90h**  | **120h** | 3 weeks of work (40 hours per week).                                                |
-
----
-
 ## 7. Reflection
 
 ### What Went Well
