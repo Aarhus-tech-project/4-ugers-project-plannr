@@ -71,12 +71,17 @@ export function EventCardNew({
     const wasGoing = isGoing
     const newGoingState = !isGoing
     setIsGoing(newGoingState)
-
+    // If toggling going ON, remove from interested
+    let newInterestedState = isInterested
+    let updatedInterestedEvents = userInterestedEvents
+    if (newGoingState && isInterested) {
+      setIsInterested(false)
+      newInterestedState = false
+      updatedInterestedEvents = userInterestedEvents.filter((id) => id !== event.id)
+    }
     try {
-      // Use passed props or fetch if not available
       let profile = userProfile
       let currentGoingEvents = userGoingEvents
-
       if (!profile) {
         const fetchedProfile = await profilesService.getById(session.profileId, session.jwt)
         profile = {
@@ -88,38 +93,30 @@ export function EventCardNew({
         }
         currentGoingEvents = fetchedProfile.goingToEvents || []
       }
-
       let updatedGoingEvents: string[]
       if (newGoingState) {
-        // Add event to going list if not already there
         updatedGoingEvents = currentGoingEvents.includes(event.id)
           ? currentGoingEvents
           : [...currentGoingEvents, event.id]
       } else {
-        // Remove event from going list
         updatedGoingEvents = currentGoingEvents.filter((id) => id !== event.id)
       }
-
-      // Update profile with all required fields
       await profilesService.update(
         session.profileId,
         {
           ...profile,
           goingToEvents: updatedGoingEvents,
+          interestedEvents: updatedInterestedEvents,
         },
         session.jwt
       )
-
-      // Update parent component's state with new arrays (optimistic update)
       if (onUpdate) {
-        onUpdate(event.id, updatedGoingEvents, userInterestedEvents, wasGoing, isInterested)
+        onUpdate(event.id, updatedGoingEvents, updatedInterestedEvents, wasGoing, newInterestedState)
       } else {
-        // Fallback to refresh if onUpdate not provided
         onRefresh?.()
       }
     } catch (error) {
       console.error("Failed to update going status:", error)
-      // Revert on error
       setIsGoing(!newGoingState)
     } finally {
       setIsUpdating(false)
@@ -133,12 +130,17 @@ export function EventCardNew({
     const wasInterested = isInterested
     const newInterestedState = !isInterested
     setIsInterested(newInterestedState)
-
+    // If toggling interested ON, remove from going
+    let newGoingState = isGoing
+    let updatedGoingEvents = userGoingEvents
+    if (newInterestedState && isGoing) {
+      setIsGoing(false)
+      newGoingState = false
+      updatedGoingEvents = userGoingEvents.filter((id) => id !== event.id)
+    }
     try {
-      // Use passed props or fetch if not available
       let profile = userProfile
       let currentInterestedEvents = userInterestedEvents
-
       if (!profile) {
         const fetchedProfile = await profilesService.getById(session.profileId, session.jwt)
         profile = {
@@ -150,38 +152,30 @@ export function EventCardNew({
         }
         currentInterestedEvents = fetchedProfile.interestedEvents || []
       }
-
       let updatedInterestedEvents: string[]
       if (newInterestedState) {
-        // Add event to interested list if not already there
         updatedInterestedEvents = currentInterestedEvents.includes(event.id)
           ? currentInterestedEvents
           : [...currentInterestedEvents, event.id]
       } else {
-        // Remove event from interested list
         updatedInterestedEvents = currentInterestedEvents.filter((id) => id !== event.id)
       }
-
-      // Update profile with all required fields
       await profilesService.update(
         session.profileId,
         {
           ...profile,
+          goingToEvents: updatedGoingEvents,
           interestedEvents: updatedInterestedEvents,
         },
         session.jwt
       )
-
-      // Update parent component's state with new arrays (optimistic update)
       if (onUpdate) {
-        onUpdate(event.id, userGoingEvents, updatedInterestedEvents, isGoing, wasInterested)
+        onUpdate(event.id, updatedGoingEvents, updatedInterestedEvents, newGoingState, wasInterested)
       } else {
-        // Fallback to refresh if onUpdate not provided
         onRefresh?.()
       }
     } catch (error) {
       console.error("Failed to update interested status:", error)
-      // Revert on error
       setIsInterested(!newInterestedState)
     } finally {
       setIsUpdating(false)

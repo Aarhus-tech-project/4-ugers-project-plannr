@@ -30,7 +30,6 @@ const CustomDateRangeCalendar: React.FC<CustomDateRangeCalendarProps> = ({
   const theme = useCustomTheme()
   const darkMode = theme.dark
   // Local state for time pickers
-  // Modal state for hour/minute selection removed (now using dropdown)
   // Default to 12:00 for new selections
   const [startTime, setStartTime] = useState<Date | null>(customStart ? dayjs(customStart).toDate() : null)
   const [endTime, setEndTime] = useState<Date | null>(customEnd ? dayjs(customEnd).toDate() : null)

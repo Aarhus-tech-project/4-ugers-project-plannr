@@ -1,30 +1,37 @@
 "use client"
 
 import { EventCardNew } from "@/features/profile/components/EventCardNew"
-import { useProfileEvents } from "@/features/profile/hooks/useProfileEvents"
-import { eventsService } from "@/lib/api/services/events"
-import { profilesService } from "@/lib/api/services/profiles"
 import { Navigation } from "@/shared/components/layout/Navigation"
-import { Button } from "@/shared/components/ui/Button"
 import { Card } from "@/shared/components/ui/Card"
 import { EmptyState } from "@/shared/components/ui/EmptyState"
 import { Input } from "@/shared/components/ui/Input"
-import type { Event, Profile, ProfileFormData } from "@/shared/types"
-import { Avatar, Box, Container, Flex, Grid, Heading, Stack, Text, VStack } from "@chakra-ui/react"
+import type { Event, ProfileFormData } from "@/shared/types"
+import { Box, Container, Flex, Grid, Heading, HStack, Text, VStack } from "@chakra-ui/react"
 import { useSession } from "next-auth/react"
 import * as React from "react"
 import { FiCalendar, FiCheck, FiHeart, FiUser } from "react-icons/fi"
 
+// Tab types
+const tabs = [
+  { id: "profile", label: "Profile", icon: FiUser },
+  { id: "myEvents", label: "My Events", icon: FiCalendar },
+  { id: "going", label: "Going", icon: FiCheck },
+  { id: "interested", label: "Interested", icon: FiHeart },
+]
+
 type TabType = "profile" | "myEvents" | "going" | "interested"
 
 export default function AccountPage() {
+  // Local state for going/interested event IDs for optimistic UI
+  const [userGoingEvents, setUserGoingEvents] = React.useState<string[]>([])
+  const [userInterestedEvents, setUserInterestedEvents] = React.useState<string[]>([])
   const { data: session, status } = useSession()
-  const { events, loading: eventsLoading } = useProfileEvents()
   const [activeTab, setActiveTab] = React.useState<TabType>("profile")
-  const [profile, setProfile] = React.useState<Profile | null>(null)
+  const [profile, setProfile] = React.useState<any>(null)
   const [allEvents, setAllEvents] = React.useState<Event[]>([])
+  const [myEvents, setMyEvents] = React.useState<Event[]>([])
   const [eventsDataLoading, setEventsDataLoading] = React.useState(true)
-
+  const [myEventsLoading, setMyEventsLoading] = React.useState(true)
   const [form, setForm] = React.useState<ProfileFormData>({
     name: "",
     email: "",
@@ -32,43 +39,50 @@ export default function AccountPage() {
     phone: "",
     image: "",
   })
-  const [loading, setLoading] = React.useState(false)
-  const [success, setSuccess] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
-
-  // Fetch profile and events data
   React.useEffect(() => {
     async function fetchData() {
       if (!session?.jwt || !session?.profileId) {
         setEventsDataLoading(false)
+        setMyEventsLoading(false)
         return
       }
-
       try {
-        // Fetch profile to get event IDs
-        const profileData = await profilesService.getById(session.profileId, session.jwt)
+        // Fetch profile
+        const res = await fetch(`/api/profiles/${session.profileId}`, {
+          headers: { Authorization: `Bearer ${session.jwt}` },
+        })
+        const profileData = await res.json()
         setProfile(profileData)
+        setUserGoingEvents(profileData.goingToEvents || [])
+        setUserInterestedEvents(profileData.interestedEvents || [])
 
-        // Fetch all events by IDs
-        const goingIds = profileData.goingToEvents || []
-        const interestedIds = profileData.interestedEvents || []
-        const allIds = [...new Set([...goingIds, ...interestedIds])]
-
+        // Fetch all events by IDs for going/interested
+        const allIds = [...new Set([...(profileData.goingToEvents || []), ...(profileData.interestedEvents || [])])]
+        let eventsData: Event[] = []
         if (allIds.length > 0) {
-          const eventsData = await eventsService.getAll(session.jwt, { ids: allIds.join(",") })
-          setAllEvents(Array.isArray(eventsData) ? eventsData : [])
+          const eventsRes = await fetch(`/api/events?ids=${allIds.join(",")}`, {
+            headers: { Authorization: `Bearer ${session.jwt}` },
+          })
+          eventsData = await eventsRes.json()
         }
+        setAllEvents(Array.isArray(eventsData) ? eventsData : [])
+
+        // Fetch events created by the user for My Events ONLY
+        const myEventsRes = await fetch(`/api/events?creatorId=${session.profileId}`, {
+          headers: { Authorization: `Bearer ${session.jwt}` },
+        })
+        const myEventsData = await myEventsRes.json()
+        setMyEvents(Array.isArray(myEventsData) ? myEventsData : [])
       } catch (error) {
         console.error("Error fetching profile/events:", error)
       } finally {
         setEventsDataLoading(false)
+        setMyEventsLoading(false)
       }
     }
-
     fetchData()
   }, [session])
 
-  // Populate fields when session loads
   React.useEffect(() => {
     if (session?.user) {
       setForm({
@@ -93,94 +107,33 @@ export default function AccountPage() {
     )
   }
 
-  async function handleUpdate(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setSuccess(false)
-    setError(null)
-
-    if (!session) {
-      setError("Session expired. Please login again.")
-      setLoading(false)
-      return
-    }
-
-    try {
-      const jwt = session.jwt
-      const profileId = session.profileId
-
-      if (!jwt || !profileId) {
-        setError("Missing authentication or profile ID.")
-        setLoading(false)
-        return
-      }
-
-      const body: Record<string, string> = {}
-      // Filter events by tab
-      const myEvents = (events as Event[]).filter((event) => event.creatorId === session.profileId)
-      const goingEvents = allEvents.filter((event) => profile?.goingToEvents?.includes(event.id || ""))
-      const interestedEvents = allEvents.filter((event) => profile?.interestedEvents?.includes(event.id || ""))
-
-      const res = await fetch(`/api/profiles/${profileId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify(body),
-      })
-
-      if (!res.ok) {
-        setError("Failed to update profile.")
-        setLoading(false)
-        return
-      }
-
-      setSuccess(true)
-    } catch {
-      setError("Unexpected error occurred.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const tabs = [
-    { id: "profile" as TabType, label: "Profile", icon: FiUser },
-    { id: "myEvents" as TabType, label: "My Events", icon: FiCalendar },
-    { id: "going" as TabType, label: "Going", icon: FiCheck },
-    { id: "interested" as TabType, label: "Interested", icon: FiHeart },
-  ]
-
-  // Filter events by tab (placeholder logic for now)
-  const myEvents = (events as Event[]).filter((event) => event.creatorId === session.profileId)
-  const goingEvents: Event[] = [] // TODO: Implement when attendance data is available
-  const interestedEvents: Event[] = [] // TODO: Implement when interested data is available
+  // Filter events by tab
+  const goingEvents = allEvents.filter((event) => userGoingEvents.includes(event.id || ""))
+  const interestedEvents = allEvents.filter((event) => userInterestedEvents.includes(event.id || ""))
 
   return (
     <Box minH="100vh" bg="bg.canvas">
       <Navigation />
-
-      <Container maxW="container.xl" py={{ base: 6, md: 10 }}>
-        {/* Profile Header */}
-        <Box mb={8}>
-          <Stack direction={{ base: "column", sm: "row" }} gap={4} align="center">
-            <Avatar.Root size="2xl" colorPalette="red" shape="full">
-              <Avatar.Fallback name={session.user?.name ?? "?"} />
-              {session.user?.avatarUrl ? (
-                <Avatar.Image src={session.user.avatarUrl} alt={session.user?.name ?? "Avatar"} />
-              ) : null}
-            </Avatar.Root>
-            <VStack align={{ base: "center", sm: "start" }} gap={1}>
-              <Heading fontSize={{ base: "2xl", md: "3xl" }} fontWeight="bold" color="fg.default">
-                {session.user?.name}
+      <Container maxW="container.xl" py={8}>
+        {/* Section Header */}
+        <Box mb={8} p={8} borderRadius="2xl" bg="brand.red.500" color="white" position="relative" shadow="lg">
+          <Box position="absolute" top={4} right={4} opacity={0.15}>
+            <FiUser size={80} />
+          </Box>
+          <VStack align="start" gap={2} position="relative" zIndex={1}>
+            <HStack gap={3}>
+              <Box p={2} bg="whiteAlpha.300" borderRadius="lg">
+                <FiUser size={32} />
+              </Box>
+              <Heading fontSize="3xl" fontWeight="bold">
+                Profile & Events
               </Heading>
-              <Text fontSize="md" color="fg.muted">
-                {session.user?.email}
-              </Text>
-            </VStack>
-          </Stack>
+            </HStack>
+            <Text fontSize="lg" opacity={0.9}>
+              Manage your account and see your events
+            </Text>
+          </VStack>
         </Box>
-
         {/* Tab Navigation */}
         <Box mb={8} borderBottomWidth="1px" borderColor="border.muted">
           <Flex gap={0}>
@@ -191,21 +144,24 @@ export default function AccountPage() {
                 <Box
                   key={tab.id}
                   as="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => setActiveTab(tab.id as TabType)}
                   px={6}
                   py={4}
                   fontSize="md"
                   fontWeight="medium"
-                  color={isActive ? "brand.primary" : "fg.muted"}
+                  color={isActive ? "white" : "fg.muted"}
+                  bg={isActive ? "brand.red.500" : "transparent"}
                   borderBottomWidth="2px"
-                  borderBottomColor={isActive ? "brand.primary" : "transparent"}
+                  borderBottomColor={isActive ? "white" : "transparent"}
                   transition="all 0.2s"
                   _hover={{
-                    color: isActive ? "brand.primary" : "fg.default",
+                    color: isActive ? "white" : "fg.default",
+                    bg: isActive ? "brand.red.600" : "brand.red.50",
                   }}
                   display="flex"
                   alignItems="center"
                   gap={2}
+                  borderRadius="md"
                 >
                   <Icon size={18} />
                   {tab.label}
@@ -214,38 +170,20 @@ export default function AccountPage() {
             })}
           </Flex>
         </Box>
-
         {/* Tab Content */}
         {activeTab === "profile" && (
-          <Card variant="elevated" p={{ base: 6, md: 8 }} maxW="container.md">
+          <Card p={8} borderWidth="2px" borderColor="brand.red.200" borderRadius="2xl" shadow="md" bg="white">
             <VStack gap={6} align="stretch">
               <Box>
-                <Heading fontSize="xl" fontWeight="bold" color="fg.default" mb={2}>
+                <Heading fontSize="xl" fontWeight="bold" color="brand.red.600" mb={2}>
                   Edit Profile
                 </Heading>
-                <Text fontSize="sm" color="fg.muted">
+                <Text fontSize="md" color="fg.muted">
                   Update your account information and preferences
                 </Text>
               </Box>
-
-              {/* Form */}
-              <form onSubmit={handleUpdate}>
+              <form>
                 <VStack gap={6} align="stretch">
-                  {success && (
-                    <Box p={4} bg="green.50" borderRadius="md" borderWidth="1px" borderColor="green.200">
-                      <Text color="green.700" fontWeight="semibold">
-                        Profile updated successfully!
-                      </Text>
-                    </Box>
-                  )}
-                  {error && (
-                    <Box p={4} bg="red.50" borderRadius="md" borderWidth="1px" borderColor="red.200">
-                      <Text color="red.700" fontWeight="semibold">
-                        {error}
-                      </Text>
-                    </Box>
-                  )}
-
                   <Input
                     label="Name"
                     id="name"
@@ -253,7 +191,6 @@ export default function AccountPage() {
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     required
                   />
-
                   <Input
                     label="Email"
                     id="email"
@@ -262,7 +199,6 @@ export default function AccountPage() {
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     required
                   />
-
                   <Input
                     label="Bio"
                     id="bio"
@@ -270,7 +206,6 @@ export default function AccountPage() {
                     onChange={(e) => setForm({ ...form, bio: e.target.value })}
                     helperText="Tell others about yourself"
                   />
-
                   <Input
                     label="Phone"
                     id="phone"
@@ -278,19 +213,14 @@ export default function AccountPage() {
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   />
-
-                  <Button type="submit" size="lg" loading={loading} width="full" mt={4}>
-                    Save Changes
-                  </Button>
                 </VStack>
               </form>
             </VStack>
           </Card>
         )}
-
         {activeTab === "myEvents" && (
-          <Box>
-            {eventsLoading ? (
+          <Card p={8} borderWidth="2px" borderColor="brand.red.200" borderRadius="2xl" shadow="md" bg="white">
+            {myEventsLoading ? (
               <Text color="fg.muted">Loading your events...</Text>
             ) : myEvents.length === 0 ? (
               <EmptyState
@@ -300,16 +230,26 @@ export default function AccountPage() {
               />
             ) : (
               <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
-                {myEvents.map((event) => (
-                  <EventCardNew key={event.id} event={event} variant="detailed" />
-                ))}
+                {myEvents
+                  .filter((event) => event.creatorId === session.profileId)
+                  .map((event) => (
+                    <EventCardNew
+                      key={event.id}
+                      event={event}
+                      variant="detailed"
+                      isUserGoing={false}
+                      isUserInterested={false}
+                      userGoingEvents={[]}
+                      userInterestedEvents={[]}
+                      userProfile={profile}
+                    />
+                  ))}
               </Grid>
             )}
-          </Box>
+          </Card>
         )}
-
         {activeTab === "going" && (
-          <Box>
+          <Card p={8} borderWidth="2px" borderColor="brand.red.200" borderRadius="2xl" shadow="md" bg="white">
             {eventsDataLoading ? (
               <Text color="fg.muted">Loading events...</Text>
             ) : goingEvents.length === 0 ? (
@@ -321,15 +261,27 @@ export default function AccountPage() {
             ) : (
               <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
                 {goingEvents.map((event) => (
-                  <EventCardNew key={event.id} event={event} variant="detailed" />
+                  <EventCardNew
+                    key={event.id}
+                    event={event}
+                    variant="detailed"
+                    isUserGoing={true}
+                    isUserInterested={false}
+                    userGoingEvents={userGoingEvents}
+                    userInterestedEvents={userInterestedEvents}
+                    userProfile={profile}
+                    onUpdate={(eventId, goingArr, interestedArr) => {
+                      setUserGoingEvents(goingArr)
+                      setUserInterestedEvents(interestedArr)
+                    }}
+                  />
                 ))}
               </Grid>
             )}
-          </Box>
+          </Card>
         )}
-
         {activeTab === "interested" && (
-          <Box>
+          <Card p={8} borderWidth="2px" borderColor="brand.red.200" borderRadius="2xl" shadow="md" bg="white">
             {eventsDataLoading ? (
               <Text color="fg.muted">Loading events...</Text>
             ) : interestedEvents.length === 0 ? (
@@ -341,11 +293,24 @@ export default function AccountPage() {
             ) : (
               <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
                 {interestedEvents.map((event) => (
-                  <EventCardNew key={event.id} event={event} variant="detailed" />
+                  <EventCardNew
+                    key={event.id}
+                    event={event}
+                    variant="detailed"
+                    isUserGoing={false}
+                    isUserInterested={true}
+                    userGoingEvents={userGoingEvents}
+                    userInterestedEvents={userInterestedEvents}
+                    userProfile={profile}
+                    onUpdate={(eventId, goingArr, interestedArr) => {
+                      setUserGoingEvents(goingArr)
+                      setUserInterestedEvents(interestedArr)
+                    }}
+                  />
                 ))}
               </Grid>
             )}
-          </Box>
+          </Card>
         )}
       </Container>
     </Box>
