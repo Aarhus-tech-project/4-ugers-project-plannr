@@ -1,116 +1,138 @@
 "use client"
-import { Box, Button, Heading, Input } from "@chakra-ui/react"
+
+import { useAuthForm } from "@/features/auth/hooks/useAuthForm"
+import { Button } from "@/shared/components/ui/Button"
+import { Card } from "@/shared/components/ui/Card"
+import { Input } from "@/shared/components/ui/Input"
+import { useAuthenticatedRedirect } from "@/shared/hooks/useClientRedirect"
+import { Box, Heading, Icon, Link, Text, VStack } from "@chakra-ui/react"
+import NextLink from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-// import Navbar from "@/components/Navbar"
+import { FiCalendar } from "react-icons/fi"
+
+interface SignupFormData {
+  name: string
+  email: string
+  password: string
+}
 
 export default function SignupPage() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const { values, error, setError, isLoading, setIsLoading, handleChange } = useAuthForm<SignupFormData>({
+    name: "",
+    email: "",
+    password: "",
+  })
   const router = useRouter()
+  const { isAuthenticated } = useAuthenticatedRedirect()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
+    setIsLoading(true)
+
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify(values),
       })
+
       if (!res.ok) {
         const data = await res.json()
         setError(data.error || "Registration failed")
         return
       }
-      setTimeout(() => router.push("/login"), 1500)
-    } catch (err) {
-      console.error("Registration error:", err)
-      setError("Registration failed")
+
+      router.push("/login")
+    } catch {
+      setError("Registration failed. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
+  if (isAuthenticated) {
+    return null
+  }
+
   return (
-    <>
-      <Box maxW="sm" mx="auto" mt={20} p={8} borderWidth={0} borderRadius="2xl" bg="brand.white" boxShadow="lg">
-        <Heading mb={6} color="brand.red" fontWeight="extrabold">
-          Sign Up
-        </Heading>
-        {error && (
-          <Box mb={4} p={3} bg="brand.red" color="white" borderRadius="md" fontWeight="bold">
-            {error}
+    <Box minH="100vh" bg="bg.canvas" display="flex" alignItems="center" justifyContent="center" p={4}>
+      <Box maxW="420px" w="full">
+        <VStack gap={8} align="stretch">
+          {/* Logo */}
+          <VStack gap={3} textAlign="center">
+            <Box p={3} bg="brand.primary" borderRadius="xl">
+              <Icon as={FiCalendar} boxSize={8} color="fg.inverted" />
+            </Box>
+            <Heading fontSize="4xl" fontWeight="extrabold" color="fg.default" letterSpacing="tight">
+              Plannr
+            </Heading>
+            <Text fontSize="md" color="fg.muted">
+              Create your account
+            </Text>
+          </VStack>
+
+          {/* Card */}
+          <Card variant="elevated" p={6}>
+            <form onSubmit={handleSubmit}>
+              <VStack gap={4} align="stretch">
+                <Input
+                  type="text"
+                  label="Name"
+                  placeholder="John Doe"
+                  value={values.name}
+                  onChange={(e) => handleChange("name")(e)}
+                  required
+                  autoComplete="name"
+                />
+
+                <Input
+                  type="email"
+                  label="Email"
+                  placeholder="you@example.com"
+                  value={values.email}
+                  onChange={(e) => handleChange("email")(e)}
+                  error={error?.includes("email") ? error : undefined}
+                  required
+                  autoComplete="email"
+                />
+
+                <Input
+                  type="password"
+                  label="Password"
+                  placeholder="••••••••"
+                  value={values.password}
+                  onChange={(e) => handleChange("password")(e)}
+                  error={error && !error.includes("email") ? error : undefined}
+                  helperText="At least 8 characters"
+                  required
+                  autoComplete="new-password"
+                />
+
+                <Button type="submit" width="full" size="lg" loading={isLoading} mt={2}>
+                  Create Account
+                </Button>
+              </VStack>
+            </form>
+          </Card>
+
+          {/* Footer */}
+          <Box textAlign="center">
+            <Text fontSize="sm" color="fg.muted">
+              Already have an account?{" "}
+              <Link
+                as={NextLink}
+                href="/login"
+                color="brand.primary"
+                fontWeight="semibold"
+                _hover={{ textDecoration: "underline" }}
+              >
+                Sign in
+              </Link>
+            </Text>
           </Box>
-        )}
-        <form onSubmit={handleSubmit}>
-          <Box mb={4}>
-            <label htmlFor="name" style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}>
-              Name
-            </label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              bg="gray.50"
-              borderRadius="md"
-            />
-          </Box>
-          <Box mb={4}>
-            <label
-              htmlFor="email"
-              style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}
-            >
-              Email
-            </label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              bg="gray.50"
-              borderRadius="md"
-            />
-          </Box>
-          <Box mb={4}>
-            <label
-              htmlFor="password"
-              style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}
-            >
-              Password
-            </label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              bg="gray.50"
-              borderRadius="md"
-            />
-          </Box>
-          <Button
-            colorScheme="brand"
-            bg="brand.red"
-            color="white"
-            type="submit"
-            width="full"
-            borderRadius="lg"
-            fontWeight="bold"
-            _hover={{ bg: "brand.red", opacity: 0.85 }}
-          >
-            Sign Up
-          </Button>
-        </form>
-        <Box mt={4} textAlign="center">
-          <span style={{ color: "#757575ff" }}>Already have an account? </span>
-          <Button variant="ghost" colorScheme="brand" color="brand.red" onClick={() => router.push("/login")}>
-            Login
-          </Button>
-        </Box>
+        </VStack>
       </Box>
-    </>
+    </Box>
   )
 }

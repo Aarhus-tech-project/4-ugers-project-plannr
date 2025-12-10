@@ -1,103 +1,124 @@
 "use client"
 
-import { Box, Button, Heading, Input } from "@chakra-ui/react"
+import { useAuthForm } from "@/features/auth/hooks/useAuthForm"
+import { Button } from "@/shared/components/ui/Button"
+import { Card } from "@/shared/components/ui/Card"
+import { Input } from "@/shared/components/ui/Input"
+import { useAuthenticatedRedirect } from "@/shared/hooks/useClientRedirect"
+import type { LoginFormData } from "@/shared/types"
+import { Box, Heading, Icon, Link, Text, VStack } from "@chakra-ui/react"
 import { signIn } from "next-auth/react"
+import NextLink from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { FiCalendar } from "react-icons/fi"
 
 export default function LoginPage() {
-  const [user, setUser] = useState({ email: "", password: "" })
-  const [error, setError] = useState("")
+  const { values, error, setError, isLoading, setIsLoading, handleChange } = useAuthForm<LoginFormData>({
+    email: "",
+    password: "",
+  })
   const router = useRouter()
+  const { isAuthenticated } = useAuthenticatedRedirect()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
+    setIsLoading(true)
+
     try {
       const res = await signIn("credentials", {
         redirect: false,
-        email: user.email,
-        password: user.password,
-        callbackUrl: "/",
+        email: values.email,
+        password: values.password,
+        callbackUrl: "/events",
       })
+
       if (res?.error) {
         setError(res.error || "Wrong credentials. Please try again.")
         return
       }
+
       if (res?.ok) {
-        router.push("/")
+        router.push("/events")
       }
-    } catch (err) {
-      console.error("Login error:", err)
+    } catch {
       setError("Login failed. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
+  if (isAuthenticated) {
+    return null
+  }
+
   return (
-    <>
-      <Box maxW="sm" mx="auto" mt={20} p={8} borderWidth={0} borderRadius="2xl" bg="brand.white" boxShadow="lg">
-        <Heading mb={6} color="brand.red" fontWeight="extrabold">
-          Login
-        </Heading>
-        {error && (
-          <Box mb={4} p={3} bg="brand.red" color="white" borderRadius="md" fontWeight="bold">
-            {error}
+    <Box minH="100vh" bg="bg.canvas" display="flex" alignItems="center" justifyContent="center" p={4}>
+      <Box maxW="420px" w="full">
+        <VStack gap={8} align="stretch">
+          {/* Logo */}
+          <VStack gap={3} textAlign="center">
+            <Box p={3} bg="brand.primary" borderRadius="xl">
+              <Icon as={FiCalendar} boxSize={8} color="fg.inverted" />
+            </Box>
+            <Heading fontSize="4xl" fontWeight="extrabold" color="fg.default" letterSpacing="tight">
+              Plannr
+            </Heading>
+            <Text fontSize="md" color="fg.muted">
+              Sign in to discover events
+            </Text>
+          </VStack>
+
+          {/* Card */}
+          <Card variant="elevated" p={6}>
+            <form onSubmit={handleSubmit}>
+              <VStack gap={4} align="stretch">
+                <Input
+                  type="email"
+                  label="Email"
+                  placeholder="you@example.com"
+                  value={values.email}
+                  onChange={(e) => handleChange("email")(e)}
+                  error={error?.includes("email") ? error : undefined}
+                  required
+                  autoComplete="email"
+                />
+
+                <Input
+                  type="password"
+                  label="Password"
+                  placeholder="••••••••"
+                  value={values.password}
+                  onChange={(e) => handleChange("password")(e)}
+                  error={error && !error.includes("email") ? error : undefined}
+                  required
+                  autoComplete="current-password"
+                />
+
+                <Button type="submit" width="full" size="lg" loading={isLoading} mt={2}>
+                  Sign In
+                </Button>
+              </VStack>
+            </form>
+          </Card>
+
+          {/* Footer */}
+          <Box textAlign="center">
+            <Text fontSize="sm" color="fg.muted">
+              Don&apos;t have an account?{" "}
+              <Link
+                as={NextLink}
+                href="/signup"
+                color="brand.primary"
+                fontWeight="semibold"
+                _hover={{ textDecoration: "underline" }}
+              >
+                Sign up
+              </Link>
+            </Text>
           </Box>
-        )}
-        <form onSubmit={handleSubmit}>
-          <Box mb={4}>
-            <label
-              htmlFor="email"
-              style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}
-            >
-              Email
-            </label>
-            <Input
-              id="email"
-              value={user.email}
-              onChange={(e) => setUser({ ...user, email: e.target.value })}
-              required
-              bg="gray.50"
-              borderRadius="md"
-            />
-          </Box>
-          <Box mb={6}>
-            <label
-              htmlFor="password"
-              style={{ fontWeight: "bold", marginBottom: 4, display: "block", color: "#434343ff" }}
-            >
-              Password
-            </label>
-            <Input
-              id="password"
-              type="password"
-              value={user.password}
-              onChange={(e) => setUser({ ...user, password: e.target.value })}
-              required
-              bg="gray.50"
-              borderRadius="md"
-            />
-          </Box>
-          <Button
-            colorScheme="brand"
-            bg="brand.red"
-            color="white"
-            type="submit"
-            width="full"
-            borderRadius="lg"
-            fontWeight="bold"
-            _hover={{ bg: "brand.red", opacity: 0.85 }}
-          >
-            Login
-          </Button>
-        </form>
-        <Box mt={4} textAlign="center">
-          <span style={{ color: "#757575ff" }}>Don't have an account? </span>
-          <Button variant="ghost" colorScheme="brand" color="brand.red" onClick={() => router.push("/signup")}>
-            Sign up
-          </Button>
-        </Box>
+        </VStack>
       </Box>
-    </>
+    </Box>
   )
 }

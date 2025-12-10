@@ -1,30 +1,54 @@
-import API_ENDPOINTS from "@/utils/api-endpoints"
-import { getToken } from "next-auth/jwt"
-import { NextRequest, NextResponse } from "next/server"
+import { BACKEND_API } from "@/lib/api/config"
+import {
+  createErrorResponse,
+  forwardToBackend,
+  getJwtFromRequest,
+  handleBackendResponse,
+  parseRequestBody,
+} from "@/lib/utils/api-helpers"
+import type { NextRequest } from "next/server"
+
+export const dynamic = "force-dynamic"
 
 export async function GET(req: NextRequest) {
-  try {
-    // Get JWT from session
-    const token = await getToken({ req })
-    const jwt =
-      typeof token === "object" && token !== null && "jwt" in token ? (token as { jwt: string }).jwt : undefined
-    if (!jwt) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-    // Forward request to backend with JWT
-    const res = await fetch(API_ENDPOINTS.EVENTS.ROOT, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${jwt}`,
-      },
-    })
-    if (!res.ok) {
-      return NextResponse.json({ error: "Failed to fetch events" }, { status: res.status })
-    }
-    const events = await res.json()
-    return NextResponse.json(events)
-  } catch {
-    return NextResponse.json({ error: "Server error" }, { status: 500 })
+  const jwt = await getJwtFromRequest(req)
+
+  const url = new URL(req.url)
+  const ids = url.searchParams.get("ids")
+
+  // Use /search endpoint for public access (allows anonymous)
+  // Use regular endpoint with JWT if filtering by ids
+  const backendUrl = ids ? `${BACKEND_API.events.root}?ids=${ids}` : `${BACKEND_API.events.root}/search?take=100`
+
+  const res = await forwardToBackend(backendUrl, { method: "GET", jwt: jwt || undefined })
+
+  if (!res.ok) {
+    const errorText = await res.text()
+    console.error("Backend error response:", res.status, errorText)
+    return createErrorResponse(`Backend error: ${res.status} - ${errorText}`, res.status)
   }
+
+  const data = await handleBackendResponse(res)
+  return Response.json(data, { status: res.status })
+}
+
+export async function POST(req: NextRequest) {
+  const jwt = await getJwtFromRequest(req)
+  if (!jwt) {
+    return createErrorResponse("Unauthorized", 401)
+  }
+
+  const body = await parseRequestBody(req)
+  if (!body) {
+    return createErrorResponse("Invalid request body", 400)
+  }
+
+  const res = await forwardToBackend(BACKEND_API.events.root, {
+    method: "POST",
+    jwt,
+    body: JSON.stringify(body),
+  })
+
+  const data = await handleBackendResponse(res)
+  return Response.json(data, { status: res.status })
 }

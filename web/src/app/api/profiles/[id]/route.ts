@@ -1,32 +1,71 @@
-import API_ENDPOINTS from "@utils/api-endpoints"
+import { BACKEND_API } from "@/lib/api/config"
+import {
+  createErrorResponse,
+  forwardToBackend,
+  getJwtFromRequest,
+  handleBackendResponse,
+  parseRequestBody,
+} from "@/lib/utils/api-helpers"
 import type { NextRequest } from "next/server"
 
-export async function GET(req: NextRequest, context: { params: { id: string } }) {
-  const id = context.params.id
-  console.log("[API] GET /api/profiles/", id, "called")
-  const jwt = req.headers.get("authorization")?.replace("Bearer ", "")
-  console.log("JWT:", jwt)
+export const dynamic = "force-dynamic"
+
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const jwt = await getJwtFromRequest(req)
   if (!jwt) {
-    console.log("Missing JWT token")
-    return new Response(JSON.stringify({ error: "Missing JWT token" }), { status: 401 })
+    return createErrorResponse("Unauthorized", 401)
   }
-  const url = API_ENDPOINTS.PROFILES.BY_ID(id)
-  console.log("Proxying to backend URL:", url)
-  const res = await fetch(url, {
+
+  const res = await forwardToBackend(BACKEND_API.profiles.byId(id), {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${jwt}`,
-    },
+    jwt,
   })
-  console.log("Backend response status:", res.status)
-  let data
-  try {
-    data = await res.json()
-    console.log("Backend response data:", data)
-  } catch (err) {
-    console.log("Error parsing backend response:", err)
-    data = { error: "Failed to parse backend response" }
+
+  const data = await handleBackendResponse(res)
+  return Response.json(data, { status: res.status })
+}
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const jwt = await getJwtFromRequest(req)
+  if (!jwt) {
+    return createErrorResponse("Unauthorized", 401)
   }
-  return new Response(JSON.stringify(data), { status: res.status })
+
+  const body = await parseRequestBody(req)
+  if (!body) {
+    return createErrorResponse("Invalid request body", 400)
+  }
+
+  const res = await forwardToBackend(BACKEND_API.profiles.byId(id), {
+    method: "PATCH",
+    jwt,
+    body: JSON.stringify(body),
+  })
+
+  const data = await handleBackendResponse(res)
+  return Response.json(data, { status: res.status })
+}
+
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const jwt = await getJwtFromRequest(req)
+  if (!jwt) {
+    return createErrorResponse("Unauthorized", 401)
+  }
+
+  const body = await parseRequestBody(req)
+  if (!body) {
+    return createErrorResponse("Invalid request body", 400)
+  }
+
+  const res = await forwardToBackend(BACKEND_API.profiles.byId(id), {
+    method: "PUT",
+    jwt,
+    body: JSON.stringify(body),
+  })
+
+  const data = await handleBackendResponse(res)
+  return Response.json(data, { status: res.status })
 }
