@@ -66,7 +66,6 @@ export default function EventsPage() {
   const [scrollProgress, setScrollProgress] = useState(0)
   const [quickFilter, setQuickFilter] = useState<string | null>(null)
   const [isSearchMode, setIsSearchMode] = useState(false)
-  const [viewMode, setViewMode] = useState<"all" | "myEvents">("all")
   const [userGoingEvents, setUserGoingEvents] = useState<string[]>([])
   const [userInterestedEvents, setUserInterestedEvents] = useState<string[]>([])
   const [userProfile, setUserProfile] = useState<{
@@ -150,11 +149,6 @@ export default function EventsPage() {
   // Filter events
   const getFilteredEvents = () => {
     let filtered = events as Event[]
-
-    // View mode filter
-    if (viewMode === "myEvents") {
-      filtered = filtered.filter((event) => event.creatorId === session?.profileId)
-    }
 
     // Quick filters
     if (quickFilter) {
@@ -666,54 +660,8 @@ export default function EventsPage() {
             </Grid>
           </Box>
 
-          {/* View Toggle */}
-          {session && (
-            <Box mb={8}>
-              <HStack gap={3} justify="center">
-                <Box
-                  as="button"
-                  onClick={() => setViewMode("all")}
-                  px={6}
-                  py={3}
-                  bg={viewMode === "all" ? "brand.red.500" : { base: "white", _dark: "gray.800" }}
-                  color={viewMode === "all" ? "white" : "fg.default"}
-                  borderRadius="xl"
-                  borderWidth="1px"
-                  borderColor={viewMode === "all" ? "brand.red.500" : { base: "gray.200", _dark: "gray.700" }}
-                  fontWeight="bold"
-                  fontSize="md"
-                  _hover={{
-                    bg: viewMode === "all" ? "brand.red.600" : { base: "gray.50", _dark: "gray.700" },
-                  }}
-                  transition="all 0.2s"
-                >
-                  All Events
-                </Box>
-                <Box
-                  as="button"
-                  onClick={() => setViewMode("myEvents")}
-                  px={6}
-                  py={3}
-                  bg={viewMode === "myEvents" ? "brand.red.500" : { base: "white", _dark: "gray.800" }}
-                  color={viewMode === "myEvents" ? "white" : "fg.default"}
-                  borderRadius="xl"
-                  borderWidth="1px"
-                  borderColor={viewMode === "myEvents" ? "brand.red.500" : { base: "gray.200", _dark: "gray.700" }}
-                  fontWeight="bold"
-                  fontSize="md"
-                  _hover={{
-                    bg: viewMode === "myEvents" ? "brand.red.600" : { base: "gray.50", _dark: "gray.700" },
-                  }}
-                  transition="all 0.2s"
-                >
-                  My Events
-                </Box>
-              </HStack>
-            </Box>
-          )}
-
           {/* Trending Events - Show when no filter active and not in search mode */}
-          {!selectedMood && !searchQuery && !isSearchMode && displayEvents.length > 0 && viewMode === "all" && (
+          {!selectedMood && !searchQuery && !isSearchMode && displayEvents.length > 0 && (
             <Box mb={10}>
               <HStack justify="space-between" align="center" mb={5}>
                 <HStack gap={3}>
