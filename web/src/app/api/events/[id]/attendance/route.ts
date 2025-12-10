@@ -24,15 +24,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return createErrorResponse("Invalid request body", 400)
   }
 
-  console.log("[Attendance] Forwarding to backend with JWT:", jwt.substring(0, 20) + "...")
-
   const res = await forwardToBackend(`${BACKEND_API.events.root}/${id}/attendance`, {
     method: "PATCH",
     jwt,
     body: JSON.stringify(body),
   })
-
-  console.log("[Attendance] Backend response:", res.status)
 
   if (!res.ok) {
     const errorText = await res.text()

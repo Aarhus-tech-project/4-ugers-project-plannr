@@ -153,12 +153,7 @@ export default function EventsPage() {
 
     // View mode filter
     if (viewMode === "myEvents") {
-      filtered = filtered.filter(
-        (event) =>
-          event.creatorId === session?.profileId ||
-          (event.id && userGoingEvents.includes(event.id)) ||
-          (event.id && userInterestedEvents.includes(event.id))
-      )
+      filtered = filtered.filter((event) => event.creatorId === session?.profileId)
     }
 
     // Quick filters
