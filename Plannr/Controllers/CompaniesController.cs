@@ -27,7 +27,7 @@ public class CompaniesController(ApplicationDbContext db) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var company = await db.Companies
+        Company? company = await db.Companies
             .Include(c => c.Profile)
             .Include(c => c.Users)
             .Include(c => c.Events)
@@ -36,5 +36,48 @@ public class CompaniesController(ApplicationDbContext db) : ControllerBase
         return company is null ? NotFound() : Ok(company);
     }
 
-    // Add more endpoints as needed (update, delete, list, etc.)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] Company input)
+    {
+        Company? existingCompany = await db.Companies.FindAsync(id);
+        if (existingCompany is null)
+            return NotFound();
+
+        if (string.IsNullOrWhiteSpace(input.Name))
+            return BadRequest("Company name is required.");
+
+        existingCompany.Name = input.Name;
+        existingCompany.Description = input.Description;
+        existingCompany.LogoUrl = input.LogoUrl;
+
+        db.Companies.Update(existingCompany);
+        await db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        Company? company = await db.Companies.FindAsync(id);
+        if (company is null)
+            return NotFound();
+
+        db.Companies.Remove(company);
+        await db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> List()
+    {
+        List<Company>? companies = await db.Companies
+            .Include(c => c.Profile)
+            .Include(c => c.Users)
+            .Include(c => c.Events)
+            .ToListAsync();
+
+        return Ok(companies);
+    }
 }

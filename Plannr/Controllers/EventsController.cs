@@ -79,7 +79,7 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
         return Ok(results);
     }
 
-    // POST: /api/events  (kræver login)
+    // POST: /api/events  (requires login)
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Create([FromBody] Event input)
@@ -116,7 +116,7 @@ public class EventsController(ApplicationDbContext db) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = input.Id }, input);
     }
 
-    // PUT: /api/events/{id}  (kræver login og ejerskab)
+    // PUT: /api/events/{id}  (requires login and ownership)
     [HttpPut("{id:guid}")]
     [Authorize]
     public async Task<IActionResult> Update(Guid id, [FromBody] Event update)

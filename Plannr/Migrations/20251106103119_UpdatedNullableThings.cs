@@ -12,7 +12,7 @@ namespace Plannr.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // 0) (valgfrit) hvis du vil gøre UserId nullable først
+            //
             migrationBuilder.AlterColumn<Guid>(
                 name: "UserId",
                 table: "Profiles",
@@ -46,7 +46,7 @@ namespace Plannr.Migrations
                 type: "uuid[]",
                 nullable: true);
 
-            // 2) Backfill eksisterende rækker til tomt array
+            // 2)
             migrationBuilder.Sql("""
         UPDATE "Profiles" SET "InterestedEvents"='{}'::uuid[] WHERE "InterestedEvents" IS NULL;
         UPDATE "Profiles" SET "GoingToEvents"='{}'::uuid[] WHERE "GoingToEvents" IS NULL;
@@ -54,7 +54,7 @@ namespace Plannr.Migrations
         UPDATE "Profiles" SET "NotInterestedEvents"='{}'::uuid[] WHERE "NotInterestedEvents" IS NULL;
     """);
 
-            // 3) Sæt DEFAULT for nye rækker
+            // 3)
             migrationBuilder.AlterColumn<List<Guid>>(
                 name: "InterestedEvents",
                 table: "Profiles",

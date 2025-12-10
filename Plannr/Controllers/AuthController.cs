@@ -22,7 +22,7 @@ public class AuthController(
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-        // check email unique (Identity har også constraint)
+        // check email unique (Identity also has constraint)
         var existing = await userManager.FindByEmailAsync(req.Email);
         if (existing is not null)
             return Conflict(new ProblemDetails { Title = "Email already exists", Status = 409 });
